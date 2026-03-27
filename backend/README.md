@@ -5,7 +5,7 @@ This is the Node.js/Express RESTful API for the Savdo-(E) e-commerce platform.
 ## Features
 - **Express Server**: High-performance routing and middleware.
 - **MVC Architecture**: Clearly separated controllers, models, and routes.
-- **PostgreSQL**: Robust relational data storage.
+- **MongoDB**: Flexible NoSQL data storage (using Mongoose).
 - **JWT Auth**: Secure user authentication and role-based access control.
 
 ## Folder Structure

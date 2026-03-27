@@ -8,7 +8,7 @@ The application follows a **monorepo** structure, separating core concerns into 
 ### 1. Backend (API)
 The backend is a Node.js/Express-based RESTful API server. It manages data, authentication, and core business logic.
 - **MVC/Service Pattern**: Responsibilities are separated into controllers, services, and models.
-- **ORM**: Uses Sequelize/Prisma to manage the PostgreSQL database.
+- **Database**: Uses Mongoose to interact with the MongoDB database.
 - **Auth**: JWT-based authentication for both client and administrative users.
 - **Middleware**: Used for authorization, error handling, and request normalization.
 
@@ -26,7 +26,7 @@ The mobile application is built with React Native and powered by the Expo framew
 - **Expo API**: Leveraging native hardware features when necessary.
 
 ## Database Overview
-The project uses **PostgreSQL**, structured for relational data integrity. Core models include:
+The project uses **MongoDB**, ensuring flexibility and rapid development. Core collections include:
 - **User**: Authentication and user roles.
 - **Product**: Goods details, pricing, and quantities.
 - **Category**: Product taxonomies.
