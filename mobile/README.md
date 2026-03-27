@@ -32,3 +32,5 @@ This is the React Native mobile application for the Savdo-(E) e-commerce platfor
 ## Getting Started on Device
 1. Install **Expo Go** app from App Store or Play Store.
 2. Scan the QR code displayed in the terminal.
+
+Hello
