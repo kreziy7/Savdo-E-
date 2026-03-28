@@ -1,54 +1,178 @@
-# API Overview
+# Savdo-E API Documentation
 
-The Savdo-(E) platform uses a RESTful API architecture for communication between clients and the backend.
+**Base URL:** `http://localhost:5000/api/v1`
 
-## Base URL
-- **Development**: `http://localhost:5000/api`
-- **Production**: `https://api.savdo-e.com/api`
+All responses follow this envelope:
+```json
+{ "success": true, "statusCode": 200, "data": {}, "message": "..." }
+```
+
+---
 
 ## Authentication
-The API uses JWT (JSON Web Tokens) for authenticating users. Secure headers must be included for protected endpoints:
-`Authorization: Bearer <your_jwt_token>`
 
-## Key API Endpoints
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/auth/register` | Public | Register new user |
+| POST | `/auth/login` | Public | Login, returns access+refresh tokens |
+| POST | `/auth/refresh-token` | Public | Rotate refresh token |
+| POST | `/auth/logout` | Bearer | Logout (revoke refresh token) |
+| POST | `/auth/logout-all` | Bearer | Logout all devices |
+| GET  | `/auth/me` | Bearer | Get current user |
 
-### Authentication
-- `POST /api/auth/register`: Register a new user.
-- `POST /api/auth/login`: Authenticate and receive a token.
-- `GET /api/auth/profile`: Get the logged-in user profile. [Protected]
+### Register
+```json
+POST /auth/register
+{ "name": "John Doe", "email": "john@example.com", "password": "Password1" }
+```
 
-### Products
-- `GET /api/products`: List all products (with filters like pagination and category).
-- `GET /api/products/:id`: Get detailed information about a product.
-- `POST /api/products`: Create a new product. [Admin only]
-- `PUT /api/products/:id`: Update an existing product. [Admin only]
-- `DELETE /api/products/:id`: Remove a product from the database. [Admin only]
+### Login
+```json
+POST /auth/login
+{ "email": "john@example.com", "password": "Password1" }
+Response: { "user": {...}, "accessToken": "...", "refreshToken": "..." }
+```
 
-### Categories
-- `GET /api/categories`: List all product categories.
-- `POST /api/categories`: Add a new category. [Admin only]
+---
 
-### Orders
-- `GET /api/orders`: List user's order history. [Protected]
-- `POST /api/orders`: Place a new order. [Protected]
-- `GET /api/orders/:id`: Get specific order details. [Protected]
-- `PATCH /api/orders/:id/status`: Update order status (pending, shipped, delivered). [Admin only]
+## Users
 
-### Cart
-- `GET /api/cart`: Get current user's shopping cart. [Protected]
-- `POST /api/cart/add`: Add an item to the cart. [Protected]
-- `DELETE /api/cart/:id`: Remove an item from the cart. [Protected]
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET    | `/users/profile` | Bearer | Get profile |
+| PATCH  | `/users/profile` | Bearer | Update profile |
+| PATCH  | `/users/change-password` | Bearer | Change password |
+| POST   | `/users/addresses` | Bearer | Add address |
+| PATCH  | `/users/addresses/:id` | Bearer | Update address |
+| DELETE | `/users/addresses/:id` | Bearer | Delete address |
 
-## Response Format
-The API follows standard JSON response conventions:
-- **Success**: `{ "success": true, "data": { ... } }`
-- **Error**: `{ "success": false, "error": { "message": "Reason for error" } }`
+---
 
-## HTTP Status Codes
-- `200 OK`: Request succeeded.
-- `201 Created`: Resource successfully created.
-- `400 Bad Request`: Validation errors or malformed input.
-- `401 Unauthorized`: Authentication required.
-- `403 Forbidden`: Insufficient permissions.
-- `404 Not Found`: Resource does not exist.
-- `500 Internal Server Error`: Generic failure during request processing.
+## Products
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET    | `/products` | Public | List products (paginated, filterable) |
+| GET    | `/products/categories` | Public | Get all categories |
+| GET    | `/products/slug/:slug` | Public | Get product by slug |
+| GET    | `/products/:id` | Public | Get product by ID |
+| POST   | `/products` | Admin | Create product |
+| PATCH  | `/products/:id` | Admin | Update product |
+| DELETE | `/products/:id` | Admin | Soft-delete product |
+| POST   | `/products/:id/reviews` | Bearer | Add review |
+
+### Query Parameters (GET /products)
+| Param | Type | Description |
+|-------|------|-------------|
+| `page` | number | Page number (default: 1) |
+| `limit` | number | Items per page (default: 12) |
+| `search` | string | Full-text search |
+| `category` | string | Filter by category |
+| `minPrice` | number | Minimum final price |
+| `maxPrice` | number | Maximum final price |
+| `minRating` | number | Minimum average rating |
+| `inStock` | boolean | Only in-stock items |
+| `sortBy` | string | `price`, `finalPrice`, `rating.average`, `createdAt`, `name` |
+| `order` | string | `asc` or `desc` |
+
+---
+
+## Cart
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET    | `/cart` | Bearer | Get cart |
+| POST   | `/cart/add` | Bearer | `{ productId, quantity }` |
+| PATCH  | `/cart/item/:productId` | Bearer | `{ quantity }` |
+| DELETE | `/cart/item/:productId` | Bearer | Remove item |
+| DELETE | `/cart/clear` | Bearer | Clear cart |
+
+---
+
+## Wishlist
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET    | `/wishlist` | Bearer | Get wishlist |
+| POST   | `/wishlist/toggle/:productId` | Bearer | Toggle product in/out |
+| DELETE | `/wishlist/:productId` | Bearer | Remove product |
+
+---
+
+## Orders
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST   | `/orders` | Bearer | Create order |
+| GET    | `/orders/my-orders` | Bearer | Get user's orders |
+| GET    | `/orders/:id` | Bearer | Get single order |
+| PATCH  | `/orders/:id/cancel` | Bearer | Cancel order |
+| PATCH  | `/orders/:id/status` | Admin | Update order status |
+
+### Create Order Request Body
+```json
+{
+  "items": [{ "product": "<objectId>", "quantity": 2 }],
+  "shippingAddress": {
+    "street": "123 Main St", "city": "New York",
+    "state": "NY", "country": "USA", "zipCode": "10001"
+  },
+  "paymentMethod": "cash_on_delivery",
+  "notes": "Optional note"
+}
+```
+
+### Order Statuses
+`pending` → `paid` → `shipped` → `delivered` | `cancelled`
+
+---
+
+## Admin
+
+Requires `Authorization: Bearer <token>` with role `ADMIN` or `SUPER_ADMIN`.
+
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| GET    | `/admin/stats` | Admin | Dashboard stats |
+| GET    | `/admin/users` | Admin | List all users |
+| GET    | `/admin/users/:id` | Admin | Get user |
+| PATCH  | `/admin/users/:id/block` | Admin | Block user |
+| PATCH  | `/admin/users/:id/unblock` | Admin | Unblock user |
+| DELETE | `/admin/users/:id` | SUPER_ADMIN | Delete user |
+| GET    | `/admin/orders` | Admin | List all orders |
+| PATCH  | `/admin/orders/:id/status` | Admin | Update order status |
+
+### Dashboard Stats Response
+```json
+{
+  "totalUsers": 120,
+  "totalProducts": 48,
+  "totalOrders": 305,
+  "totalRevenue": 18234.50,
+  "recentOrders": [...],
+  "ordersByStatus": [{ "_id": "pending", "count": 12 }, ...]
+}
+```
+
+---
+
+## Error Codes
+
+| Code | Meaning |
+|------|---------|
+| 200  | Success |
+| 201  | Created |
+| 400  | Bad Request |
+| 401  | Unauthorized (token missing/expired) |
+| 403  | Forbidden (insufficient role) |
+| 404  | Not Found |
+| 409  | Conflict (e.g. duplicate email) |
+| 422  | Validation Error |
+| 429  | Too Many Requests |
+| 500  | Internal Server Error |
+
+---
+
+## Rate Limits
+- **Global API:** 100 req / 15 min per IP
+- **Auth endpoints:** 10 req / 15 min per IP
