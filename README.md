@@ -1,104 +1,93 @@
-# Savdo-E — Production-Ready E-Commerce Platform
+# 🛒 Savdo-E | Modern E-Commerce Platform with AI 🚀
 
-Full-stack e-commerce platform with Node.js backend, React web frontend, and React Native mobile app.
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Node.js 18+, Express 4, MongoDB (Mongoose), JWT |
-| Web | React 18, Vite, Zustand, TanStack Query, Tailwind CSS |
-| Mobile | React Native, Expo |
-| Auth | JWT Access + Refresh Token rotation |
-| Security | Helmet, CORS, Rate Limiting, Joi, mongo-sanitize |
+Savdo-E is a high-performance, production-ready e-commerce solution built with a modern tech stack. It features a robust Node.js backend, a beautiful React web dashboard, and a React Native mobile application.
 
 ---
 
-## Quick Start
+## 🌟 Key Features
 
-### 1. Backend
+### 🌍 Full Localization (i18n)
+- **Languages**: Full support for Uzbek (UZ), Russian (RU), and English (EN).
+- **Dynamic Formatting**: Automatic localization of currency, dates, and number formats.
+- **Unified Switcher**: Seamless language switching across all dashboard components.
 
+### 🤖 Intelligent AI Assistant (Gemini)
+- **Brain**: Powered by Google Gemini 1.5 Flash.
+- **Context-Aware**: Knows your inventory, stock levels, and sales trends to give 100% accurate answers.
+- **Capabilities**: Suggests products, provides business advice (profit/stock tips), and handles general inquiries in multiple languages.
+
+### 📊 Business Management
+- **Sales Tracking**: Real-time sales recording with daily/monthly report summaries.
+- **Product Management**: Full CRUD with categorized inventory, stock control, and unit management.
+- **Reports**: Advanced statistics including revenue, profit, and top-selling products.
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Node.js 18+, Express 4, MongoDB (Mongoose), Google Generative AI |
+| **Frontend** | React 18, Vite, i18next, TanStack Query, Tailwind CSS |
+| **Mobile** | React Native, Expo, React Navigation |
+| **Auth** | JWT Access + Refresh Token rotation, Fingerprinting |
+| **Security** | Helmet, CORS, Rate Limiting, Input Validation (Joi), Mongo Sanitize |
+
+---
+
+## 📁 System Architecture
+
+The project follows a modular **MVC (Model-View-Controller) + Service Layer** pattern for maximum scalability and maintainability.
+
+### 🏗 Backend Structure
+- `src/models`: Database schemas for Products, Sales, Users, Orders, etc.
+- `src/services`: Core business logic (isolated from the transport layer).
+- `src/controllers`: Request/Response handling.
+- `src/routes`: API endpoint definitions (V1).
+- `src/middlewares`: Auth (JWT/RBAC), Error handling, and validation.
+
+### ⚛️ Frontend structure
+- `src/api`: Centralized axios instance with auth interceptors.
+- `src/components`: Reusable atomized UI components (AI Assistant, Layout, Modals).
+- `src/pages`: Feature-rich page compositions (Dashboard, Sales, Products, Reports).
+- `src/i18n.js`: Centralized multilingual resource repository.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Backend Setup
 ```bash
 cd backend
 npm install
-# .env is already configured — edit if needed
+# Ensure .env is set up with MONGO_URI and GEMINI_API_KEY
 npm run dev
-# → http://localhost:5000
-# → http://localhost:5000/health
+# → Default Port: 5002
 ```
 
-### 2. Web Frontend
-
+### 2. Web Frontend Setup
 ```bash
 cd web
 npm install
 npm run dev
-# → http://localhost:5173
-```
-
-### 3. Mobile
-
-```bash
-cd mobile
-npm install
-npx expo start
+# → Default Port: 5173
 ```
 
 ---
 
-## Environment Variables (backend/.env)
-
-```env
-PORT=5000
-MONGO_URI=<your-mongodb-uri>
-NODE_ENV=development
-JWT_ACCESS_SECRET=<change-in-production>
-JWT_REFRESH_SECRET=<change-in-production>
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
-CORS_ORIGIN=http://localhost:5173
-```
+## 🔒 Security Measures
+- **Rate Limiting**: Protects against brute-force attacks.
+- **Security Headers**: Using Helmet.js to prevent common injections.
+- **Data Sanitization**: Against NoSQL injection and XSS.
+- **JWT Rotation**: Secure authentication lifecycle management.
 
 ---
 
-## Features
-
-### Backend
-- JWT auth with access + refresh token rotation
-- Role-based access control (USER / ADMIN / SUPER_ADMIN)
-- Full product management with text search + filtering
-- Cart sync with DB, wishlist, order lifecycle management
-- Admin dashboard stats (users, orders, revenue)
-- Centralized error handling, input validation (Joi), rate limiting
-
-### Web
-- Dark / light mode
-- Auth-protected routes, admin guard
-- Product listing with search, filters, pagination
-- Cart, checkout, order placement
-- Admin CRUD for products, user management, order status updates
-- Skeleton loaders, toast notifications
+## 📝 Authors & Project Status
+Developed as a high-quality, localized e-commerce solution.
+**Status**: Stable Release (Localization & AI Integrated)
 
 ---
 
-## API Documentation
-
-See [`docs/api.md`](docs/api.md) for full endpoint reference.
-
-## Architecture
-
-See [`docs/architecture.md`](docs/architecture.md) for system design, ERD, and security details.
-
----
-
-## Default Roles
-
-To create an admin user, register normally then update the `role` field directly in MongoDB:
-```javascript
-db.users.updateOne({ email: "admin@example.com" }, { $set: { role: "ADMIN" } })
-```
-
----
-
-## License
+## 📄 License
 MIT
