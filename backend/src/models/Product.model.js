@@ -24,15 +24,21 @@ const productSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
+    // SAVDO fields
+    buyPrice: { type: Number, default: 0, min: 0 },
+    sellPrice: { type: Number, default: 0, min: 0 },
+    unit: { type: String, default: 'dona', trim: true },
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
     description: {
       type: String,
-      required: [true, 'Product description is required'],
       maxlength: [5000, 'Description cannot exceed 5000 characters'],
+      default: '',
     },
     price: {
       type: Number,
-      required: [true, 'Price is required'],
       min: [0, 'Price cannot be negative'],
+      default: 0,
     },
     discount: {
       type: Number,
@@ -46,9 +52,9 @@ const productSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      required: [true, 'Category is required'],
       trim: true,
       lowercase: true,
+      default: '',
     },
     images: [
       {

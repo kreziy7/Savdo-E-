@@ -22,9 +22,9 @@ const saleSchema = new mongoose.Schema(
     unit: { type: String, default: 'pcs' },
     sellPrice: { type: Number, required: true, min: 0 },
     buyPrice: { type: Number, required: true, min: 0 },
-    totalRevenue: { type: Number, required: true },
-    totalCost: { type: Number, required: true },
-    profit: { type: Number, required: true },
+    totalRevenue: { type: Number, default: 0 },
+    totalCost: { type: Number, default: 0 },
+    profit: { type: Number, default: 0 },
     note: { type: String, default: '' },
     // Offline sync fields
     syncId: { type: String, unique: true, sparse: true }, // local UUID from mobile
@@ -35,8 +35,8 @@ const saleSchema = new mongoose.Schema(
   }
 );
 
-// Auto-compute totals before save
-saleSchema.pre('save', function () {
+// Auto-compute totals before validation (Mongoose 7: pre('save') runs AFTER validation)
+saleSchema.pre('validate', function () {
   this.totalRevenue = this.quantity * this.sellPrice;
   this.totalCost = this.quantity * this.buyPrice;
   this.profit = this.totalRevenue - this.totalCost;

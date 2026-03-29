@@ -11,6 +11,7 @@ const adminRoutes = require('./admin.routes');
 const salesRoutes = require('./sales.routes');
 const reportsRoutes = require('./reports.routes');
 const syncRoutes = require('./sync.routes');
+const aiRoutes = require('./ai.routes');
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
@@ -22,5 +23,6 @@ router.use('/admin', adminRoutes);
 router.use('/sales', salesRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/sync', syncRoutes);
+router.use('/ai', aiRoutes);
 
 module.exports = router;
