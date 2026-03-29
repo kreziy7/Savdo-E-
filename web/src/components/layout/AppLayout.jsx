@@ -2,7 +2,6 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { Home, Package, ShoppingCart, BarChart2, LogOut, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
-import AIAssistant from '../common/AIAssistant';
 
 function LanguageSwitcher() {
   const { i18n } = useTranslation();
@@ -144,8 +143,6 @@ export default function AppLayout() {
         </button>
       </nav>
 
-      {/* AI Assistant */}
-      <AIAssistant />
     </div>
   );
 }
