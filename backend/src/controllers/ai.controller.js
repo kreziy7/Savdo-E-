@@ -7,8 +7,19 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 exports.askAI = async (req, res) => {
     try {
-        const { prompt, language } = req.body;
-        console.log(`[AI Request] Lang: ${language}, Prompt: ${prompt.substring(0, 50)}...`);
+        // Support both 'prompt' and 'question' field names
+        const { prompt, question, language } = req.body;
+        const finalPrompt = prompt || question;
+
+        // Validate prompt/question is provided
+        if (!finalPrompt) {
+            return res.status(400).json({
+                success: false,
+                message: "Savol (prompt yoki question) talab qilinadi"
+            });
+        }
+
+        console.log(`[AI Request] Lang: ${language}, Prompt: ${finalPrompt.substring(0, 50)}...`);
 
         if (!process.env.GEMINI_API_KEY) {
             console.error("GEMINI_API_KEY is not defined in backend .env!");
@@ -25,19 +36,19 @@ exports.askAI = async (req, res) => {
       Do'kon ma'lumotlari:
       Mahsulotlar soni: ${products.length}
       Oxirgi sotuvlar soni: ${recentSales.length}
-      
+
       Mahsulotlar ro'yxati (namuna):
       ${products.map(p => `${p.name}: ${p.sellPrice} so'm, Qoldiq: ${p.stock} ${p.unit}`).join('\n')}
 
       Foydalanuvchi tili: ${language || 'uz'}
-      
+
       Vazifangiz:
       1. Mahsulotlar to'g'risidagi savollarga aniq javob bering.
       2. Biznesni rivojlantirish bo'yicha maslahatlar bering.
       3. Savolga qisqa va lo'nda, do'stona tarzda ${language === 'ru' ? 'rus' : language === 'en' ? 'ingliz' : 'o\'zbek'} tilida javob bering.
       4. Agar biror narsani bilmasangiz, muloyimlik bilan ayting.
-      
-      Foydalanuvchi so'rovi: ${prompt}
+
+      Foydalanuvchi so'rovi: ${finalPrompt}
     `;
 
         console.log("[AI] Requesting Gemini...");
