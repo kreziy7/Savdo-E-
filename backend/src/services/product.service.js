@@ -1,49 +1,20 @@
 const Product = require('../models/Product.model');
 const ApiError = require('../utils/ApiError');
 
-const buildProductQuery = (queryParams) => {
-  const { search, category, minPrice, maxPrice, minRating, inStock } = queryParams;
-  const filter = { isActive: true };
+const getProducts = async (userId, queryParams = {}) => {
+  const { search, page = 1, limit = 50, sortBy = 'createdAt', order = 'desc' } = queryParams;
 
+  const filter = { owner: userId };
   if (search) {
-    filter.$text = { $search: search };
-  }
-  if (category) {
-    filter.category = category.toLowerCase();
-  }
-  if (minPrice || maxPrice) {
-    filter.finalPrice = {};
-    if (minPrice) filter.finalPrice.$gte = Number(minPrice);
-    if (maxPrice) filter.finalPrice.$lte = Number(maxPrice);
-  }
-  if (minRating) {
-    filter['rating.average'] = { $gte: Number(minRating) };
-  }
-  if (inStock === 'true') {
-    filter.stock = { $gt: 0 };
+    filter.name = { $regex: search, $options: 'i' };
   }
 
-  return filter;
-};
-
-const getProducts = async (queryParams) => {
-  const {
-    page = 1,
-    limit = 12,
-    sortBy = 'createdAt',
-    order = 'desc',
-  } = queryParams;
-
-  const filter = buildProductQuery(queryParams);
   const skip = (Number(page) - 1) * Number(limit);
   const sortOrder = order === 'asc' ? 1 : -1;
 
-  const allowedSortFields = ['price', 'finalPrice', 'createdAt', 'rating.average', 'name'];
-  const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
-
   const [products, total] = await Promise.all([
     Product.find(filter)
-      .sort({ [sortField]: sortOrder })
+      .sort({ [sortBy === 'name' ? 'name' : 'createdAt']: sortOrder })
       .skip(skip)
       .limit(Number(limit))
       .select('-reviews'),
@@ -59,41 +30,37 @@ const getProducts = async (queryParams) => {
   };
 };
 
-const getProductById = async (id) => {
-  const product = await Product.findById(id).populate('reviews.user', 'name avatar');
-  if (!product || !product.isActive) {
-    throw new ApiError(404, 'Product not found');
-  }
-  return product;
-};
-
-const getProductBySlug = async (slug) => {
-  const product = await Product.findOne({ slug, isActive: true }).populate(
-    'reviews.user',
-    'name avatar'
-  );
+const getProductById = async (id, userId) => {
+  const filter = { _id: id };
+  if (userId) filter.owner = userId;
+  const product = await Product.findOne(filter).populate('reviews.user', 'name avatar');
   if (!product) throw new ApiError(404, 'Product not found');
   return product;
 };
 
 const createProduct = async (productData, userId) => {
-  const product = await Product.create({ ...productData, createdBy: userId });
-  return product;
-};
-
-const updateProduct = async (id, updateData) => {
-  const product = await Product.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
+  const product = await Product.create({
+    ...productData,
+    owner: userId,
+    createdBy: userId,
   });
+  return product;
+};
+
+const updateProduct = async (id, userId, updateData) => {
+  const product = await Product.findOneAndUpdate(
+    { _id: id, owner: userId },
+    updateData,
+    { new: true, runValidators: true }
+  );
   if (!product) throw new ApiError(404, 'Product not found');
   return product;
 };
 
-const deleteProduct = async (id) => {
-  const product = await Product.findByIdAndUpdate(id, { isActive: false }, { new: true });
+const deleteProduct = async (id, userId) => {
+  const product = await Product.findOneAndDelete({ _id: id, owner: userId });
   if (!product) throw new ApiError(404, 'Product not found');
-  return { message: 'Product deleted successfully' };
+  return { message: "Mahsulot o'chirildi" };
 };
 
 const addReview = async (productId, userId, userName, { rating, comment }) => {
@@ -113,15 +80,14 @@ const addReview = async (productId, userId, userName, { rating, comment }) => {
   return product;
 };
 
-const getCategories = async () => {
-  const categories = await Product.distinct('category', { isActive: true });
-  return categories.sort();
+const getCategories = async (userId) => {
+  const categories = await Product.distinct('category', { owner: userId });
+  return categories.filter(Boolean).sort();
 };
 
 module.exports = {
   getProducts,
   getProductById,
-  getProductBySlug,
   createProduct,
   updateProduct,
   deleteProduct,

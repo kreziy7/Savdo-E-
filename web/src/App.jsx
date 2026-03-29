@@ -2,44 +2,22 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 
-import Layout from './components/layout/Layout';
-import AdminLayout from './components/layout/AdminLayout';
-import { ProtectedRoute, AdminRoute, GuestRoute } from './components/common/ProtectedRoute';
+import AppLayout from './components/layout/AppLayout';
+import { ProtectedRoute, GuestRoute } from './components/common/ProtectedRoute';
 
-import Home from './pages/Home';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Profile from './pages/Profile';
-import Wishlist from './pages/Wishlist';
+import Dashboard from './pages/Dashboard';
+import Products from './pages/Products';
+import Sales from './pages/Sales';
+import Reports from './pages/Reports';
 
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminProducts from './pages/admin/AdminProducts';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminOrders from './pages/admin/AdminOrders';
-
-import PosLayout from './components/layout/PosLayout';
-import PosDashboard from './pages/pos/PosDashboard';
-import PosProducts from './pages/pos/PosProducts';
-import PosSales from './pages/pos/PosSales';
-import PosNewSale from './pages/pos/PosNewSale';
-import PosReports from './pages/pos/PosReports';
-
-import useThemeStore from './store/themeStore';
 import useAuthStore from './store/authStore';
 
 export default function App() {
-  const applyTheme = useThemeStore((s) => s.applyTheme);
   const fetchMe = useAuthStore((s) => s.fetchMe);
-  const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
-
-  useEffect(() => {
-    applyTheme();
-  }, []);
+  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     if (accessToken && !user) {
@@ -53,57 +31,32 @@ export default function App() {
         position="top-right"
         toastOptions={{
           duration: 3500,
-          style: { borderRadius: '10px', fontSize: '14px' },
+          style: {
+            borderRadius: '12px',
+            fontSize: '15px',
+            fontWeight: '500',
+            padding: '12px 16px',
+          },
         }}
       />
 
       <Routes>
-        {/* Public layout */}
-        <Route element={<Layout />}>
-          <Route index element={<Home />} />
+        {/* Public routes */}
+        <Route path="/login" element={
+          <GuestRoute><Login /></GuestRoute>
+        } />
+        <Route path="/register" element={
+          <GuestRoute><Register /></GuestRoute>
+        } />
+
+        {/* Protected app routes */}
+        <Route element={
+          <ProtectedRoute><AppLayout /></ProtectedRoute>
+        }>
+          <Route index element={<Dashboard />} />
           <Route path="products" element={<Products />} />
-          <Route path="products/:slug" element={<ProductDetail />} />
-
-          <Route path="login" element={
-            <GuestRoute><Login /></GuestRoute>
-          } />
-          <Route path="register" element={
-            <GuestRoute><Register /></GuestRoute>
-          } />
-
-          <Route path="cart" element={
-            <ProtectedRoute><Cart /></ProtectedRoute>
-          } />
-          <Route path="checkout" element={
-            <ProtectedRoute><Checkout /></ProtectedRoute>
-          } />
-          <Route path="profile" element={
-            <ProtectedRoute><Profile /></ProtectedRoute>
-          } />
-          <Route path="wishlist" element={
-            <ProtectedRoute><Wishlist /></ProtectedRoute>
-          } />
-        </Route>
-
-        {/* Admin layout */}
-        <Route path="admin" element={
-          <AdminRoute><AdminLayout /></AdminRoute>
-        }>
-          <Route index element={<AdminDashboard />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="orders" element={<AdminOrders />} />
-        </Route>
-
-        {/* POS layout */}
-        <Route path="pos" element={
-          <ProtectedRoute><PosLayout /></ProtectedRoute>
-        }>
-          <Route index element={<PosDashboard />} />
-          <Route path="products" element={<PosProducts />} />
-          <Route path="sales" element={<PosSales />} />
-          <Route path="sales/new" element={<PosNewSale />} />
-          <Route path="reports" element={<PosReports />} />
+          <Route path="sales" element={<Sales />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
 
         {/* Catch-all */}

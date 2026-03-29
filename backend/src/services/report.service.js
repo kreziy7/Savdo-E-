@@ -131,8 +131,8 @@ const getSummary = async (userId) => {
     aggregateSales(userId, ...Object.values(dayRange(today))),
     aggregateSales(userId, ...Object.values(monthRange(thisMonth))),
     aggregateSales(userId, new Date(0), new Date()),
-    Product.find({ stock: { $lte: 5 }, isActive: true })
-      .select('name stock')
+    Product.find({ owner: userId, stock: { $lte: 5 } })
+      .select('name stock unit')
       .sort({ stock: 1 })
       .limit(10),
   ]);
