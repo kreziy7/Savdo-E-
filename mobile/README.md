@@ -1,36 +1,63 @@
-# Savdo-(E) Mobile Application
+# Savdo — Mobile Ilova
 
-This is the React Native mobile application for the Savdo-(E) e-commerce platform, built using the Expo framework.
+Savdogarlar uchun oflayn-birinchi mobil ilova. Expo + React Native.
 
-## Features
-- **React Native**: Cross-platform development for iOS and Android.
-- **Expo**: Powerful toolset for rapid development and OTA updates.
-- **React Navigation**: Flexible stack and tab routing.
-- **Tailwind-like styling**: Using `nativewind` or React Native style objects.
+## Texnologiyalar
 
-## Folder Structure
-- **assets**: Static resources like images, icons, and splash screens.
-- **components**: Common UI components designed for native platforms.
-- **navigation**: Stack, Drawer, and Tab navigation configurations.
-- **screens**: Individual app screens (home, product details, profile).
-- **services**: API communication clients.
+| Texnologiya | Maqsad |
+|---|---|
+| **Expo Router** | Fayl-asosidagi navigatsiya |
+| **WatermelonDB** | Oflayn ma'lumotlar bazasi (SQLite) |
+| **MMKV** | Tez token/sozlamalar saqlash |
+| **Zustand** | Global state (auth, lang, sync) |
+| **NativeWind** | Tailwind-style dizayn |
+| **Axios** | Backend API so'rovlari |
 
-## Installation
-1. Navigate to the mobile directory:
-   ```bash
-   cd mobile
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npx expo start
-   ```
+## Papka strukturasi
 
-## Getting Started on Device
-1. Install **Expo Go** app from App Store or Play Store.
-2. Scan the QR code displayed in the terminal.
+```
+mobile/
+├── app/
+│   ├── _layout.tsx          ← Root layout (auth + sync trigger)
+│   ├── (auth)/              ← Kirish ekranlari
+│   │   ├── login.tsx        ← Telefon raqam
+│   │   └── verify.tsx       ← SMS OTP
+│   └── (app)/               ← Asosiy ilova (tab navigation)
+│       ├── index.tsx        ← Bosh ekran (bugungi statistika)
+│       ├── products/        ← Tovarlar (ro'yxat, qo'shish, tahrirlash)
+│       ├── sales/           ← Sotuvlar (ro'yxat, yozish)
+│       ├── reports/         ← Hisobotlar (bugun/hafta/oy)
+│       └── settings/        ← Sozlamalar (til, tarif, chiqish)
+├── db/                      ← WatermelonDB (schema + models)
+├── store/                   ← Zustand stores
+├── services/                ← API, sync engine, notifications
+├── hooks/                   ← useProducts, useSales, useT
+├── components/              ← SaleCard, SyncStatus
+└── i18n/                    ← uz, ru, en tarjimalar
+```
 
-Hello
+## Ishga tushirish
+
+```bash
+cd mobile
+npm install
+npx expo start
+```
+
+Telefonga **Expo Go** o'rnatib, QR kod skanlang.
+
+## APK yasash
+
+```bash
+# Test uchun (tez)
+eas build --profile preview --platform android
+
+# Play Store uchun
+eas build --profile production --platform android
+eas submit --platform android
+```
+
+## Oflayn ishlash
+
+Barcha sotuv va tovarlar avval **telefonga** (WatermelonDB) yoziladi.
+Backend ulanganda `syncEngine` o'zi yuboradi — foydalanuvchi buni ko'rmaydi.

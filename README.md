@@ -1,42 +1,26 @@
-# Savdo-(E) E-Commerce Platform
+# Savdo-E
 
-A professional full-stack e-commerce project built using modern technologies.
+Savdogarlar uchun mobil ilova. Oflayn-birinchi yondashuv.
 
-## Project Structure
-- **/backend**: Node.js & Express REST API with PostgreSQL.
-- **/web**: React & Vite frontend application.
-- **/mobile**: React Native & Expo mobile application.
-- **/docs**: Documentation for architecture, API, and project roadmap.
+## Tarkib
 
-## Tech Stack
-- **Backend**: Node.js, Express, PostgreSQL, Sequelize/Prisma (ORM), JWT Authentication.
-- **Web**: React 18, Vite, Redux/Zustand, Tailwind CSS.
-- **Mobile**: React Native, Expo, React Navigation.
+```
+Savdo-E/
+├── mobile/     ← Asosiy ilova (React Native + Expo)
+├── backend/    ← REST API (boshqa dasturchi tomonidan)
+└── web/        ← Web versiya (keyinroq)
+```
 
-## Getting Started
+## Tezkor ishga tushirish (Mobile)
 
-### Prerequisites
-- Node.js (v18+)
-- PostgreSQL
-- Expo Go (for mobile development)
+```bash
+cd mobile
+npm install
+npx expo start
+```
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   ```
-2. Install dependencies for each part:
-   ```bash
-   # Backend
-   cd backend && npm install
+Telefonga **Expo Go** o'rnatib, QR kod skanlang.
 
-   # Web
-   cd web && npm install
+## Mobile haqida batafsil
 
-   # Mobile
-   cd mobile && npm install
-   ```
-
-## License
-MIT
-# Savdo-E-
+`mobile/README.md` faylini ko'ring.
