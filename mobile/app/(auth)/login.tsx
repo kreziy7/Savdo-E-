@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { useAuthStore } from "@/store/authStore";
+import { router } from "expo-router";
 import { useLangStore } from "@/store/langStore";
 import { useT } from "@/hooks/useT";
 import { Lang } from "@/i18n";
@@ -13,13 +13,13 @@ const LANGS: { code: Lang; label: string }[] = [
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
-  const setToken = useAuthStore((s) => s.setToken);
   const { lang, setLang } = useLangStore();
   const t = useT();
 
-  async function handleLogin() {
+  function handleLogin() {
     if (phone.length < 9) return;
-    await setToken("demo-token", "demo-refresh");
+    // Verify ekraniga yo'naltirish (backend tayyor bo'lganda SMS yuboriladi)
+    router.push({ pathname: "/(auth)/verify", params: { phone } });
   }
 
   return (

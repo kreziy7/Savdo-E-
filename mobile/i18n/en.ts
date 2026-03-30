@@ -6,7 +6,10 @@ const en: Translations = {
     phone: "Phone number",
     enter: "Enter",
     demoNote: "Demo version — log in with any number",
+    demoNote2: "Demo: enter code 000000",
     appDesc: "App for traders",
+    codeSent: "— SMS code sent",
+    checking: "Checking...",
   },
   nav: {
     home: "Home",

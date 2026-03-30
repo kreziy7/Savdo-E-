@@ -6,7 +6,10 @@ const ru: Translations = {
     phone: "Номер телефона",
     enter: "Войти",
     demoNote: "Демо версия — войдите с любым номером",
+    demoNote2: "Демо: введите код 000000",
     appDesc: "Приложение для торговли",
+    codeSent: "— SMS код отправлен",
+    checking: "Проверка...",
   },
   nav: {
     home: "Главная",

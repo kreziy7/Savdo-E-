@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { database } from "@/db";
@@ -11,13 +11,25 @@ export default function ProductDetailScreen() {
   const product = useProduct(id);
   const t = useT();
 
-  const [name, setName] = useState(product?.name ?? "");
-  const [buyPrice, setBuyPrice] = useState(String(product?.buyPrice ?? ""));
-  const [sellPrice, setSellPrice] = useState(String(product?.sellPrice ?? ""));
-  const [stock, setStock] = useState(String(product?.stockQty ?? ""));
+  const [name, setName] = useState("");
+  const [buyPrice, setBuyPrice] = useState("");
+  const [sellPrice, setSellPrice] = useState("");
+  const [stock, setStock] = useState("");
   const [saving, setSaving] = useState(false);
+  const initialized = useRef(false);
 
-  if (!product) {
+  // Product async yuklangach state ni bir marta to'ldirish
+  useEffect(() => {
+    if (product && !initialized.current) {
+      setName(product.name);
+      setBuyPrice(String(product.buyPrice));
+      setSellPrice(String(product.sellPrice));
+      setStock(String(product.stockQty));
+      initialized.current = true;
+    }
+  }, [product]);
+
+  if (!product || !initialized.current) {
     return (
       <View className="flex-1 items-center justify-center bg-gray-50">
         <Text className="text-gray-400">Yuklanmoqda...</Text>

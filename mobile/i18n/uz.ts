@@ -4,7 +4,10 @@ const uz = {
     phone: "Telefon raqam",
     enter: "Kirish",
     demoNote: "Demo versiya — istalgan raqam bilan kiring",
+    demoNote2: "Demo: 000000 kodi bilan kiring",
     appDesc: "Savdogar uchun ilova",
+    codeSent: "ga SMS kod yuborildi",
+    checking: "Tekshirilmoqda...",
   },
   nav: {
     home: "Bosh sahifa",

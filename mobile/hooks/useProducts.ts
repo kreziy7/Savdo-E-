@@ -33,3 +33,18 @@ export function useProduct(id: string) {
 
   return product;
 }
+
+/** Kam qolgan tovarlar soni (real-time) — tab badge uchun */
+export function useLowStockCount() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const sub = productsCollection
+      .query(Q.where("archived_at", null), Q.where("stock_qty", Q.lte(5)))
+      .observeCount()
+      .subscribe(setCount);
+    return () => sub.unsubscribe();
+  }, []);
+
+  return count;
+}

@@ -1,9 +1,19 @@
+import { useEffect } from "react";
 import { Tabs } from "expo-router";
 import { Home, Package, ShoppingCart, BarChart2, Settings } from "lucide-react-native";
 import { useT } from "@/hooks/useT";
+import { useLowStockCount } from "@/hooks/useProducts";
+import { registerForPushNotifications } from "@/services/notifications";
 
 export default function AppLayout() {
   const t = useT();
+  const lowStockCount = useLowStockCount();
+
+  useEffect(() => {
+    registerForPushNotifications().catch(() => {
+      // Push ruxsat berilmasa — muammo emas, davom etaveradi
+    });
+  }, []);
 
   return (
     <Tabs
@@ -25,6 +35,7 @@ export default function AppLayout() {
         options={{
           title: t.nav.products,
           tabBarIcon: ({ color, size }) => <Package size={size} color={color} />,
+          tabBarBadge: lowStockCount > 0 ? lowStockCount : undefined,
         }}
       />
       <Tabs.Screen
