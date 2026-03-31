@@ -1,62 +1,28 @@
+// Sidebar menu — icon names are used in Sidebar component (Heroicons style keys)
 const sidebarMenu = [
-  {
-    key: "dashboard",
-    path: "/dashboard",
-    roles: ["admin", "super_admin"]
-  },
-  {
-    key: "users",
-    path: "/users",
-    roles: ["admin", "super_admin"]
-  },
-  {
-    key: "admins",
-    path: "/admins",
-    roles: ["super_admin"]
-  },
-  {
-    key: "roles",
-    path: "/roles",
-    roles: ["super_admin"]
-  },
-  {
-    key: "permissions",
-    path: "/permissions",
-    roles: ["super_admin"]
-  },
-  {
-    key: "content",
-    path: "/content",
-    roles: ["admin", "super_admin"]
-  },
-  {
-    key: "reports",
-    path: "/reports",
-    roles: ["admin", "super_admin"]
-  },
-  {
-    key: "auditLogs",
-    path: "/audit-logs",
-    roles: ["super_admin"]
-  },
-  {
-    key: "settings",
-    path: "/settings",
-    roles: ["admin", "super_admin"]
-  },
-  {
-    key: "profile",
-    path: "/profile",
-    roles: ["admin", "super_admin"]
-  }
+  { key: "dashboard", path: "/dashboard", icon: "home",     label: "Dashboard",      desc: "Umumiy ko'rinish" },
+  { key: "users",     path: "/users",     icon: "users",    label: "Foydalanuvchilar", desc: "Boshqarish va filtr" },
+  { key: "content",   path: "/content",   icon: "document", label: "Kontent",         desc: "Sahifalar va media" },
+  { key: "reports",   path: "/reports",   icon: "chart",    label: "Hisobotlar",      desc: "Statistika" },
+  { key: "auditLogs", path: "/audit-logs",icon: "shield",   label: "Audit logi",      desc: "Barcha harakatlar" },
+  { key: "settings",  path: "/settings",  icon: "cog",      label: "Sozlamalar",      desc: "Profil va xavfsizlik" },
+  { key: "profile",   path: "/profile",   icon: "user",     label: "Profil",          desc: "Mening akkauntim" }
 ];
 
-export function getMenuForRole(role, t) {
-  return sidebarMenu
-    .filter((item) => item.roles.includes(role))
-    .map((item) => ({
-      ...item,
-      label: t(`navigation.menu.${item.key}.label`),
-      description: t(`navigation.menu.${item.key}.description`)
-    }));
+// Admins page — only shown to isPrimary admin
+const primaryOnlyMenu = [
+  { key: "admins", path: "/admins", icon: "key", label: "Adminlar", desc: "Admin huquqlari" }
+];
+
+export function getMenuForProfile(profile) {
+  const base = sidebarMenu;
+  if (profile?.isPrimary) {
+    // Insert admins after users
+    return [
+      ...base.slice(0, 2),
+      ...primaryOnlyMenu,
+      ...base.slice(2)
+    ];
+  }
+  return base;
 }

@@ -9,62 +9,44 @@ import {
 
 const STORAGE_KEY = "savdo-admin-auth";
 
-const rolePermissions = {
-  admin: [
-    "dashboard.view",
-    "users.view",
-    "users.create",
-    "users.update",
-    "content.view",
-    "content.update",
-    "reports.view",
-    "settings.view",
-    "profile.view"
-  ],
-  super_admin: [
-    "dashboard.view",
-    "users.view",
-    "users.create",
-    "users.update",
-    "users.delete",
-    "admins.manage",
-    "roles.manage",
-    "permissions.manage",
-    "content.view",
-    "content.update",
-    "reports.view",
-    "reports.export",
-    "settings.view",
-    "settings.manage",
-    "audit_logs.view",
-    "profile.view"
-  ]
-};
+// All admins share the same permissions.
+// isPrimary admin gets an extra permission: admins.manage
+const BASE_PERMISSIONS = [
+  "dashboard.view",
+  "users.view", "users.create", "users.update", "users.delete",
+  "content.view", "content.create", "content.update", "content.delete",
+  "reports.view", "reports.export",
+  "audit_logs.view",
+  "settings.view", "settings.manage",
+  "profile.view", "profile.update"
+];
 
-function buildProfile(role, email) {
-  const isSuperAdmin = role === "super_admin";
+const PRIMARY_PERMISSIONS = [...BASE_PERMISSIONS, "admins.manage"];
+
+function buildProfile(email, isPrimary) {
+  const initials = email
+    .split("@")[0]
+    .slice(0, 2)
+    .toUpperCase();
 
   return {
-    id: isSuperAdmin ? "sa-001" : "ad-014",
-    name: isSuperAdmin ? "Super Admin" : "Admin",
-    email,
-    role,
-    avatar: isSuperAdmin ? "SA" : "JQ",
-    permissions: rolePermissions[role],
+    id: isPrimary ? "ADM-001" : `ADM-${Date.now()}`,
+    name: isPrimary ? "Bosh Admin" : "Admin",
+    email: email || "admin@savdo.uz",
+    role: "admin",
+    isPrimary,
+    avatar: initials,
+    permissions: isPrimary ? PRIMARY_PERMISSIONS : BASE_PERMISSIONS,
     status: "active",
-    lastLogin: { type: "today_at", time: "09:24" },
-    titleKey: isSuperAdmin ? "titles.platformSuperAdmin" : "titles.operationsAdmin"
+    lastLogin: { type: "today_at", time: new Date().toTimeString().slice(0, 5) }
   };
 }
 
 function getStoredAuth() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
+  if (typeof window === "undefined") return null;
   try {
-    const storedValue = window.localStorage.getItem(STORAGE_KEY);
-    return storedValue ? JSON.parse(storedValue) : null;
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
   }
@@ -76,16 +58,12 @@ export function AuthProvider({ children }) {
   const [auth, setAuth] = useState(() => getStoredAuth());
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
+    if (typeof window === "undefined") return;
     if (auth) {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
-      return;
+    } else {
+      window.localStorage.removeItem(STORAGE_KEY);
     }
-
-    window.localStorage.removeItem(STORAGE_KEY);
   }, [auth]);
 
   const value = useMemo(
@@ -93,19 +71,16 @@ export function AuthProvider({ children }) {
       auth,
       profile: auth?.profile ?? null,
       isAuthenticated: Boolean(auth?.token),
-      login: ({ email, password, role }) => {
-        const normalizedEmail = email?.trim().toLowerCase();
-        const resolvedRole =
-          role ?? (normalizedEmail?.includes("super") ? "super_admin" : "admin");
 
-        const profile = buildProfile(
-          resolvedRole,
-          normalizedEmail || "admin@savdo.uz"
-        );
+      login: ({ email, password }) => {
+        const normalizedEmail = email?.trim().toLowerCase();
+        // Primary admin: admin@savdo.uz (demo) or any email marked as primary
+        const isPrimary = normalizedEmail === "admin@savdo.uz";
+        const profile = buildProfile(normalizedEmail, isPrimary);
 
         const nextAuth = {
-          token: `demo-token-${resolvedRole}`,
-          refreshToken: `demo-refresh-${resolvedRole}`,
+          token: `demo-token-${Date.now()}`,
+          refreshToken: `demo-refresh-${Date.now()}`,
           profile,
           passwordLength: password?.length ?? 0
         };
@@ -113,19 +88,14 @@ export function AuthProvider({ children }) {
         setAuth(nextAuth);
         return nextAuth;
       },
+
       updateProfile: (changes) =>
-        setAuth((current) =>
-          current
-            ? {
-                ...current,
-                profile: {
-                  ...current.profile,
-                  ...changes
-                }
-              }
-            : current
+        setAuth((curr) =>
+          curr ? { ...curr, profile: { ...curr.profile, ...changes } } : curr
         ),
+
       logout: () => setAuth(null),
+
       hasPermission: (permission) =>
         Boolean(auth?.profile?.permissions?.includes(permission))
     }),
@@ -136,11 +106,7 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }

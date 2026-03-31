@@ -21,6 +21,7 @@ export const en = {
     language: "Language",
     actions: "Actions",
     email: "Email",
+    id: "ID",
     password: "Password",
     status: "Status",
     role: "Role",
@@ -39,7 +40,14 @@ export const en = {
     backToLogin: "Back to login",
     dismiss: "Dismiss",
     menu: "Menu",
-    all: "All"
+    all: "All",
+    adminPanel: "Admin Panel",
+    live: "Live",
+    from: "From:",
+    to: "To:",
+    theme: "Theme",
+    lightMode: "Light mode",
+    darkMode: "Dark mode"
   },
   languages: {
     uz: "Uzbek",
@@ -149,6 +157,18 @@ export const en = {
         eyebrow: "Your account",
         description: "Personal info, sessions and security settings."
       },
+      customers: {
+        eyebrow: "Customers",
+        description: "Customer search, loyalty status and segmentation." 
+      },
+      orders: {
+        eyebrow: "Orders",
+        description: "Order pipeline status, delivery updates and refunds." 
+      },
+      products: {
+        eyebrow: "Products",
+        description: "Product catalog, stock controls and bulk management." 
+      },
       login: {
         eyebrow: "Authentication",
         description: "Sign in as admin or super admin."
@@ -231,6 +251,22 @@ export const en = {
       actionableItems: "Actionable items"
     },
     recentActivity: "Recent activity",
+    recentActivityEntries: {
+      adminRightsGranted: "Admin rights granted",
+      adminRightsGrantedDetail: "Madina Ergasheva promoted to admin",
+      userBlocked: "User blocked",
+      userBlockedDetail: "USR-1030 blocked",
+      contentPublished: "Content published",
+      contentPublishedDetail: "Spring campaign landing page"
+    },
+    notificationFeed: {
+      newUsers: "New users",
+      newUsersDetail: "12 new sign-ups this week",
+      blockedAccounts: "Blocked accounts",
+      blockedAccountsDetail: "3 accounts currently inactive",
+      reportReady: "Report ready",
+      reportReadyDetail: "Monthly report is ready for download"
+    },
     liveStructure: "Live structure",
     notificationsTitle: "Notifications",
     priorityFeed: "Priority feed",
@@ -322,6 +358,7 @@ export const en = {
     createContent: "Create content",
     publish: "Publish",
     archive: "Archive",
+    noContent: "No content yet",
     createContentDescription:
       "Rich text editor and media upload are deferred to the next phase."
   },
@@ -332,7 +369,9 @@ export const en = {
       "Working skeleton for date range, metrics and export actions.",
     overview: "Overview",
     adminActivity: "Admin activity",
-    security: "Security"
+    security: "Security",
+    chartPlaceholder: "Chart area",
+    chartPlaceholderDescription: "Shown after backend integration"
   },
   audit: {
     pageTitle: "Audit Logs",
@@ -368,6 +407,7 @@ export const en = {
     sessionTimeout: "Session timeout",
     securityNote: "Security note",
     languagePreference: "Language preference",
+    themePreference: "Theme preference",
     systemReadiness: "System readiness",
     superAdminScope: "Super admin scope",
     adminScope: "Admin scope",

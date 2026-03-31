@@ -1,16 +1,15 @@
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { useI18n } from "../../i18n";
 
 export function CustomersPage() {
-  usePageTitle("Customers");
+  const { t } = useI18n();
+  usePageTitle(t("navigation.pageMeta.customers.eyebrow"));
 
   return (
     <section className="stack">
       <div className="section-card">
-        <h2>Customers</h2>
-        <p className="muted-text">
-          Customer search, moderation notes, loyalty status, and segmentation
-          can be added here.
-        </p>
+        <h2>{t("navigation.pageMeta.customers.eyebrow")}</h2>
+        <p className="muted-text">{t("navigation.pageMeta.customers.description")}</p>
       </div>
     </section>
   );

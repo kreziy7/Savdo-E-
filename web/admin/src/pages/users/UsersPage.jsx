@@ -1,318 +1,315 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Modal } from "../../components/shared/Modal";
-import { usePageTitle } from "../../hooks/usePageTitle";
-import { useI18n } from "../../i18n";
-import { formatRelativeTime, getRoleLabel, getStatusLabel } from "../../i18n/labels";
+import { useAuth } from "../../store";
 import { useAdminData } from "../../store/adminData";
+import { useI18n } from "../../i18n";
 
-const emptyUser = {
-  name: "",
-  email: "",
-  phone: "",
-  role: "viewer",
-  status: "active"
+const statusStyle = {
+  active:  "bg-green-100 text-green-700",
+  pending: "bg-yellow-100 text-yellow-700",
+  blocked: "bg-red-100 text-red-700"
 };
 
+const empty = { name: "", email: "", phone: "", role: "viewer", status: "active" };
+
 export function UsersPage() {
+  const { profile } = useAuth();
+  const { users, createUser, updateUser, toggleUserStatus, deleteUser, grantAdminToUser, revokeAdminFromUser } = useAdminData();
   const { t } = useI18n();
-  usePageTitle(t("users.pageTitle"));
-  const { users, createUser, updateUser, toggleUserStatus, deleteUser } =
-    useAdminData();
+  const isPrimary = profile?.isPrimary;
+
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [formState, setFormState] = useState(emptyUser);
-  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(empty);
+  const [editId, setEditId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [grantTarget, setGrantTarget] = useState(null);
 
-  const filteredUsers = useMemo(
-    () =>
-      users.filter((user) => {
-        const matchesSearch = [user.name, user.email, user.phone]
-          .join(" ")
-          .toLowerCase()
-          .includes(search.toLowerCase());
-        const matchesRole = roleFilter === "all" || user.role === roleFilter;
-        const matchesStatus =
-          statusFilter === "all" || user.status === statusFilter;
-
-        return matchesSearch && matchesRole && matchesStatus;
-      }),
+  const filtered = useMemo(() =>
+    users.filter((u) => {
+      const q = search.toLowerCase();
+      const matchSearch = [u.name, u.email, u.phone].join(" ").toLowerCase().includes(q);
+      const matchRole = roleFilter === "all" || u.role === roleFilter;
+      const matchStatus = statusFilter === "all" || u.status === statusFilter;
+      return matchSearch && matchRole && matchStatus;
+    }),
     [users, search, roleFilter, statusFilter]
   );
 
-  function resetModal() {
-    setFormState(emptyUser);
-    setEditingId(null);
-    setModalOpen(false);
-  }
+  function openCreate() { setEditId(null); setForm(empty); setModalOpen(true); }
+  function openEdit(u) { setEditId(u.id); setForm({ name: u.name, email: u.email, phone: u.phone, role: u.role, status: u.status }); setModalOpen(true); }
+  function closeModal() { setModalOpen(false); setEditId(null); setForm(empty); }
 
-  function openCreate() {
-    setEditingId(null);
-    setFormState(emptyUser);
-    setModalOpen(true);
-  }
-
-  function openEdit(user) {
-    setEditingId(user.id);
-    setFormState({
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      status: user.status
-    });
-    setModalOpen(true);
-  }
-
-  function handleFormChange(event) {
-    const { name, value } = event.target;
-    setFormState((current) => ({ ...current, [name]: value }));
-  }
-
-  function handleSubmit(event) {
-    event.preventDefault();
-
-    if (editingId) {
-      updateUser(editingId, formState);
-    } else {
-      createUser(formState);
-    }
-
-    resetModal();
-  }
-
-  function clearFilters() {
-    setSearch("");
-    setRoleFilter("all");
-    setStatusFilter("all");
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (editId) updateUser(editId, form);
+    else createUser(form);
+    closeModal();
   }
 
   return (
-    <section className="stack">
-      <div className="section-card">
-        <div className="section-heading">
+    <div className="space-y-5">
+      {/* Card */}
+      <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
           <div>
-            <h2>{t("users.title")}</h2>
-            <p className="muted-text">{t("users.description")}</p>
+            <h2 className="font-semibold text-gray-900">{t("users.title")}</h2>
+            <p className="text-xs text-gray-400 mt-0.5">{t("navigation.pageMeta.users.eyebrow")}</p>
           </div>
-          <button type="button" onClick={openCreate}>
-            {t("users.createUser")}
+          <button
+            type="button"
+            onClick={openCreate}
+            className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-xl transition-colors shrink-0"
+          >
+            + {t("users.createUser")}
           </button>
         </div>
 
-        <div className="filter-bar">
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100">
           <input
             type="search"
             placeholder={t("users.searchPlaceholder")}
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-[160px] px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
           />
           <select
             value={roleFilter}
-            onChange={(event) => setRoleFilter(event.target.value)}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 bg-white"
           >
             <option value="all">{t("users.allRoles")}</option>
-            <option value="manager">{getRoleLabel(t, "manager")}</option>
-            <option value="editor">{getRoleLabel(t, "editor")}</option>
-            <option value="viewer">{getRoleLabel(t, "viewer")}</option>
-            <option value="customer_support">
-              {getRoleLabel(t, "customer_support")}
-            </option>
+            <option value="manager">{t("labels.roles.manager")}</option>
+            <option value="editor">{t("labels.roles.editor")}</option>
+            <option value="viewer">{t("labels.roles.viewer")}</option>
+            <option value="customer_support">{t("labels.roles.customer_support")}</option>
           </select>
           <select
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 bg-white"
           >
             <option value="all">{t("users.allStatuses")}</option>
-            <option value="active">{getStatusLabel(t, "active")}</option>
-            <option value="pending">{getStatusLabel(t, "pending")}</option>
-            <option value="blocked">{getStatusLabel(t, "blocked")}</option>
+            <option value="active">{t("labels.statuses.active")}</option>
+            <option value="pending">{t("labels.statuses.pending")}</option>
+            <option value="blocked">{t("labels.statuses.blocked")}</option>
           </select>
-          <button type="button" className="secondary-button" onClick={clearFilters}>
+          <button
+            type="button"
+            onClick={() => { setSearch(""); setRoleFilter("all"); setStatusFilter("all"); }}
+            className="px-3 py-2 text-xs text-gray-500 border border-gray-200 rounded-lg hover:bg-white transition-colors"
+          >
             {t("common.clearFilters")}
           </button>
         </div>
 
-        <div className="table-shell">
-          <table className="data-table">
+        {/* Table */}
+        <div className="table-scroll">
+          <table className="w-full text-sm">
             <thead>
-              <tr>
-                <th>{t("users.tableUser")}</th>
-                <th>{t("users.tableRole")}</th>
-                <th>{t("users.tableStatus")}</th>
-                <th>{t("users.tableCreated")}</th>
-                <th>{t("users.tableLastLogin")}</th>
-                <th>{t("common.actions")}</th>
+              <tr className="border-b border-gray-100">
+                {[t("users.tableUser"), t("users.tableRole"), t("users.tableStatus"), t("users.tableCreated"), t("users.tableLastLogin"),
+                  ...(isPrimary ? [t("labels.roles.admin")] : []),
+                  t("common.actions")
+                ].map((h) => (
+                  <th key={h} className="text-left text-xs font-medium text-gray-400 px-4 py-3 whitespace-nowrap">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <div className="table-user">
-                      <strong>{user.name}</strong>
-                      <span>{user.email}</span>
-                      <small>{user.phone}</small>
+              {filtered.map((u) => (
+                <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center shrink-0">
+                        {u.name.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{u.name}</p>
+                        <p className="text-xs text-gray-400">{u.email}</p>
+                        <p className="text-xs text-gray-300">{u.phone}</p>
+                      </div>
                     </div>
                   </td>
-                  <td>
-                    <span className="table-badge neutral">
-                      {getRoleLabel(t, user.role)}
+                  <td className="px-4 py-3">
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">
+                      {t(`labels.roles.${u.role}`, {}, u.role)}
                     </span>
                   </td>
-                  <td>
-                    <span className={`table-badge ${user.status}`}>
-                      {getStatusLabel(t, user.status)}
+                  <td className="px-4 py-3">
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusStyle[u.status] || "bg-gray-100 text-gray-600"}`}>
+                      {t(`labels.statuses.${u.status}`, {}, u.status)}
                     </span>
                   </td>
-                  <td>{user.createdAt}</td>
-                  <td>{formatRelativeTime(t, user.lastLogin)}</td>
-                  <td>
-                    <div className="table-actions">
-                      <Link className="text-link" to={`/users/${user.id}`}>
-                        {t("common.view")}
-                      </Link>
+                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{u.createdAt}</td>
+                  <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                    {u.lastLogin || t("time.never")}
+                  </td>
+
+                  {/* Admin grant column — primary admin only */}
+                  {isPrimary && (
+                    <td className="px-4 py-3">
+                      {u.isAdmin ? (
+                        <button
+                          type="button"
+                          onClick={() => setGrantTarget({ user: u, action: "revoke" })}
+                          className="text-xs text-orange-500 hover:text-orange-700 font-medium transition-colors"
+                        >
+                          {t("admins.suspend")}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setGrantTarget({ user: u, action: "grant" })}
+                          className="text-xs text-primary hover:text-primary-dark font-medium transition-colors"
+                        >
+                          {t("admins.activate")}
+                        </button>
+                      )}
+                    </td>
+                  )}
+
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Link to={`/users/${u.id}`} className="text-xs text-primary hover:underline">{t("common.view")}</Link>
+                      <button type="button" onClick={() => openEdit(u)} className="text-xs text-gray-500 hover:text-gray-800">{t("common.edit")}</button>
                       <button
                         type="button"
-                        className="text-link"
-                        onClick={() => openEdit(user)}
+                        onClick={() => toggleUserStatus(u.id)}
+                        className={`text-xs ${u.status === "blocked" ? "text-green-600 hover:text-green-800" : "text-orange-500 hover:text-orange-700"}`}
                       >
-                        {t("common.edit")}
+                        {u.status === "blocked" ? t("users.unblock") : t("users.block")}
                       </button>
-                      <button
-                        type="button"
-                        className="text-link danger-link"
-                        onClick={() => toggleUserStatus(user.id)}
-                      >
-                        {user.status === "blocked" ? t("users.unblock") : t("users.block")}
-                      </button>
-                      <button
-                        type="button"
-                        className="text-link danger-link"
-                        onClick={() => setDeleteTarget(user)}
-                      >
-                        {t("common.delete")}
-                      </button>
+                      <button type="button" onClick={() => setDeleteTarget(u)} className="text-xs text-danger hover:text-red-700">{t("common.delete")}</button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {!filtered.length && (
+            <div className="py-16 text-center">
+              <p className="text-gray-400 text-sm">{t("users.noUsers")}</p>
+              <p className="text-gray-300 text-xs mt-1">{t("users.noUsersDescription")}</p>
+            </div>
+          )}
         </div>
 
-        {!filteredUsers.length ? (
-          <div className="empty-state">
-            <strong>{t("users.noUsers")}</strong>
-            <p className="muted-text">{t("users.noUsersDescription")}</p>
-          </div>
-        ) : null}
+        {/* Footer count */}
+        <div className="px-5 py-3 border-t border-gray-100 text-xs text-gray-400">
+          {filtered.length} {t("users.pageTitle").toLowerCase()}
+        </div>
       </div>
 
+      {/* Create / Edit modal */}
       <Modal
         open={modalOpen}
-        title={editingId ? t("users.editUser") : t("users.createUserModal")}
-        description={t("users.userFormDescription")}
-        onClose={resetModal}
+        title={editId ? t("users.editUser") : t("users.createUserModal")}
+        onClose={closeModal}
         footer={
           <>
-            <button type="button" className="secondary-button" onClick={resetModal}>
-              {t("common.cancel")}
-            </button>
-            <button type="submit" form="user-form">
-              {editingId ? t("common.saveChanges") : t("users.createUser")}
+            <button type="button" onClick={closeModal} className="px-4 py-2 text-sm border border-gray-200 rounded-xl hover:bg-gray-50">{t("common.cancel")}</button>
+            <button type="submit" form="user-form" className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-dark">
+              {editId ? t("common.saveChanges") : t("common.create")}
             </button>
           </>
         }
       >
-        <form id="user-form" className="settings-form" onSubmit={handleSubmit}>
-          <label>
-            {t("users.fullName")}
-            <input
-              name="name"
-              value={formState.name}
-              onChange={handleFormChange}
-              required
-            />
-          </label>
-          <label>
-            {t("common.email")}
-            <input
-              type="email"
-              name="email"
-              value={formState.email}
-              onChange={handleFormChange}
-              required
-            />
-          </label>
-          <label>
-            {t("common.phone")}
-            <input
-              name="phone"
-              value={formState.phone}
-              onChange={handleFormChange}
-              required
-            />
-          </label>
-          <label>
-            {t("common.role")}
-            <select name="role" value={formState.role} onChange={handleFormChange}>
-              <option value="viewer">{getRoleLabel(t, "viewer")}</option>
-              <option value="editor">{getRoleLabel(t, "editor")}</option>
-              <option value="manager">{getRoleLabel(t, "manager")}</option>
-              <option value="customer_support">
-                {getRoleLabel(t, "customer_support")}
-              </option>
+        <form id="user-form" onSubmit={handleSubmit} className="space-y-3">
+          {[
+            { label: t("users.fullName"), name: "name", type: "text" },
+            { label: t("common.email"), name: "email", type: "email" },
+            { label: t("common.phone"), name: "phone", type: "text" }
+          ].map((f) => (
+            <div key={f.name}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
+              <input
+                type={f.type}
+                name={f.name}
+                value={form[f.name]}
+                onChange={(e) => setForm((c) => ({ ...c, [e.target.name]: e.target.value }))}
+                required
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </div>
+          ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("common.role")}</label>
+            <select name="role" value={form.role} onChange={(e) => setForm((c) => ({ ...c, role: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 bg-white">
+              <option value="viewer">{t("labels.roles.viewer")}</option>
+              <option value="editor">{t("labels.roles.editor")}</option>
+              <option value="manager">{t("labels.roles.manager")}</option>
+              <option value="customer_support">{t("labels.roles.customer_support")}</option>
             </select>
-          </label>
-          <label>
-            {t("common.status")}
-            <select
-              name="status"
-              value={formState.status}
-              onChange={handleFormChange}
-            >
-              <option value="active">{getStatusLabel(t, "active")}</option>
-              <option value="pending">{getStatusLabel(t, "pending")}</option>
-              <option value="blocked">{getStatusLabel(t, "blocked")}</option>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("common.status")}</label>
+            <select name="status" value={form.status} onChange={(e) => setForm((c) => ({ ...c, status: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 bg-white">
+              <option value="active">{t("labels.statuses.active")}</option>
+              <option value="pending">{t("labels.statuses.pending")}</option>
+              <option value="blocked">{t("labels.statuses.blocked")}</option>
             </select>
-          </label>
+          </div>
         </form>
       </Modal>
 
+      {/* Delete confirm */}
       <Modal
         open={Boolean(deleteTarget)}
         title={t("users.deleteUser")}
-        description={
-          deleteTarget ? t("users.deleteUserConfirm", { name: deleteTarget.name }) : ""
-        }
+        description={deleteTarget ? t("users.deleteUserConfirm", { name: deleteTarget.name }) : ""}
         onClose={() => setDeleteTarget(null)}
         footer={
           <>
+            <button type="button" onClick={() => setDeleteTarget(null)} className="px-4 py-2 text-sm border border-gray-200 rounded-xl hover:bg-gray-50">{t("common.cancel")}</button>
             <button
               type="button"
-              className="secondary-button"
-              onClick={() => setDeleteTarget(null)}
+              onClick={() => { deleteUser(deleteTarget.id); setDeleteTarget(null); }}
+              className="px-4 py-2 bg-danger text-white text-sm font-medium rounded-xl hover:bg-red-700"
             >
-              {t("common.cancel")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                deleteUser(deleteTarget.id);
-                setDeleteTarget(null);
-              }}
-            >
-              {t("users.deleteUser")}
+              {t("common.delete")}
             </button>
           </>
         }
       >
-        <p className="muted-text">{t("users.deleteUserDescription")}</p>
+        <p className="text-sm text-gray-500">{t("users.deleteUserDescription")}</p>
       </Modal>
-    </section>
+
+      {/* Grant / Revoke admin confirm */}
+      <Modal
+        open={Boolean(grantTarget)}
+        title={grantTarget?.action === "grant" ? t("admins.createAdmin") : t("admins.suspend")}
+        description={grantTarget ? `"${grantTarget.user.name}"` : ""}
+        onClose={() => setGrantTarget(null)}
+        footer={
+          <>
+            <button type="button" onClick={() => setGrantTarget(null)} className="px-4 py-2 text-sm border border-gray-200 rounded-xl hover:bg-gray-50">{t("common.cancel")}</button>
+            <button
+              type="button"
+              onClick={() => {
+                if (grantTarget.action === "grant") grantAdminToUser(grantTarget.user.id);
+                else revokeAdminFromUser(grantTarget.user.id);
+                setGrantTarget(null);
+              }}
+              className={`px-4 py-2 text-white text-sm font-medium rounded-xl transition-colors
+                ${grantTarget?.action === "grant" ? "bg-primary hover:bg-primary-dark" : "bg-orange-500 hover:bg-orange-600"}`}
+            >
+              {grantTarget?.action === "grant" ? t("admins.activate") : t("admins.suspend")}
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-gray-500">
+          {grantTarget?.action === "grant" ? t("admins.modalDescription") : t("admins.description")}
+        </p>
+      </Modal>
+    </div>
   );
 }

@@ -1,10 +1,14 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../store";
 
-export function RoleGuard({ allow, children }) {
+/**
+ * PrimaryGuard — faqat isPrimary admin kirishi mumkin bo'lgan sahifalar uchun
+ * RoleGuard nomini saqladik, lekin endi isPrimary tekshiriladi
+ */
+export function RoleGuard({ children }) {
   const { profile } = useAuth();
 
-  if (!profile || !allow.includes(profile.role)) {
+  if (!profile?.isPrimary) {
     return <Navigate to="/dashboard" replace />;
   }
 

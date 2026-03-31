@@ -39,7 +39,12 @@ export const ru = {
     backToLogin: "Назад к логину",
     dismiss: "Закрыть",
     menu: "Меню",
-    all: "Все"
+    all: "Все",
+    adminPanel: "Панель администратора",
+    live: "Онлайн",
+    theme: "Тема",
+    lightMode: "Светлая тема",
+    darkMode: "Темная тема"
   },
   languages: {
     uz: "Узбекский",
@@ -149,6 +154,18 @@ export const ru = {
         eyebrow: "Ваш аккаунт",
         description: "Личные данные, сессии и настройки безопасности."
       },
+      customers: {
+        eyebrow: "Пользователи",
+        description: "Поиск клиентов, статус лояльности и сегментация."
+      },
+      orders: {
+        eyebrow: "Заказы",
+        description: "Статус заказов, доставка и возвраты."
+      },
+      products: {
+        eyebrow: "Товары",
+        description: "Каталог, управление запасами и массовые операции."
+      },
       login: {
         eyebrow: "Аутентификация",
         description: "Вход как админ или супер-админ."
@@ -232,6 +249,22 @@ export const ru = {
       actionableItems: "Требуют действия"
     },
     recentActivity: "Недавняя активность",
+    recentActivityEntries: {
+      adminRightsGranted: "Предоставлены права администратора",
+      adminRightsGrantedDetail: "Мадина Эргашева назначена администратором",
+      userBlocked: "Пользователь заблокирован",
+      userBlockedDetail: "USR-1030 заблокирован",
+      contentPublished: "Контент опубликован",
+      contentPublishedDetail: "Лендинговая страница весенней кампании"
+    },
+    notificationFeed: {
+      newUsers: "Новые пользователи",
+      newUsersDetail: "12 новых регистраций на этой неделе",
+      blockedAccounts: "Заблокированные аккаунты",
+      blockedAccountsDetail: "3 аккаунта сейчас неактивны",
+      reportReady: "Отчет готов",
+      reportReadyDetail: "Месячный отчет готов к загрузке"
+    },
     liveStructure: "Живая структура",
     notificationsTitle: "Уведомления",
     priorityFeed: "Лента приоритетов",
@@ -371,6 +404,7 @@ export const ru = {
     sessionTimeout: "Таймаут сессии",
     securityNote: "Заметка по безопасности",
     languagePreference: "Предпочитаемый язык",
+    themePreference: "Предпочтение темы",
     systemReadiness: "Готовность системы",
     superAdminScope: "Область супер-админа",
     adminScope: "Область админа",

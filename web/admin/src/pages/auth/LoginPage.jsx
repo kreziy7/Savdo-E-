@@ -1,138 +1,139 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { usePageTitle } from "../../hooks/usePageTitle";
-import { useI18n } from "../../i18n";
 import { useAuth } from "../../store";
+import { useI18n } from "../../i18n";
 
 export function LoginPage() {
-  const { t } = useI18n();
-  usePageTitle(t("auth.signIn"));
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAuth();
-  const [form, setForm] = useState({
-    email: "superadmin@savdo.uz",
-    password: "12345678"
-  });
+  const { t } = useI18n();
+  const [form, setForm] = useState({ email: "admin@savdo.uz", password: "12345678" });
+  const [loading, setLoading] = useState(false);
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
   const nextRoute = location.state?.from || "/dashboard";
 
-  function handleChange(event) {
-    const { name, value } = event.target;
+  function handleChange(e) {
+    const { name, value } = e.target;
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function signIn(role) {
-    const email =
-      role === "super_admin" ? "superadmin@savdo.uz" : "admin@savdo.uz";
-
-    login({
-      email,
-      password: form.password,
-      role
-    });
-
+  function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    login({ email: form.email, password: form.password });
     navigate(nextRoute, { replace: true });
   }
 
-  function handleSubmit(event) {
-    event.preventDefault();
-
-    login({
-      email: form.email,
-      password: form.password
-    });
-
+  function quickLogin(email) {
+    login({ email, password: "demo" });
     navigate(nextRoute, { replace: true });
   }
 
   return (
-    <section className="auth-shell">
-      <div className="auth-surface">
-        <div className="auth-hero">
-          <p className="eyebrow">{t("auth.heroEyebrow")}</p>
-          <h1>{t("auth.heroTitle")}</h1>
-          <p className="muted-text">{t("auth.heroDescription")}</p>
-          <div className="auth-points">
-            <div className="auth-point">
-              <strong>{t("auth.routeProtectionTitle")}</strong>
-              <span>{t("auth.routeProtectionDescription")}</span>
-            </div>
-            <div className="auth-point">
-              <strong>{t("auth.roleMenuTitle")}</strong>
-              <span>{t("auth.roleMenuDescription")}</span>
-            </div>
-            <div className="auth-point">
-              <strong>{t("auth.singletonTitle")}</strong>
-              <span>{t("auth.singletonDescription")}</span>
-            </div>
-          </div>
+    <div className="min-h-screen flex bg-[#eef4f9]">
+      <div className="hidden lg:flex flex-col justify-center px-16 w-[480px] bg-[#0e2037] text-white shrink-0">
+        <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center font-bold text-lg mb-8">
+          SE
         </div>
-
-        <div className="auth-card">
-          <p className="eyebrow">{t("auth.cardEyebrow")}</p>
-          <h1>{t("auth.signIn")}</h1>
-          <p className="muted-text">{t("auth.signInDescription")}</p>
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <label>
-              {t("common.email")}
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="admin@savdo.uz"
-              />
-            </label>
-            <label>
-              {t("common.password")}
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder={t("auth.enterPassword")}
-              />
-            </label>
-
-            <div className="button-row">
-              <button type="submit">{t("auth.continue")}</button>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => signIn("admin")}
-              >
-                {t("auth.demoAdmin")}
-              </button>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => signIn("super_admin")}
-              >
-                {t("auth.demoSuperAdmin")}
-              </button>
+        <h1 className="text-3xl font-bold leading-tight mb-4">
+          {t("app.name")}
+          <br />
+          {t("auth.cardEyebrow")}
+        </h1>
+        <p className="text-white/50 text-sm leading-relaxed mb-10">{t("auth.heroDescription")}</p>
+        <div className="space-y-4">
+          {[
+            { titleKey: "auth.routeProtectionTitle", descKey: "auth.routeProtectionDescription" },
+            { titleKey: "auth.roleMenuTitle", descKey: "auth.roleMenuDescription" },
+            { titleKey: "auth.singletonTitle", descKey: "auth.singletonDescription" }
+          ].map((item) => (
+            <div key={item.titleKey} className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-primary/30 flex items-center justify-center text-xs mt-0.5">v</span>
+              <div>
+                <p className="text-sm font-medium">{t(item.titleKey)}</p>
+                <p className="text-xs text-white/40">{t(item.descKey)}</p>
+              </div>
             </div>
-          </form>
+          ))}
+        </div>
+      </div>
 
-          <div className="login-hint">
-            <span>{t("auth.demoAccounts")}</span>
-            <strong>`admin@savdo.uz` / `superadmin@savdo.uz`</strong>
-          </div>
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          <div className="bg-white rounded-2xl shadow-card p-8">
+            <p className="text-xs font-medium text-primary uppercase tracking-wider mb-2">{t("common.adminPanel")}</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">{t("auth.signIn")}</h2>
+            <p className="text-sm text-gray-500 mb-6">{t("auth.signInDescription")}</p>
 
-          <div className="auth-links">
-            <Link className="text-link" to="/forgot-password">
-              {t("auth.forgotPassword")}
-            </Link>
-            <Link className="text-link" to="/reset-password">
-              {t("auth.resetPassword")}
-            </Link>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("common.email")}</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                  placeholder="admin@savdo.uz"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("common.password")}</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                  placeholder={t("auth.enterPassword")}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-60"
+              >
+                {loading ? t("auth.continue") : t("auth.signIn")}
+              </button>
+            </form>
+
+            <div className="mt-5 pt-4 border-t border-gray-100">
+              <p className="text-xs text-gray-400 mb-3 text-center">{t("auth.demoAccounts")}</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => quickLogin("admin@savdo.uz")}
+                  className="flex-1 py-2 text-xs font-medium border border-primary/30 text-primary rounded-lg hover:bg-primary/5 transition-colors"
+                >
+                  {t("auth.demoSuperAdmin")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => quickLogin("staff@savdo.uz")}
+                  className="flex-1 py-2 text-xs font-medium border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {t("auth.demoAdmin")}
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-between">
+              <Link to="/forgot-password" className="text-xs text-gray-400 hover:text-primary transition-colors">
+                {t("auth.forgotPassword")}
+              </Link>
+              <Link to="/reset-password" className="text-xs text-gray-400 hover:text-primary transition-colors">
+                {t("auth.resetPassword")}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

@@ -46,7 +46,7 @@ export function UserDetailPage() {
 
         <div className="key-value-grid">
           <div>
-            <span>ID</span>
+            <span>{t("common.id")}</span>
             <strong>{user.id}</strong>
           </div>
           <div>

@@ -21,6 +21,7 @@ export const uz = {
     language: "Til",
     actions: "Amallar",
     email: "Email",
+    id: "ID",
     password: "Parol",
     status: "Holat",
     role: "Rol",
@@ -39,7 +40,14 @@ export const uz = {
     backToLogin: "Login sahifasiga qaytish",
     dismiss: "Yopish",
     menu: "Menyu",
-    all: "Barchasi"
+    all: "Barchasi",
+    adminPanel: "Admin panel",
+    live: "Jonli",
+    from: "Dan:",
+    to: "Gacha:",
+    theme: "Mavzu",
+    lightMode: "Light mode",
+    darkMode: "Dark mode"
   },
   languages: {
     uz: "O'zbekcha",
@@ -149,6 +157,18 @@ export const uz = {
         eyebrow: "Sizning akkauntingiz",
         description: "Shaxsiy ma'lumotlar, sessionlar va xavfsizlik sozlamalari."
       },
+      customers: {
+        eyebrow: "Mijozlar",
+        description: "Mijoz qidirish, sodiqlik va segmentatsiya."
+      },
+      orders: {
+        eyebrow: "Buyurtmalar",
+        description: "Buyurtma holati, yetkazib berish va qaytish."
+      },
+      products: {
+        eyebrow: "Mahsulotlar",
+        description: "Mahsulot katalogi, inventar nazorati va ommaviy boshqaruv."
+      },
       login: {
         eyebrow: "Autentifikatsiya",
         description: "Admin yoki super admin sifatida tizimga kirish."
@@ -231,6 +251,22 @@ export const uz = {
       actionableItems: "Bajarilishi kerak bo'lgan itemlar"
     },
     recentActivity: "So'nggi faoliyat",
+    recentActivityEntries: {
+      adminRightsGranted: "Admin huquqi berildi",
+      adminRightsGrantedDetail: "Madina Ergasheva ga admin qo'shildi",
+      userBlocked: "Foydalanuvchi bloklandi",
+      userBlockedDetail: "USR-1030 bloklandi",
+      contentPublished: "Kontent nashr etildi",
+      contentPublishedDetail: "Bahor aksiyasi landing page"
+    },
+    notificationFeed: {
+      newUsers: "Yangi foydalanuvchilar",
+      newUsersDetail: "Bu hafta 12 ta yangi registratsiya",
+      blockedAccounts: "Bloklangan akkauntlar",
+      blockedAccountsDetail: "3 ta akkaunt faol emas",
+      reportReady: "Hisobot tayyor",
+      reportReadyDetail: "Oylik hisobot yuklab olishga tayyor"
+    },
     liveStructure: "Jonli struktura",
     notificationsTitle: "Bildirishnomalar",
     priorityFeed: "Ustuvor feed",
@@ -324,6 +360,7 @@ export const uz = {
     createContent: "Kontent yaratish",
     publish: "Nashr qilish",
     archive: "Arxivlash",
+    noContent: "Kontent yo'q",
     createContentDescription:
       "Rich text editor va media upload keyingi bosqichga qoldirilgan."
   },
@@ -334,7 +371,9 @@ export const uz = {
       "Date range, metrics va export actionlari uchun ishchi skelet.",
     overview: "Umumiy ko'rinish",
     adminActivity: "Admin faolligi",
-    security: "Xavfsizlik"
+    security: "Xavfsizlik",
+    chartPlaceholder: "Grafik ko'rinishi",
+    chartPlaceholderDescription: "Backend ulangandan so'ng ko'rsatiladi"
   },
   audit: {
     pageTitle: "Audit loglar",
@@ -370,6 +409,7 @@ export const uz = {
     sessionTimeout: "Sessiya timeout",
     securityNote: "Xavfsizlik eslatmasi",
     languagePreference: "Til afzalligi",
+    themePreference: "Mavzu afzalligi",
     systemReadiness: "Tizim tayyorgarligi",
     superAdminScope: "Super admin qamrovi",
     adminScope: "Admin qamrovi",

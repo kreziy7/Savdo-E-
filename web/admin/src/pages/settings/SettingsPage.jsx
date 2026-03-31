@@ -1,157 +1,185 @@
-import { useEffect, useState } from "react";
-import { usePageTitle } from "../../hooks/usePageTitle";
+import { useState } from "react";
 import { useI18n } from "../../i18n";
-import { useAdminData } from "../../store/adminData";
 import { useAuth } from "../../store";
+import { useAdminData } from "../../store/adminData";
+import { useTheme } from "../../theme";
 
 export function SettingsPage() {
   const { locale, setLocale, supportedLocales, t } = useI18n();
-  usePageTitle(t("settings.pageTitle"));
   const { profile, updateProfile } = useAuth();
   const { saveSettings } = useAdminData();
-  const isSuperAdmin = profile?.role === "super_admin";
-  const [formState, setFormState] = useState({
+  const { theme, setTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState(0);
+  const [form, setForm] = useState({
     name: profile?.name || "",
     email: profile?.email || "",
     sessionTimeout: "30",
     language: locale,
-    note: t("settings.noteDefault")
+    theme
   });
 
-  useEffect(() => {
-    setFormState((current) => ({
-      ...current,
-      language: locale,
-      note: current.note ? current.note : t("settings.noteDefault")
-    }));
-  }, [locale, t]);
-
-  function handleChange(event) {
-    const { name, value } = event.target;
-    setFormState((current) => ({ ...current, [name]: value }));
-  }
-
   function handleSave() {
-    updateProfile({
-      name: formState.name,
-      email: formState.email
-    });
-    setLocale(formState.language);
-    saveSettings(t("navigation.menu.settings.label"));
+    updateProfile({ name: form.name, email: form.email });
+    setLocale(form.language);
+    setTheme(form.theme);
+    saveSettings(t("settings.profileSettings"));
   }
 
   return (
-    <section className="detail-grid">
-      <article className="section-card">
-        <div className="section-heading">
-          <div>
-            <h2>{t("settings.tabsTitle")}</h2>
-            <p className="muted-text">{t("settings.description")}</p>
-          </div>
-          <button type="button" onClick={handleSave}>
-            {t("common.saveChanges")}
-          </button>
+    <div className="max-w-4xl space-y-5">
+      <div className="bg-white rounded-2xl shadow-card">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-900">{t("settings.pageTitle")}</h2>
+          <p className="text-xs text-gray-400 mt-0.5">{t("settings.description")}</p>
         </div>
 
-        <div className="settings-tabs">
-          <button type="button" className="settings-tab active">
-            {t("settings.profileSettings")}
-          </button>
-          <button type="button" className="settings-tab">
-            {t("settings.notificationSettings")}
-          </button>
-          <button type="button" className="settings-tab">
-            {t("settings.securitySettings")}
-          </button>
-          {isSuperAdmin ? (
-            <button type="button" className="settings-tab">
-              {t("settings.systemSettings")}
-            </button>
-          ) : null}
-        </div>
-
-        <div className="settings-form">
-          <label>
-            {t("settings.displayName")}
-            <input
-              type="text"
-              name="name"
-              value={formState.name}
-              onChange={handleChange}
-            />
-          </label>
-          <label>
-            {t("common.email")}
-            <input
-              type="email"
-              name="email"
-              value={formState.email}
-              onChange={handleChange}
-            />
-          </label>
-          <label>
-            {t("settings.sessionTimeout")}
-            <select
-              name="sessionTimeout"
-              value={formState.sessionTimeout}
-              onChange={handleChange}
+        <div className="flex gap-1 px-5 pt-4 border-b border-gray-100">
+          {[t("settings.profileSettings"), t("settings.notificationSettings"), t("settings.securitySettings")].map((tab, i) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(i)}
+              className={`px-4 py-2 text-sm rounded-t-xl transition-colors ${
+                activeTab === i
+                  ? "bg-primary text-white font-medium"
+                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+              }`}
             >
-              <option value="15">15 minutes</option>
-              <option value="30">30 minutes</option>
-              <option value="60">60 minutes</option>
-            </select>
-          </label>
-          <label>
-            {t("settings.languagePreference")}
-            <select name="language" value={formState.language} onChange={handleChange}>
-              {supportedLocales.map((code) => (
-                <option key={code} value={code}>
-                  {t(`languages.${code}`)}
-                </option>
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-5">
+          {activeTab === 0 && (
+            <div className="space-y-4 max-w-md">
+              {[
+                { l: t("settings.displayName"), n: "name", tp: "text" },
+                { l: t("common.email"), n: "email", tp: "email" }
+              ].map((f) => (
+                <div key={f.n}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{f.l}</label>
+                  <input
+                    type={f.tp}
+                    value={form[f.n]}
+                    onChange={(e) => setForm((c) => ({ ...c, [f.n]: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  />
+                </div>
               ))}
-            </select>
-          </label>
-          <label>
-            {t("settings.securityNote")}
-            <textarea
-              rows="5"
-              name="note"
-              value={formState.note}
-              onChange={handleChange}
-            />
-          </label>
-        </div>
-      </article>
 
-      <article className="section-card">
-        <div className="section-heading">
-          <h2>{t("settings.systemReadiness")}</h2>
-          <span className="section-chip">
-            {isSuperAdmin ? t("settings.superAdminScope") : t("settings.adminScope")}
-          </span>
-        </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("settings.sessionTimeout")}</label>
+                <select
+                  value={form.sessionTimeout}
+                  onChange={(e) => setForm((c) => ({ ...c, sessionTimeout: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                >
+                  <option value="15">15 daqiqa</option>
+                  <option value="30">30 daqiqa</option>
+                  <option value="60">1 soat</option>
+                </select>
+              </div>
 
-        <div className="stack compact-stack">
-          <div className="notice-card">
-            <div>
-              <strong>{t("settings.authFlow")}</strong>
-              <p className="muted-text">{t("settings.authFlowDescription")}</p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("settings.languagePreference")}</label>
+                <select
+                  value={form.language}
+                  onChange={(e) => setForm((c) => ({ ...c, language: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                >
+                  {supportedLocales.map((code) => (
+                    <option key={code} value={code}>
+                      {t(`languages.${code}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">{t("settings.themePreference")}</label>
+                <div className="w-full px-3 py-2 text-sm border border-gray-700 rounded-xl bg-slate-800 text-white">
+                  {t("settings.themeManagedBySystem")}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSave}
+                className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                {t("common.saveChanges")}
+              </button>
             </div>
-          </div>
-          <div className="notice-card">
-            <div>
-              <strong>{t("settings.featureFlags")}</strong>
-              <p className="muted-text">{t("settings.featureFlagsDescription")}</p>
+          )}
+
+          {activeTab === 1 && (
+            <div className="space-y-3">
+              {[
+                { l: t("settings.notificationSettings"), d: t("users.createUser") },
+                { l: t("settings.securityNote"), d: t("settings.securitySettings") },
+                { l: t("reports.overview"), d: t("settings.profileSettings") }
+              ].map((item) => (
+                <div key={item.l} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{item.l}</p>
+                    <p className="text-xs text-gray-400">{item.d}</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                    <div className="w-10 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-colors" />
+                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-4 transition-transform shadow-sm" />
+                  </label>
+                </div>
+              ))}
             </div>
-          </div>
-          <div className="notice-card">
-            <div>
-              <strong>{t("settings.auditReadiness")}</strong>
-              <p className="muted-text">{t("settings.auditReadinessDescription")}</p>
+          )}
+
+          {activeTab === 2 && (
+            <div className="space-y-4 max-w-md">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("common.password")}</label>
+                <input
+                  type="password"
+                  placeholder="********"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("auth.newPassword")}</label>
+                <input
+                  type="password"
+                  placeholder="********"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("auth.confirmPassword")}</label>
+                <input
+                  type="password"
+                  placeholder="********"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+              <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-100 rounded-xl">
+                <span className="text-yellow-500 mt-0.5">!</span>
+                <p className="text-xs text-yellow-700">
+                  {t("settings.securityNote")}
+                  <button type="button" className="block mt-1 text-primary hover:underline">
+                    {t("profile.twoFa")} -
+                  </button>
+                </p>
+              </div>
+              <button
+                type="button"
+                className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                {t("auth.saveNewPassword")}
+              </button>
             </div>
-          </div>
+          )}
         </div>
-      </article>
-    </section>
+      </div>
+    </div>
   );
 }

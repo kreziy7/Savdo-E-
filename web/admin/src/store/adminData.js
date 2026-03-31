@@ -10,13 +10,9 @@ import {
   auditLogs as initialAuditLogs,
   contentRows as initialContentRows,
   notificationFeed,
-  permissionMatrix as initialPermissionMatrix,
   recentActivities as initialRecentActivities,
-  roles as initialRoles,
   users as initialUsers
 } from "../constants/mockData";
-import { getStatusLabel } from "../i18n/labels";
-import { useI18n } from "../i18n";
 import { useAuth } from "./index";
 
 const AdminDataContext = createContext(null);
@@ -26,305 +22,224 @@ function formatNow() {
 }
 
 function nextId(prefix, list) {
-  const currentMax = list.reduce((max, item) => {
-    const numeric = Number(String(item.id || "").replace(/\D/g, ""));
-    return Number.isFinite(numeric) ? Math.max(max, numeric) : max;
+  const max = list.reduce((m, item) => {
+    const n = Number(String(item.id || "").replace(/\D/g, ""));
+    return Number.isFinite(n) ? Math.max(m, n) : m;
   }, 0);
-
-  return `${prefix}-${String(currentMax + 1).padStart(4, "0")}`;
-}
-
-function buildActivity(titleKey, detailKey, detailValues = {}, tone = "info") {
-  return {
-    titleKey,
-    detailKey,
-    detailValues,
-    time: { type: "just_now" },
-    tone
-  };
+  return `${prefix}-${String(max + 1).padStart(4, "0")}`;
 }
 
 export function AdminDataProvider({ children }) {
   const { profile } = useAuth();
-  const { t } = useI18n();
   const [users, setUsers] = useState(initialUsers);
   const [admins, setAdmins] = useState(initialAdmins);
-  const [roles, setRoles] = useState(initialRoles);
-  const [permissionMatrix, setPermissionMatrix] = useState(initialPermissionMatrix);
   const [contentRows, setContentRows] = useState(initialContentRows);
   const [auditLogs, setAuditLogs] = useState(initialAuditLogs);
   const [recentActivity, setRecentActivity] = useState(initialRecentActivities);
   const [toasts, setToasts] = useState([]);
 
+  // ── Toast ───────────────────────────────────────────────
   function dismissToast(id) {
-    setToasts((current) => current.filter((item) => item.id !== id));
+    setToasts((curr) => curr.filter((t) => t.id !== id));
   }
 
-  function pushToast(messageKey, values = {}, tone = "success") {
+  function pushToast(message, tone = "success") {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-    setToasts((current) => [...current, { id, messageKey, values, tone }]);
-
-    window.setTimeout(() => {
-      dismissToast(id);
-    }, 3200);
+    setToasts((curr) => [...curr, { id, message, tone }]);
+    window.setTimeout(() => dismissToast(id), 3400);
   }
 
-  function appendActivity(titleKey, detailKey, detailValues, tone) {
-    setRecentActivity((current) =>
-      [buildActivity(titleKey, detailKey, detailValues, tone), ...current].slice(0, 5)
+  // ── Activity + Audit ────────────────────────────────────
+  function appendActivity(title, detail, tone = "info") {
+    setRecentActivity((curr) =>
+      [{ title, detail, time: "Hozir", tone }, ...curr].slice(0, 8)
     );
   }
 
-  function logAudit(actionKey, target, tone = "info", category = "settings") {
-    const actor = profile?.name || "Unknown actor";
-    const entry = {
-      id: `${Date.now()}`,
-      actionKey,
-      category,
-      actor,
-      target,
-      ip: "10.10.4.99",
-      timestamp: formatNow()
-    };
-
-    setAuditLogs((current) => [entry, ...current]);
-    appendActivity(actionKey, "seeds.activities.genericUpdatedBy.detail", { target, actor }, tone);
+  function logAudit(action, target, category = "user", tone = "info") {
+    const actor = profile?.name || "Tizim";
+    setAuditLogs((curr) => [
+      {
+        id: `${Date.now()}`,
+        action,
+        category,
+        actor,
+        target,
+        ip: "10.10.4.99",
+        timestamp: formatNow()
+      },
+      ...curr
+    ]);
+    appendActivity(action, `${actor} → ${target}`, tone);
   }
 
+  // ── Users ────────────────────────────────────────────────
   function createUser(payload) {
     const user = {
       id: nextId("USR", users),
       createdAt: formatNow().slice(0, 10),
-      lastLogin: { type: "never" },
+      lastLogin: null,
+      isAdmin: false,
       ...payload
     };
-
-    setUsers((current) => [user, ...current]);
-    logAudit("seeds.auditActions.userCreated", user.id, "success", "user");
-    pushToast("toast.userCreated", { name: user.name });
+    setUsers((curr) => [user, ...curr]);
+    logAudit("Foydalanuvchi yaratildi", user.id, "user", "success");
+    pushToast(`${user.name} yaratildi`);
   }
 
   function updateUser(id, payload) {
-    setUsers((current) =>
-      current.map((item) => (item.id === id ? { ...item, ...payload } : item))
+    setUsers((curr) =>
+      curr.map((u) => (u.id === id ? { ...u, ...payload } : u))
     );
-    logAudit("seeds.auditActions.userUpdated", id, "info", "user");
-    pushToast("toast.userUpdated");
+    logAudit("Foydalanuvchi yangilandi", id, "user", "info");
+    pushToast("O'zgarishlar saqlandi");
   }
 
   function toggleUserStatus(id) {
-    let nextStatus = "blocked";
-
-    setUsers((current) =>
-      current.map((item) => {
-        if (item.id !== id) {
-          return item;
-        }
-
-        nextStatus = item.status === "blocked" ? "active" : "blocked";
-        return { ...item, status: nextStatus };
+    let next = "blocked";
+    setUsers((curr) =>
+      curr.map((u) => {
+        if (u.id !== id) return u;
+        next = u.status === "blocked" ? "active" : "blocked";
+        return { ...u, status: next };
       })
     );
-
     logAudit(
-      nextStatus === "blocked"
-        ? "seeds.auditActions.userBlocked"
-        : "seeds.auditActions.userUnblocked",
-      id,
-      nextStatus === "blocked" ? "danger" : "success",
-      "user"
+      next === "blocked" ? "Foydalanuvchi bloklandi" : "Foydalanuvchi aktivlashtirildi",
+      id, "user",
+      next === "blocked" ? "danger" : "success"
     );
-    pushToast("toast.userStatus", { status: getStatusLabel(t, nextStatus) });
+    pushToast(next === "blocked" ? "Foydalanuvchi bloklandi" : "Foydalanuvchi aktivlashtirildi",
+      next === "blocked" ? "danger" : "success");
   }
 
   function deleteUser(id) {
-    const target = users.find((item) => item.id === id);
-    setUsers((current) => current.filter((item) => item.id !== id));
-    logAudit("seeds.auditActions.userDeleted", id, "danger", "user");
-    pushToast("toast.userDeleted", { name: target?.name || id }, "danger");
+    const target = users.find((u) => u.id === id);
+    setUsers((curr) => curr.filter((u) => u.id !== id));
+    logAudit("Foydalanuvchi o'chirildi", id, "user", "danger");
+    pushToast(`${target?.name || id} o'chirildi`, "danger");
   }
 
-  function createAdmin(payload) {
-    if (payload.role === "super_admin") {
-      pushToast("toast.onlyOneSuperAdmin", {}, "danger");
-      return false;
-    }
+  // ── Grant / Revoke Admin ────────────────────────────────
+  // Primary admin can promote a user to admin or revoke their admin access
+  function grantAdminToUser(userId) {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
 
-    const customPermissions = payload.permissions?.trim();
-    const admin = {
-      id: nextId("ADM", admins),
-      status: payload.status || "invited",
-      lastActive: { type: "pending_invite" },
-      createdBy: profile?.name || { type: "system" },
-      permissionsKey: customPermissions ? undefined : "scoped_access",
-      ...payload
-    };
-
-    setAdmins((current) => [admin, ...current]);
-    logAudit("seeds.auditActions.adminCreated", admin.id, "success", "admin");
-    pushToast("toast.adminCreated", { name: admin.name });
-    return true;
-  }
-
-  function updateAdmin(id, payload) {
-    const currentAdmin = admins.find((item) => item.id === id);
-
-    if (currentAdmin?.role === "super_admin" && payload.role && payload.role !== "super_admin") {
-      pushToast("toast.superAdminTransferDisabled", {}, "danger");
-      return false;
-    }
-
-    setAdmins((current) =>
-      current.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              ...payload,
-              permissionsKey: payload.permissions?.trim() ? undefined : item.permissionsKey
-            }
-          : item
-      )
+    // Mark user as admin in users list
+    setUsers((curr) =>
+      curr.map((u) => (u.id === userId ? { ...u, isAdmin: true } : u))
     );
-    logAudit("seeds.auditActions.adminUpdated", id, "info", "admin");
-    pushToast("toast.adminUpdated");
-    return true;
+
+    // Add to admins list if not already there
+    const alreadyAdmin = admins.find((a) => a.email === user.email);
+    if (!alreadyAdmin) {
+      const admin = {
+        id: nextId("ADM", admins),
+        name: user.name,
+        email: user.email,
+        isPrimary: false,
+        status: "active",
+        lastActive: formatNow(),
+        createdBy: profile?.name || "Bosh Admin",
+        grantedFromUserId: userId
+      };
+      setAdmins((curr) => [...curr, admin]);
+    }
+
+    logAudit("Admin huquqi berildi", user.name, "admin", "success");
+    pushToast(`${user.name} ga admin huquqi berildi`);
   }
 
+  function revokeAdminFromUser(userId) {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
+
+    setUsers((curr) =>
+      curr.map((u) => (u.id === userId ? { ...u, isAdmin: false } : u))
+    );
+    setAdmins((curr) =>
+      curr.filter((a) => a.grantedFromUserId !== userId && a.email !== user.email)
+    );
+
+    logAudit("Admin huquqi olindi", user.name, "admin", "warning");
+    pushToast(`${user.name} dan admin huquqi olindi`, "warning");
+  }
+
+  // ── Admins ───────────────────────────────────────────────
   function toggleAdminStatus(id) {
-    let nextStatus = "suspended";
-
-    setAdmins((current) =>
-      current.map((item) => {
-        if (item.id !== id || item.role === "super_admin") {
-          return item;
-        }
-
-        nextStatus = item.status === "suspended" ? "active" : "suspended";
-        return { ...item, status: nextStatus };
+    let next = "suspended";
+    setAdmins((curr) =>
+      curr.map((a) => {
+        if (a.id !== id || a.isPrimary) return a;
+        next = a.status === "suspended" ? "active" : "suspended";
+        return { ...a, status: next };
       })
     );
-
-    logAudit("seeds.auditActions.adminStatusChanged", id, "warning", "admin");
-    pushToast("toast.adminStatus", { status: getStatusLabel(t, nextStatus) });
-  }
-
-  function createRole(payload) {
-    const role = {
-      name: payload.name,
-      members: 0,
-      scope: payload.scope,
-      note: payload.note
-    };
-
-    setRoles((current) => [role, ...current]);
-    logAudit("seeds.auditActions.roleCreated", payload.name, "success", "permission");
-    pushToast("toast.roleCreated", { name: payload.name });
-  }
-
-  function togglePermission(moduleName, roleName, actionName) {
-    setPermissionMatrix((current) =>
-      current.map((row) => {
-        if (row.module !== moduleName) {
-          return row;
-        }
-
-        const currentActions = row[roleName];
-        const nextActions = currentActions.includes(actionName)
-          ? currentActions.filter((item) => item !== actionName)
-          : [...currentActions, actionName];
-
-        return { ...row, [roleName]: nextActions };
-      })
+    logAudit(
+      next === "suspended" ? "Admin to'xtatildi" : "Admin aktivlashtirildi",
+      id, "admin", "warning"
     );
+    pushToast(next === "suspended" ? "Admin to'xtatildi" : "Admin aktivlashtirildi", "warning");
   }
 
-  function savePermissions() {
-    logAudit("seeds.auditActions.permissionsSaved", "Permissions", "success", "permission");
-    pushToast("toast.permissionsSaved");
-  }
-
+  // ── Content ──────────────────────────────────────────────
   function createContent(payload) {
     const row = {
       id: nextId("CNT", contentRows),
       updatedAt: formatNow(),
       ...payload
     };
-
-    setContentRows((current) => [row, ...current]);
-    logAudit("seeds.auditActions.contentCreated", row.name, "success", "content");
-    pushToast("toast.contentCreated", { name: row.name });
+    setContentRows((curr) => [row, ...curr]);
+    logAudit("Kontent yaratildi", row.name || row.id, "content", "success");
+    pushToast(`"${row.name}" yaratildi`);
   }
 
-  function updateContentStatus(idOrName, status) {
-    let resolvedName = String(idOrName);
-
-    setContentRows((current) =>
-      current.map((item) => {
-        if ((item.id || item.name || item.nameKey) !== idOrName) {
-          return item;
-        }
-
-        resolvedName = item.name || t(item.nameKey, {}, String(idOrName));
-        return { ...item, status, updatedAt: formatNow() };
+  function updateContentStatus(id, status) {
+    let name = id;
+    setContentRows((curr) =>
+      curr.map((c) => {
+        if (c.id !== id) return c;
+        name = c.name || id;
+        return { ...c, status, updatedAt: formatNow() };
       })
     );
-    logAudit("seeds.auditActions.contentStatusChanged", resolvedName, "info", "content");
-    pushToast("toast.contentStatusUpdated", { status: getStatusLabel(t, status) });
+    logAudit(`Kontent statusi: ${status}`, name, "content", "info");
+    pushToast(`Kontent statusi yangilandi: ${status}`);
   }
 
+  function deleteContent(id) {
+    const target = contentRows.find((c) => c.id === id);
+    setContentRows((curr) => curr.filter((c) => c.id !== id));
+    logAudit("Kontent o'chirildi", target?.name || id, "content", "danger");
+    pushToast(`"${target?.name || id}" o'chirildi`, "danger");
+  }
+
+  // ── Settings ─────────────────────────────────────────────
   function saveSettings(section) {
-    logAudit("seeds.auditActions.settingsUpdated", section, "success", "settings");
-    pushToast("toast.settingsSaved", { section });
+    logAudit("Sozlamalar saqlandi", section, "settings", "success");
+    pushToast("Sozlamalar saqlandi");
   }
 
   const value = useMemo(
     () => ({
-      users,
-      admins,
-      roles,
-      permissionMatrix,
-      contentRows,
-      auditLogs,
-      notificationFeed,
-      recentActivity,
-      toasts,
-      pushToast,
-      dismissToast,
-      createUser,
-      updateUser,
-      toggleUserStatus,
-      deleteUser,
-      createAdmin,
-      updateAdmin,
+      users, admins, contentRows, auditLogs,
+      notificationFeed, recentActivity, toasts,
+      pushToast, dismissToast,
+      createUser, updateUser, toggleUserStatus, deleteUser,
+      grantAdminToUser, revokeAdminFromUser,
       toggleAdminStatus,
-      createRole,
-      togglePermission,
-      savePermissions,
-      createContent,
-      updateContentStatus,
+      createContent, updateContentStatus, deleteContent,
       saveSettings
     }),
-    [
-      users,
-      admins,
-      roles,
-      permissionMatrix,
-      contentRows,
-      auditLogs,
-      recentActivity,
-      toasts
-    ]
+    [users, admins, contentRows, auditLogs, recentActivity, toasts]
   );
 
   return createElement(AdminDataContext.Provider, { value }, children);
 }
 
 export function useAdminData() {
-  const context = useContext(AdminDataContext);
-
-  if (!context) {
-    throw new Error("useAdminData must be used within AdminDataProvider");
-  }
-
-  return context;
+  const ctx = useContext(AdminDataContext);
+  if (!ctx) throw new Error("useAdminData must be used within AdminDataProvider");
+  return ctx;
 }
