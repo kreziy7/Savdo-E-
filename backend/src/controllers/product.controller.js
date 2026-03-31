@@ -1,6 +1,14 @@
 const productService = require('../services/product.service');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiResponse = require('../utils/ApiResponse');
+const ApiError = require('../utils/ApiError');
+const mongoose = require('mongoose');
+
+const validateObjectId = (id) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, 'Invalid ID format');
+  }
+};
 
 const getProducts = asyncHandler(async (req, res) => {
   const result = await productService.getProducts(req.user._id, req.query);
@@ -8,6 +16,7 @@ const getProducts = asyncHandler(async (req, res) => {
 });
 
 const getProductById = asyncHandler(async (req, res) => {
+  validateObjectId(req.params.id);
   const product = await productService.getProductById(req.params.id, req.user._id);
   res.status(200).json(new ApiResponse(200, { product }, 'Product retrieved'));
 });
@@ -18,16 +27,19 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
+  validateObjectId(req.params.id);
   const product = await productService.updateProduct(req.params.id, req.user._id, req.body);
   res.status(200).json(new ApiResponse(200, { product }, 'Product updated'));
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
+  validateObjectId(req.params.id);
   const result = await productService.deleteProduct(req.params.id, req.user._id);
   res.status(200).json(new ApiResponse(200, result, result.message));
 });
 
 const addReview = asyncHandler(async (req, res) => {
+  validateObjectId(req.params.id);
   const product = await productService.addReview(
     req.params.id,
     req.user._id,

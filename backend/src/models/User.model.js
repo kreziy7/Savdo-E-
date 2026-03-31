@@ -73,7 +73,7 @@ const userSchema = new mongoose.Schema(
 // Hash password before save (Mongoose 7: async hooks do NOT call next())
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
-  const salt = await bcrypt.genSalt(12);
+  const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
