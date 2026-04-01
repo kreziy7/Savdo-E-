@@ -1,6 +1,8 @@
 import { useAuth } from "../../store";
 import { useAdminData } from "../../store/adminData";
 import { useI18n } from "../../i18n";
+import { monthlyOrderStats, weeklyUserStats } from "../../constants/mockData";
+import { OrderRevenueChart, UserActivityChart } from "./components/StatsChart";
 
 const toneRing = {
   info: "ring-blue-100 bg-blue-50",
@@ -115,6 +117,12 @@ export function DashboardPage() {
             <span className={`text-xs font-medium mt-1 inline-block text-white/70`}>{stat.delta}</span>
           </div>
         ))}
+      </div>
+
+      {/* Charts section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <UserActivityChart data={weeklyUserStats} />
+        <OrderRevenueChart data={monthlyOrderStats} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -276,3 +276,23 @@ export const permissionMatrix = [
     viewer: []
   }
 ];
+
+// ─── Chart Data ───────────────────────────────────────────
+export const weeklyUserStats = [
+  { day: "Dush", users: 12, active: 9 },
+  { day: "Sesh", users: 19, active: 14 },
+  { day: "Chor", users: 8, active: 6 },
+  { day: "Pay", users: 24, active: 18 },
+  { day: "Juma", users: 31, active: 25 },
+  { day: "Shan", users: 15, active: 11 },
+  { day: "Yak", users: 7, active: 5 }
+];
+
+export const monthlyOrderStats = [
+  { month: "Yan", orders: 45, revenue: 12500000 },
+  { month: "Fev", orders: 62, revenue: 18200000 },
+  { month: "Mar", orders: 58, revenue: 16800000 },
+  { month: "Apr", orders: 71, revenue: 21000000 },
+  { month: "May", orders: 84, revenue: 24500000 },
+  { month: "Iyn", orders: 93, revenue: 28100000 }
+];
