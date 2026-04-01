@@ -172,3 +172,107 @@ export const auditLogs = [
     timestamp: "2026-03-27 08:33"
   }
 ];
+
+// ─── Roles ────────────────────────────────────────────────
+export const roles = [
+  {
+    id: "role-super-admin",
+    name: "super_admin",
+    scopeKey: "seeds.roles.super_admin.scope",
+    noteKey: "seeds.roles.super_admin.note",
+    members: 1,
+    isSystem: true
+  },
+  {
+    id: "role-admin",
+    name: "admin",
+    scopeKey: "seeds.roles.admin.scope",
+    noteKey: "seeds.roles.admin.note",
+    members: 2,
+    isSystem: true
+  },
+  {
+    id: "role-editor",
+    name: "editor",
+    scopeKey: "seeds.roles.editor.scope",
+    noteKey: "seeds.roles.editor.note",
+    members: 1,
+    isSystem: false
+  },
+  {
+    id: "role-viewer",
+    name: "viewer",
+    scopeKey: "seeds.roles.viewer.scope",
+    noteKey: "seeds.roles.viewer.note",
+    members: 1,
+    isSystem: false
+  }
+];
+
+// ─── Permission Matrix ─────────────────────────────────────
+// row = { module, super_admin: ["view",...], admin: [...], editor: [...], viewer: [...] }
+export const permissionMatrix = [
+  {
+    module: "dashboard",
+    super_admin: ["view"],
+    admin: ["view"],
+    editor: ["view"],
+    viewer: ["view"]
+  },
+  {
+    module: "users",
+    super_admin: ["view", "create", "update", "delete", "export"],
+    admin: ["view", "create", "update", "delete"],
+    editor: ["view"],
+    viewer: ["view"]
+  },
+  {
+    module: "admins",
+    super_admin: ["view", "create", "update", "delete", "manage"],
+    admin: [],
+    editor: [],
+    viewer: []
+  },
+  {
+    module: "roles",
+    super_admin: ["view", "create", "update", "delete", "manage"],
+    admin: ["view"],
+    editor: [],
+    viewer: []
+  },
+  {
+    module: "permissions",
+    super_admin: ["view", "manage"],
+    admin: ["view"],
+    editor: [],
+    viewer: []
+  },
+  {
+    module: "content",
+    super_admin: ["view", "create", "update", "delete", "export"],
+    admin: ["view", "create", "update", "delete"],
+    editor: ["view", "create", "update"],
+    viewer: ["view"]
+  },
+  {
+    module: "reports",
+    super_admin: ["view", "export"],
+    admin: ["view", "export"],
+    editor: ["view"],
+    viewer: ["view"]
+  },
+  {
+    module: "audit_logs",
+    super_admin: ["view", "export"],
+    admin: ["view"],
+    editor: [],
+    viewer: []
+  },
+  {
+    module: "settings",
+    super_admin: ["view", "update", "manage"],
+    admin: ["view", "update"],
+    editor: [],
+    viewer: []
+  }
+];

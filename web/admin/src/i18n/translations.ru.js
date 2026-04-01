@@ -459,9 +459,13 @@ export const ru = {
     modules: {
       dashboard: "Дашборд",
       users: "Пользователи",
-      admins: "Админы",
-      reports: "Отчеты",
-      audit_logs: "Аудит-логи"
+      admins: "Администраторы",
+      roles: "Роли",
+      permissions: "Права",
+      content: "Контент",
+      reports: "Отчёты",
+      audit_logs: "Журнал действий",
+      settings: "Настройки"
     },
     actions: {
       view: "Просмотр",

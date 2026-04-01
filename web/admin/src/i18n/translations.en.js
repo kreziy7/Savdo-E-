@@ -463,8 +463,12 @@ export const en = {
       dashboard: "Dashboard",
       users: "Users",
       admins: "Admins",
+      roles: "Roles",
+      permissions: "Permissions",
+      content: "Content",
       reports: "Reports",
-      audit_logs: "Audit Logs"
+      audit_logs: "Audit Logs",
+      settings: "Settings"
     },
     actions: {
       view: "View",

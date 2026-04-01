@@ -465,8 +465,12 @@ export const uz = {
       dashboard: "Dashboard",
       users: "Foydalanuvchilar",
       admins: "Adminlar",
+      roles: "Rollar",
+      permissions: "Ruxsatlar",
+      content: "Kontent",
       reports: "Hisobotlar",
-      audit_logs: "Audit loglar"
+      audit_logs: "Audit loglar",
+      settings: "Sozlamalar"
     },
     actions: {
       view: "Ko'rish",

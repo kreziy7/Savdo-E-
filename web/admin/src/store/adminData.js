@@ -10,7 +10,9 @@ import {
   auditLogs as initialAuditLogs,
   contentRows as initialContentRows,
   notificationFeed,
+  permissionMatrix as initialPermissionMatrix,
   recentActivities as initialRecentActivities,
+  roles as initialRoles,
   users as initialUsers
 } from "../constants/mockData";
 import { useAuth } from "./index";
@@ -37,6 +39,8 @@ export function AdminDataProvider({ children }) {
   const [auditLogs, setAuditLogs] = useState(initialAuditLogs);
   const [recentActivity, setRecentActivity] = useState(initialRecentActivities);
   const [toasts, setToasts] = useState([]);
+  const [roles, setRoles] = useState(initialRoles);
+  const [permissionMatrix, setPermissionMatrix] = useState(initialPermissionMatrix);
 
   // ── Toast ───────────────────────────────────────────────
   function dismissToast(id) {
@@ -221,18 +225,66 @@ export function AdminDataProvider({ children }) {
     pushToast("Sozlamalar saqlandi");
   }
 
+  // ── Roles ─────────────────────────────────────────────────
+  function createRole(payload) {
+    const role = {
+      id: `role-${Date.now()}`,
+      name: payload.name,
+      scope: payload.scope,
+      note: payload.note,
+      members: 0,
+      isSystem: false
+    };
+    setRoles((curr) => [...curr, role]);
+    logAudit("Rol yaratildi", role.name, "settings", "success");
+    pushToast(`"${role.name}" roli yaratildi`);
+  }
+
+  function deleteRole(id) {
+    const target = roles.find((r) => r.id === id);
+    if (target?.isSystem) {
+      pushToast("Tizim rolini o'chirib bo'lmaydi", "danger");
+      return;
+    }
+    setRoles((curr) => curr.filter((r) => r.id !== id));
+    logAudit("Rol o'chirildi", target?.name || id, "settings", "danger");
+    pushToast(`"${target?.name}" roli o'chirildi`, "danger");
+  }
+
+  // ── Permissions ────────────────────────────────────────────
+  function togglePermission(module, roleKey, action) {
+    setPermissionMatrix((curr) =>
+      curr.map((row) => {
+        if (row.module !== module) return row;
+        const current = row[roleKey] || [];
+        const updated = current.includes(action)
+          ? current.filter((a) => a !== action)
+          : [...current, action];
+        return { ...row, [roleKey]: updated };
+      })
+    );
+  }
+
+  function savePermissions() {
+    logAudit("Ruxsatlar saqlandi", "permission matrix", "settings", "success");
+    pushToast("Ruxsatlar saqlandi");
+  }
+
   const value = useMemo(
     () => ({
       users, admins, contentRows, auditLogs,
       notificationFeed, recentActivity, toasts,
+      roles, permissionMatrix,
       pushToast, dismissToast,
       createUser, updateUser, toggleUserStatus, deleteUser,
       grantAdminToUser, revokeAdminFromUser,
       toggleAdminStatus,
       createContent, updateContentStatus, deleteContent,
-      saveSettings
+      saveSettings,
+      createRole, deleteRole,
+      togglePermission, savePermissions
     }),
-    [users, admins, contentRows, auditLogs, recentActivity, toasts]
+    [users, admins, contentRows, auditLogs, recentActivity, toasts, roles, permissionMatrix]
   );
 
   return createElement(AdminDataContext.Provider, { value }, children);
