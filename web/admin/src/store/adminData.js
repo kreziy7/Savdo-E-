@@ -11,6 +11,7 @@ import {
   contentRows as initialContentRows,
   notificationFeed,
   permissionMatrix as initialPermissionMatrix,
+  products as initialProducts,
   recentActivities as initialRecentActivities,
   roles as initialRoles,
   users as initialUsers
@@ -41,6 +42,7 @@ export function AdminDataProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [roles, setRoles] = useState(initialRoles);
   const [permissionMatrix, setPermissionMatrix] = useState(initialPermissionMatrix);
+  const [products, setProducts] = useState(initialProducts);
 
   // ── Toast ───────────────────────────────────────────────
   function dismissToast(id) {
@@ -270,11 +272,57 @@ export function AdminDataProvider({ children }) {
     pushToast("Ruxsatlar saqlandi");
   }
 
+  // ── Products ───────────────────────────────────────────────
+  function createProduct(payload) {
+    const product = {
+      id: nextId("PRD", products),
+      createdAt: formatNow().slice(0, 10),
+      status: "active",
+      stock: 0,
+      ...payload
+    };
+    setProducts((curr) => [product, ...curr]);
+    logAudit("Mahsulot yaratildi", product.name, "content", "success");
+    pushToast(`"${product.name}" qo'shildi`);
+  }
+
+  function updateProduct(id, payload) {
+    setProducts((curr) =>
+      curr.map((p) => (p.id === id ? { ...p, ...payload } : p))
+    );
+    logAudit("Mahsulot yangilandi", id, "content", "info");
+    pushToast("Mahsulot saqlandi");
+  }
+
+  function deleteProduct(id) {
+    const target = products.find((p) => p.id === id);
+    setProducts((curr) => curr.filter((p) => p.id !== id));
+    logAudit("Mahsulot o'chirildi", target?.name || id, "content", "danger");
+    pushToast(`"${target?.name || id}" o'chirildi`, "danger");
+  }
+
+  function toggleProductStatus(id) {
+    let next = "inactive";
+    setProducts((curr) =>
+      curr.map((p) => {
+        if (p.id !== id) return p;
+        next = p.status === "active" ? "inactive" : "active";
+        return { ...p, status: next };
+      })
+    );
+    logAudit(
+      next === "active" ? "Mahsulot aktivlashtirildi" : "Mahsulot nofaol qilindi",
+      id, "content", next === "active" ? "success" : "warning"
+    );
+    pushToast(next === "active" ? "Mahsulot aktivlashtirildi" : "Mahsulot nofaol qilindi");
+  }
+
   const value = useMemo(
     () => ({
       users, admins, contentRows, auditLogs,
       notificationFeed, recentActivity, toasts,
       roles, permissionMatrix,
+      products,
       pushToast, dismissToast,
       createUser, updateUser, toggleUserStatus, deleteUser,
       grantAdminToUser, revokeAdminFromUser,
@@ -282,9 +330,10 @@ export function AdminDataProvider({ children }) {
       createContent, updateContentStatus, deleteContent,
       saveSettings,
       createRole, deleteRole,
-      togglePermission, savePermissions
+      togglePermission, savePermissions,
+      createProduct, updateProduct, deleteProduct, toggleProductStatus
     }),
-    [users, admins, contentRows, auditLogs, recentActivity, toasts, roles, permissionMatrix]
+    [users, admins, contentRows, auditLogs, recentActivity, toasts, roles, permissionMatrix, products]
   );
 
   return createElement(AdminDataContext.Provider, { value }, children);

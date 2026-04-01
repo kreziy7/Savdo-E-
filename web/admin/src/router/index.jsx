@@ -15,6 +15,11 @@ import { ReportsPage } from "../pages/reports/ReportsPage";
 import { SettingsPage } from "../pages/settings/SettingsPage";
 import { UserDetailPage } from "../pages/users/UserDetailPage";
 import { UsersPage } from "../pages/users/UsersPage";
+import { RolesPage } from "../pages/roles/RolesPage";
+import { PermissionsPage } from "../pages/permissions/PermissionsPage";
+import { ProductsPage } from "../pages/products/ProductsPage";
+import { OrdersPage } from "../pages/orders/OrdersPage";
+import { CustomersPage } from "../pages/customers/CustomersPage";
 
 export function AppRouter() {
   return (
@@ -37,6 +42,11 @@ export function AppRouter() {
             <Route path="/audit-logs" element={<AuditLogsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/roles" element={<RolesPage />} />
+            <Route path="/permissions" element={<PermissionsPage />} />
 
             {/* Primary admin only */}
             <Route

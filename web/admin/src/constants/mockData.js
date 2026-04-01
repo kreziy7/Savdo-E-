@@ -296,3 +296,57 @@ export const monthlyOrderStats = [
   { month: "May", orders: 84, revenue: 24500000 },
   { month: "Iyn", orders: 93, revenue: 28100000 }
 ];
+
+// ─── Products ─────────────────────────────────────────────
+export const products = [
+  {
+    id: "PRD-001",
+    name: "iPhone 15 Pro",
+    category: "Elektronika",
+    price: 12999000,
+    stock: 15,
+    status: "active",
+    sku: "APL-IP15P",
+    createdAt: "2026-03-01"
+  },
+  {
+    id: "PRD-002",
+    name: "Samsung Galaxy S24",
+    category: "Elektronika",
+    price: 10500000,
+    stock: 8,
+    status: "active",
+    sku: "SAM-S24",
+    createdAt: "2026-03-05"
+  },
+  {
+    id: "PRD-003",
+    name: "AirPods Pro 2",
+    category: "Aksessuarlar",
+    price: 2990000,
+    stock: 0,
+    status: "inactive",
+    sku: "APL-APP2",
+    createdAt: "2026-02-20"
+  },
+  {
+    id: "PRD-004",
+    name: "MacBook Air M3",
+    category: "Noutbuklar",
+    price: 24500000,
+    stock: 4,
+    status: "active",
+    sku: "APL-MBA-M3",
+    createdAt: "2026-03-10"
+  },
+  {
+    id: "PRD-005",
+    name: "Xiaomi Redmi Note 13",
+    category: "Elektronika",
+    price: 3200000,
+    stock: 22,
+    status: "active",
+    sku: "XMI-RN13",
+    createdAt: "2026-03-15"
+  }
+];
