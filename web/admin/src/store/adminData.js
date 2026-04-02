@@ -10,6 +10,7 @@ import {
   auditLogs as initialAuditLogs,
   contentRows as initialContentRows,
   notificationFeed,
+  orders as initialOrders,
   permissionMatrix as initialPermissionMatrix,
   products as initialProducts,
   recentActivities as initialRecentActivities,
@@ -43,6 +44,7 @@ export function AdminDataProvider({ children }) {
   const [roles, setRoles] = useState(initialRoles);
   const [permissionMatrix, setPermissionMatrix] = useState(initialPermissionMatrix);
   const [products, setProducts] = useState(initialProducts);
+  const [orders, setOrders] = useState(initialOrders);
 
   // ── Toast ───────────────────────────────────────────────
   function dismissToast(id) {
