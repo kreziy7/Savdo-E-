@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../../store";
 import { useAdminData } from "../../store/adminData";
 import { useI18n } from "../../i18n";
 import { monthlyOrderStats, weeklyUserStats } from "../../constants/mockData";
 import { OrderRevenueChart, UserActivityChart } from "./components/StatsChart";
+import { http } from "../../services/http";
 
 const toneRing = {
   info: "ring-blue-100 bg-blue-50",
@@ -35,6 +37,18 @@ export function DashboardPage() {
   const { profile } = useAuth();
   const { users, admins, auditLogs, notificationFeed, recentActivity } = useAdminData();
   const { t } = useI18n();
+
+  const [weeklyData, setWeeklyData] = useState(weeklyUserStats);
+  const [monthlyData, setMonthlyData] = useState(monthlyOrderStats);
+
+  useEffect(() => {
+    http.get("/admin/stats")
+      .then((res) => {
+        if (res?.weeklyUsers?.length) setWeeklyData(res.weeklyUsers);
+        if (res?.monthlyOrders?.length) setMonthlyData(res.monthlyOrders);
+      })
+      .catch(() => {/* fallback to mock data */});
+  }, []);
 
   const stats = [
     {
@@ -121,8 +135,8 @@ export function DashboardPage() {
 
       {/* Charts section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <UserActivityChart data={weeklyUserStats} />
-        <OrderRevenueChart data={monthlyOrderStats} />
+        <UserActivityChart data={weeklyData} />
+        <OrderRevenueChart data={monthlyData} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
