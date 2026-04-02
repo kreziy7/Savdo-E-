@@ -350,3 +350,57 @@ export const products = [
     createdAt: "2026-03-15"
   }
 ];
+
+// ─── Orders ───────────────────────────────────────────────
+export const orders = [
+  {
+    id: "ORD-1001",
+    customerName: "Alisher Toshmatov",
+    customerPhone: "+998901234567",
+    total: 12999000,
+    status: "delivered",
+    paymentStatus: "paid",
+    items: 1,
+    createdAt: "2026-03-25"
+  },
+  {
+    id: "ORD-1002",
+    customerName: "Malika Yusupova",
+    customerPhone: "+998901234568",
+    total: 5990000,
+    status: "shipped",
+    paymentStatus: "paid",
+    items: 2,
+    createdAt: "2026-03-28"
+  },
+  {
+    id: "ORD-1003",
+    customerName: "Jasur Karimov",
+    customerPhone: "+998901234569",
+    total: 3200000,
+    status: "confirmed",
+    paymentStatus: "pending",
+    items: 1,
+    createdAt: "2026-03-30"
+  },
+  {
+    id: "ORD-1004",
+    customerName: "Nodira Sharipova",
+    customerPhone: "+998901234570",
+    total: 24500000,
+    status: "new",
+    paymentStatus: "pending",
+    items: 1,
+    createdAt: "2026-04-01"
+  },
+  {
+    id: "ORD-1005",
+    customerName: "Bobur Ergashev",
+    customerPhone: "+998901234571",
+    total: 2990000,
+    status: "cancelled",
+    paymentStatus: "refunded",
+    items: 1,
+    createdAt: "2026-03-22"
+  }
+];

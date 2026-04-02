@@ -1,25 +1,20 @@
-# Savdo Admin
+# Savdo Admin Panel
 
-Standalone admin frontend scaffold inside `web/admin`.
+Savdo platformasini boshqarish uchun React + Tailwind CSS asosida qurilgan admin interfeys.
 
-## Start
+## Tezkor ishga tushirish
 
 ```bash
 npm install
-npm run dev
+npm run dev    # http://localhost:5174
 ```
 
-## Structure
+Demo kirish: `admin@savdo.uz` / (istalgan parol)
 
-- `src/assets` static files
-- `src/components` reusable UI parts
-- `src/config` app-level config
-- `src/constants` shared constants
-- `src/hooks` reusable hooks
-- `src/layouts` route layouts
-- `src/pages` route pages
-- `src/router` route definitions
-- `src/services` API clients
-- `src/store` state placeholders
-- `src/styles` global styles
-- `src/utils` helpers
+## Hujjatlar
+
+Barcha texnik hujjatlar `docs/` papkasida:
+
+- [docs/README.md](./docs/README.md) — to'liq hujjatlar indeksi
+- [docs/new-features.md](./docs/new-features.md) — qo'shish mumkin bo'lgan yangi funksiyalar
+- [docs/Frontend_Admin_SuperAdmin_Plan.md](./docs/Frontend_Admin_SuperAdmin_Plan.md) — loyiha rejasi
