@@ -41,7 +41,7 @@ http.interceptors.response.use(
         if (!auth?.refreshToken) throw new Error("No refresh token");
 
         const { data } = await axios.post(
-          `${appConfig.apiBaseUrl}/auth/refresh`,
+          `${appConfig.apiBaseUrl}/auth/refresh-token`,
           { refreshToken: auth.refreshToken }
         );
 

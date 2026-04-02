@@ -10,6 +10,7 @@ export function LoginPage() {
   const { t } = useI18n();
   const [form, setForm] = useState({ email: "admin@savdo.uz", password: "12345678" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
@@ -20,16 +21,27 @@ export function LoginPage() {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    login({ email: form.email, password: form.password });
-    navigate(nextRoute, { replace: true });
+    setError("");
+    try {
+      await login({ email: form.email, password: form.password });
+      navigate(nextRoute, { replace: true });
+    } catch (err) {
+      setError(err?.message || "Email yoki parol noto'g'ri");
+      setLoading(false);
+    }
   }
 
-  function quickLogin(email) {
-    login({ email, password: "demo" });
-    navigate(nextRoute, { replace: true });
+  async function quickLogin(email) {
+    setError("");
+    try {
+      await login({ email, password: "12345678" });
+      navigate(nextRoute, { replace: true });
+    } catch (err) {
+      setError(err?.message || "Kirish amalga oshmadi");
+    }
   }
 
   return (
@@ -94,6 +106,9 @@ export function LoginPage() {
                 />
               </div>
 
+              {error && (
+                <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+              )}
               <button
                 type="submit"
                 disabled={loading}

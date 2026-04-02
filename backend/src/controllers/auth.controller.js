@@ -1,0 +1,67 @@
+const authService = require('../services/auth.service');
+const asyncHandler = require('../utils/asyncHandler');
+const ApiResponse = require('../utils/ApiResponse');
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+const register = asyncHandler(async (req, res) => {
+  const user = await authService.register(req.body);
+  res.status(201).json(new ApiResponse(201, { user }, 'Registration successful'));
+});
+
+const login = asyncHandler(async (req, res) => {
+  const meta = {
+    userAgent: req.headers['user-agent'] || '',
+    ip: req.ip,
+  };
+  const { user, accessToken, refreshToken } = await authService.login(req.body, meta);
+
+  res.cookie('refreshToken', refreshToken, COOKIE_OPTIONS);
+
+  res.status(200).json(
+    new ApiResponse(200, { user, accessToken, refreshToken }, 'Login successful')
+  );
+});
+
+const refreshToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.body.refreshToken || req.cookies?.refreshToken;
+
+  const { accessToken, refreshToken: newRefreshToken } =
+    await authService.refreshTokens(incomingRefreshToken);
+
+  res.cookie('refreshToken', newRefreshToken, COOKIE_OPTIONS);
+
+  res.status(200).json(
+    new ApiResponse(200, { accessToken, refreshToken: newRefreshToken }, 'Tokens refreshed')
+  );
+});
+
+const logout = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.body.refreshToken || req.cookies?.refreshToken;
+
+  await authService.logout(incomingRefreshToken);
+
+  res.clearCookie('refreshToken');
+  res.clearCookie('accessToken');
+
+  res.status(200).json(new ApiResponse(200, null, 'Logged out successfully'));
+});
+
+const logoutAll = asyncHandler(async (req, res) => {
+  await authService.logoutAll(req.user._id);
+  res.clearCookie('refreshToken');
+  res.status(200).json(new ApiResponse(200, null, 'Logged out from all devices'));
+});
+
+const getMe = asyncHandler(async (req, res) => {
+  res.status(200).json(new ApiResponse(200, { user: req.user }, 'User retrieved'));
+});
+
+module.exports = { register, login, refreshToken, logout, logoutAll, getMe };
