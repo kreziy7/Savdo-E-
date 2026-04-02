@@ -1,39 +1,23 @@
 import { http } from "../http";
 
-/**
- * Users API — GET/POST/PUT/DELETE /api/users
- */
-
 export const usersApi = {
-  /** GET /api/users?page=1&limit=20&search=&role=&status= */
+  /** GET /api/admin/users?page=1&limit=50&search= */
   getAll: (params = {}) =>
-    http.get("/users", { params }),
+    http.get("/admin/users", { params }),
 
-  /** GET /api/users/:id */
+  /** GET /api/admin/users/:id */
   getById: (id) =>
-    http.get(`/users/${id}`),
+    http.get(`/admin/users/${id}`),
 
-  /** POST /api/users */
-  create: (payload) =>
-    http.post("/users", payload),
+  /** PATCH /api/admin/users/:id/block */
+  block: (id) =>
+    http.patch(`/admin/users/${id}/block`),
 
-  /** PUT /api/users/:id */
-  update: (id, payload) =>
-    http.put(`/users/${id}`, payload),
+  /** PATCH /api/admin/users/:id/unblock */
+  unblock: (id) =>
+    http.patch(`/admin/users/${id}/unblock`),
 
-  /** DELETE /api/users/:id */
+  /** DELETE /api/admin/users/:id */
   remove: (id) =>
-    http.delete(`/users/${id}`),
-
-  /** PATCH /api/users/:id/status */
-  toggleStatus: (id) =>
-    http.patch(`/users/${id}/status`),
-
-  /** POST /api/users/:id/grant-admin — primary admin only */
-  grantAdmin: (id) =>
-    http.post(`/users/${id}/grant-admin`),
-
-  /** DELETE /api/users/:id/grant-admin — primary admin only */
-  revokeAdmin: (id) =>
-    http.delete(`/users/${id}/grant-admin`)
+    http.delete(`/admin/users/${id}`),
 };

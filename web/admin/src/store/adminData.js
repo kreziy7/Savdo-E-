@@ -2,7 +2,9 @@ import {
   createContext,
   createElement,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import {
@@ -10,16 +12,43 @@ import {
   auditLogs as initialAuditLogs,
   contentRows as initialContentRows,
   notificationFeed,
-  orders as initialOrders,
   permissionMatrix as initialPermissionMatrix,
-  products as initialProducts,
   recentActivities as initialRecentActivities,
-  roles as initialRoles,
-  users as initialUsers
+  roles as initialRoles
 } from "../constants/mockData";
+import { usersApi } from "../services/api/users.api";
+import { productsApi } from "../services/api/products.api";
 import { useAuth } from "./index";
 
 const AdminDataContext = createContext(null);
+
+// ── Normalizers ────────────────────────────────────────────
+function normalizeUser(u) {
+  return {
+    id: u._id || u.id,
+    name: u.name || "",
+    email: u.email || "",
+    phone: u.phone || "",
+    role: (u.role || "viewer").toLowerCase(),
+    status: u.isBlocked ? "blocked" : "active",
+    createdAt: u.createdAt ? u.createdAt.slice(0, 10) : "",
+    lastLogin: u.lastLoginAt ? u.lastLoginAt.slice(0, 16).replace("T", " ") : null,
+    isAdmin: ["admin", "super_admin"].includes((u.role || "").toLowerCase())
+  };
+}
+
+function normalizeProduct(p) {
+  return {
+    id: p._id || p.id,
+    name: p.name || "",
+    category: p.category || "",
+    price: p.price || 0,
+    stock: p.stock ?? p.countInStock ?? 0,
+    sku: p.sku || "",
+    status: p.isActive !== false ? "active" : "inactive",
+    createdAt: p.createdAt ? p.createdAt.slice(0, 10) : ""
+  };
+}
 
 function formatNow() {
   return new Date().toISOString().slice(0, 16).replace("T", " ");
@@ -35,7 +64,13 @@ function nextId(prefix, list) {
 
 export function AdminDataProvider({ children }) {
   const { profile } = useAuth();
-  const [users, setUsers] = useState(initialUsers);
+
+  // ── Remote state ─────────────────────────────────────────
+  const [users, setUsers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ── Local-only state (no backend endpoints yet) ──────────
   const [admins, setAdmins] = useState(initialAdmins);
   const [contentRows, setContentRows] = useState(initialContentRows);
   const [auditLogs, setAuditLogs] = useState(initialAuditLogs);
@@ -43,10 +78,37 @@ export function AdminDataProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [roles, setRoles] = useState(initialRoles);
   const [permissionMatrix, setPermissionMatrix] = useState(initialPermissionMatrix);
-  const [products, setProducts] = useState(initialProducts);
-  const [orders, setOrders] = useState(initialOrders);
 
-  // ── Toast ───────────────────────────────────────────────
+  const loadedRef = useRef(false);
+
+  // ── Load remote data on mount ────────────────────────────
+  useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+
+    async function load() {
+      try {
+        const [usersRes, productsRes] = await Promise.allSettled([
+          usersApi.getAll({ limit: 100 }),
+          productsApi.getAll({ limit: 100 })
+        ]);
+
+        if (usersRes.status === "fulfilled") {
+          const raw = usersRes.value?.data?.users || [];
+          setUsers(raw.map(normalizeUser));
+        }
+        if (productsRes.status === "fulfilled") {
+          const raw = productsRes.value?.data?.products || [];
+          setProducts(raw.map(normalizeProduct));
+        }
+      } catch { /* silent — pages degrade gracefully */ }
+      finally { setLoading(false); }
+    }
+
+    load();
+  }, []);
+
+  // ── Toast ────────────────────────────────────────────────
   function dismissToast(id) {
     setToasts((curr) => curr.filter((t) => t.id !== id));
   }
@@ -57,7 +119,7 @@ export function AdminDataProvider({ children }) {
     window.setTimeout(() => dismissToast(id), 3400);
   }
 
-  // ── Activity + Audit ────────────────────────────────────
+  // ── Activity + Audit ─────────────────────────────────────
   function appendActivity(title, detail, tone = "info") {
     setRecentActivity((curr) =>
       [{ title, detail, time: "Hozir", tone }, ...curr].slice(0, 8)
@@ -67,27 +129,21 @@ export function AdminDataProvider({ children }) {
   function logAudit(action, target, category = "user", tone = "info") {
     const actor = profile?.name || "Tizim";
     setAuditLogs((curr) => [
-      {
-        id: `${Date.now()}`,
-        action,
-        category,
-        actor,
-        target,
-        ip: "10.10.4.99",
-        timestamp: formatNow()
-      },
+      { id: `${Date.now()}`, action, category, actor, target, ip: "—", timestamp: formatNow() },
       ...curr
     ]);
     appendActivity(action, `${actor} → ${target}`, tone);
   }
 
   // ── Users ────────────────────────────────────────────────
-  function createUser(payload) {
+  async function createUser(payload) {
+    // No POST /admin/users endpoint — optimistic local add
     const user = {
       id: nextId("USR", users),
       createdAt: formatNow().slice(0, 10),
       lastLogin: null,
       isAdmin: false,
+      status: "active",
       ...payload
     };
     setUsers((curr) => [user, ...curr]);
@@ -95,54 +151,53 @@ export function AdminDataProvider({ children }) {
     pushToast(`${user.name} yaratildi`);
   }
 
-  function updateUser(id, payload) {
-    setUsers((curr) =>
-      curr.map((u) => (u.id === id ? { ...u, ...payload } : u))
-    );
+  async function updateUser(id, payload) {
+    setUsers((curr) => curr.map((u) => (u.id === id ? { ...u, ...payload } : u)));
     logAudit("Foydalanuvchi yangilandi", id, "user", "info");
     pushToast("O'zgarishlar saqlandi");
   }
 
-  function toggleUserStatus(id) {
-    let next = "blocked";
-    setUsers((curr) =>
-      curr.map((u) => {
-        if (u.id !== id) return u;
-        next = u.status === "blocked" ? "active" : "blocked";
-        return { ...u, status: next };
-      })
-    );
-    logAudit(
-      next === "blocked" ? "Foydalanuvchi bloklandi" : "Foydalanuvchi aktivlashtirildi",
-      id, "user",
-      next === "blocked" ? "danger" : "success"
-    );
-    pushToast(next === "blocked" ? "Foydalanuvchi bloklandi" : "Foydalanuvchi aktivlashtirildi",
-      next === "blocked" ? "danger" : "success");
+  async function toggleUserStatus(id) {
+    const user = users.find((u) => u.id === id);
+    if (!user) return;
+    const isBlocked = user.status !== "blocked";
+    try {
+      if (isBlocked) {
+        await usersApi.block(id);
+      } else {
+        await usersApi.unblock(id);
+      }
+      setUsers((curr) =>
+        curr.map((u) => u.id === id ? { ...u, status: isBlocked ? "blocked" : "active" } : u)
+      );
+      const label = isBlocked ? "Foydalanuvchi bloklandi" : "Foydalanuvchi aktivlashtirildi";
+      logAudit(label, id, "user", isBlocked ? "danger" : "success");
+      pushToast(label, isBlocked ? "danger" : "success");
+    } catch (err) {
+      pushToast(err?.message || "Xatolik yuz berdi", "danger");
+    }
   }
 
-  function deleteUser(id) {
+  async function deleteUser(id) {
     const target = users.find((u) => u.id === id);
-    setUsers((curr) => curr.filter((u) => u.id !== id));
-    logAudit("Foydalanuvchi o'chirildi", id, "user", "danger");
-    pushToast(`${target?.name || id} o'chirildi`, "danger");
+    try {
+      await usersApi.remove(id);
+      setUsers((curr) => curr.filter((u) => u.id !== id));
+      logAudit("Foydalanuvchi o'chirildi", id, "user", "danger");
+      pushToast(`${target?.name || id} o'chirildi`, "danger");
+    } catch (err) {
+      pushToast(err?.message || "O'chirishda xatolik", "danger");
+    }
   }
 
-  // ── Grant / Revoke Admin ────────────────────────────────
-  // Primary admin can promote a user to admin or revoke their admin access
+  // ── Grant / Revoke Admin (local only) ────────────────────
   function grantAdminToUser(userId) {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
-
-    // Mark user as admin in users list
-    setUsers((curr) =>
-      curr.map((u) => (u.id === userId ? { ...u, isAdmin: true } : u))
-    );
-
-    // Add to admins list if not already there
+    setUsers((curr) => curr.map((u) => u.id === userId ? { ...u, isAdmin: true } : u));
     const alreadyAdmin = admins.find((a) => a.email === user.email);
     if (!alreadyAdmin) {
-      const admin = {
+      setAdmins((curr) => [...curr, {
         id: nextId("ADM", admins),
         name: user.name,
         email: user.email,
@@ -151,10 +206,8 @@ export function AdminDataProvider({ children }) {
         lastActive: formatNow(),
         createdBy: profile?.name || "Bosh Admin",
         grantedFromUserId: userId
-      };
-      setAdmins((curr) => [...curr, admin]);
+      }]);
     }
-
     logAudit("Admin huquqi berildi", user.name, "admin", "success");
     pushToast(`${user.name} ga admin huquqi berildi`);
   }
@@ -162,19 +215,12 @@ export function AdminDataProvider({ children }) {
   function revokeAdminFromUser(userId) {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
-
-    setUsers((curr) =>
-      curr.map((u) => (u.id === userId ? { ...u, isAdmin: false } : u))
-    );
-    setAdmins((curr) =>
-      curr.filter((a) => a.grantedFromUserId !== userId && a.email !== user.email)
-    );
-
+    setUsers((curr) => curr.map((u) => u.id === userId ? { ...u, isAdmin: false } : u));
+    setAdmins((curr) => curr.filter((a) => a.grantedFromUserId !== userId && a.email !== user.email));
     logAudit("Admin huquqi olindi", user.name, "admin", "warning");
     pushToast(`${user.name} dan admin huquqi olindi`, "warning");
   }
 
-  // ── Admins ───────────────────────────────────────────────
   function toggleAdminStatus(id) {
     let next = "suspended";
     setAdmins((curr) =>
@@ -193,11 +239,7 @@ export function AdminDataProvider({ children }) {
 
   // ── Content ──────────────────────────────────────────────
   function createContent(payload) {
-    const row = {
-      id: nextId("CNT", contentRows),
-      updatedAt: formatNow(),
-      ...payload
-    };
+    const row = { id: nextId("CNT", contentRows), updatedAt: formatNow(), ...payload };
     setContentRows((curr) => [row, ...curr]);
     logAudit("Kontent yaratildi", row.name || row.id, "content", "success");
     pushToast(`"${row.name}" yaratildi`);
@@ -206,11 +248,7 @@ export function AdminDataProvider({ children }) {
   function updateContentStatus(id, status) {
     let name = id;
     setContentRows((curr) =>
-      curr.map((c) => {
-        if (c.id !== id) return c;
-        name = c.name || id;
-        return { ...c, status, updatedAt: formatNow() };
-      })
+      curr.map((c) => { if (c.id !== id) return c; name = c.name || id; return { ...c, status, updatedAt: formatNow() }; })
     );
     logAudit(`Kontent statusi: ${status}`, name, "content", "info");
     pushToast(`Kontent statusi yangilandi: ${status}`);
@@ -223,7 +261,6 @@ export function AdminDataProvider({ children }) {
     pushToast(`"${target?.name || id}" o'chirildi`, "danger");
   }
 
-  // ── Settings ─────────────────────────────────────────────
   function saveSettings(section) {
     logAudit("Sozlamalar saqlandi", section, "settings", "success");
     pushToast("Sozlamalar saqlandi");
@@ -231,14 +268,7 @@ export function AdminDataProvider({ children }) {
 
   // ── Roles ─────────────────────────────────────────────────
   function createRole(payload) {
-    const role = {
-      id: `role-${Date.now()}`,
-      name: payload.name,
-      scope: payload.scope,
-      note: payload.note,
-      members: 0,
-      isSystem: false
-    };
+    const role = { id: `role-${Date.now()}`, name: payload.name, scope: payload.scope, note: payload.note, members: 0, isSystem: false };
     setRoles((curr) => [...curr, role]);
     logAudit("Rol yaratildi", role.name, "settings", "success");
     pushToast(`"${role.name}" roli yaratildi`);
@@ -246,24 +276,19 @@ export function AdminDataProvider({ children }) {
 
   function deleteRole(id) {
     const target = roles.find((r) => r.id === id);
-    if (target?.isSystem) {
-      pushToast("Tizim rolini o'chirib bo'lmaydi", "danger");
-      return;
-    }
+    if (target?.isSystem) { pushToast("Tizim rolini o'chirib bo'lmaydi", "danger"); return; }
     setRoles((curr) => curr.filter((r) => r.id !== id));
     logAudit("Rol o'chirildi", target?.name || id, "settings", "danger");
     pushToast(`"${target?.name}" roli o'chirildi`, "danger");
   }
 
-  // ── Permissions ────────────────────────────────────────────
+  // ── Permissions ───────────────────────────────────────────
   function togglePermission(module, roleKey, action) {
     setPermissionMatrix((curr) =>
       curr.map((row) => {
         if (row.module !== module) return row;
         const current = row[roleKey] || [];
-        const updated = current.includes(action)
-          ? current.filter((a) => a !== action)
-          : [...current, action];
+        const updated = current.includes(action) ? current.filter((a) => a !== action) : [...current, action];
         return { ...row, [roleKey]: updated };
       })
     );
@@ -274,53 +299,63 @@ export function AdminDataProvider({ children }) {
     pushToast("Ruxsatlar saqlandi");
   }
 
-  // ── Products ───────────────────────────────────────────────
-  function createProduct(payload) {
-    const product = {
-      id: nextId("PRD", products),
-      createdAt: formatNow().slice(0, 10),
-      status: "active",
-      stock: 0,
-      ...payload
-    };
-    setProducts((curr) => [product, ...curr]);
-    logAudit("Mahsulot yaratildi", product.name, "content", "success");
-    pushToast(`"${product.name}" qo'shildi`);
+  // ── Products ──────────────────────────────────────────────
+  async function createProduct(payload) {
+    try {
+      const res = await productsApi.create(payload);
+      const product = normalizeProduct(res.data?.product || res.data || {});
+      setProducts((curr) => [product, ...curr]);
+      logAudit("Mahsulot yaratildi", product.name, "content", "success");
+      pushToast(`"${product.name}" qo'shildi`);
+    } catch (err) {
+      pushToast(err?.message || "Mahsulot qo'shishda xatolik", "danger");
+    }
   }
 
-  function updateProduct(id, payload) {
-    setProducts((curr) =>
-      curr.map((p) => (p.id === id ? { ...p, ...payload } : p))
-    );
-    logAudit("Mahsulot yangilandi", id, "content", "info");
-    pushToast("Mahsulot saqlandi");
+  async function updateProduct(id, payload) {
+    try {
+      const res = await productsApi.update(id, payload);
+      const updated = normalizeProduct(res.data?.product || res.data || payload);
+      setProducts((curr) => curr.map((p) => p.id === id ? { ...p, ...updated } : p));
+      logAudit("Mahsulot yangilandi", id, "content", "info");
+      pushToast("Mahsulot saqlandi");
+    } catch (err) {
+      pushToast(err?.message || "Yangilashda xatolik", "danger");
+    }
   }
 
-  function deleteProduct(id) {
+  async function deleteProduct(id) {
     const target = products.find((p) => p.id === id);
-    setProducts((curr) => curr.filter((p) => p.id !== id));
-    logAudit("Mahsulot o'chirildi", target?.name || id, "content", "danger");
-    pushToast(`"${target?.name || id}" o'chirildi`, "danger");
+    try {
+      await productsApi.remove(id);
+      setProducts((curr) => curr.filter((p) => p.id !== id));
+      logAudit("Mahsulot o'chirildi", target?.name || id, "content", "danger");
+      pushToast(`"${target?.name || id}" o'chirildi`, "danger");
+    } catch (err) {
+      pushToast(err?.message || "O'chirishda xatolik", "danger");
+    }
   }
 
-  function toggleProductStatus(id) {
-    let next = "inactive";
-    setProducts((curr) =>
-      curr.map((p) => {
-        if (p.id !== id) return p;
-        next = p.status === "active" ? "inactive" : "active";
-        return { ...p, status: next };
-      })
-    );
-    logAudit(
-      next === "active" ? "Mahsulot aktivlashtirildi" : "Mahsulot nofaol qilindi",
-      id, "content", next === "active" ? "success" : "warning"
-    );
-    pushToast(next === "active" ? "Mahsulot aktivlashtirildi" : "Mahsulot nofaol qilindi");
+  async function toggleProductStatus(id) {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+    const next = product.status === "active" ? "inactive" : "active";
+    try {
+      await productsApi.update(id, { isActive: next === "active" });
+      setProducts((curr) => curr.map((p) => p.id === id ? { ...p, status: next } : p));
+      logAudit(
+        next === "active" ? "Mahsulot aktivlashtirildi" : "Mahsulot nofaol qilindi",
+        id, "content", next === "active" ? "success" : "warning"
+      );
+      pushToast(next === "active" ? "Mahsulot aktivlashtirildi" : "Mahsulot nofaol qilindi");
+    } catch (err) {
+      pushToast(err?.message || "Xatolik", "danger");
+    }
   }
 
   const value = useMemo(
     () => ({
+      loading,
       users, admins, contentRows, auditLogs,
       notificationFeed, recentActivity, toasts,
       roles, permissionMatrix,
@@ -335,7 +370,7 @@ export function AdminDataProvider({ children }) {
       togglePermission, savePermissions,
       createProduct, updateProduct, deleteProduct, toggleProductStatus
     }),
-    [users, admins, contentRows, auditLogs, recentActivity, toasts, roles, permissionMatrix, products]
+    [users, admins, contentRows, auditLogs, recentActivity, toasts, roles, permissionMatrix, products, loading]
   );
 
   return createElement(AdminDataContext.Provider, { value }, children);

@@ -14,9 +14,9 @@ export const authApi = {
   logout: () =>
     http.post("/auth/logout"),
 
-  /** POST /api/auth/refresh */
+  /** POST /api/auth/refresh-token */
   refresh: (refreshToken) =>
-    http.post("/auth/refresh", { refreshToken }),
+    http.post("/auth/refresh-token", { refreshToken }),
 
   /** POST /api/auth/forgot-password */
   forgotPassword: (email) =>

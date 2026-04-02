@@ -6,37 +6,33 @@ import {
   useMemo,
   useState
 } from "react";
+import { authApi } from "../services/api/auth.api";
 
 const STORAGE_KEY = "savdo-admin-auth";
 
-// All admins share the same permissions.
-// isPrimary admin gets an extra permission: admins.manage
-const BASE_PERMISSIONS = [
+const ALL_PERMISSIONS = [
   "dashboard.view",
   "users.view", "users.create", "users.update", "users.delete",
   "content.view", "content.create", "content.update", "content.delete",
   "reports.view", "reports.export",
   "audit_logs.view",
   "settings.view", "settings.manage",
-  "profile.view", "profile.update"
+  "profile.view", "profile.update",
+  "admins.manage"
 ];
 
-const PRIMARY_PERMISSIONS = [...BASE_PERMISSIONS, "admins.manage"];
-
-function buildProfile(email, isPrimary) {
-  const initials = email
-    .split("@")[0]
-    .slice(0, 2)
-    .toUpperCase();
+function buildProfile(user) {
+  const isPrimary = user.role === "SUPER_ADMIN";
+  const initials = (user.name || user.email || "AD").slice(0, 2).toUpperCase();
 
   return {
-    id: isPrimary ? "ADM-001" : `ADM-${Date.now()}`,
-    name: isPrimary ? "Bosh Admin" : "Admin",
-    email: email || "admin@savdo.uz",
-    role: "admin",
+    id: user._id || user.id,
+    name: user.name || "Admin",
+    email: user.email,
+    role: user.role?.toLowerCase() || "admin",
     isPrimary,
     avatar: initials,
-    permissions: isPrimary ? PRIMARY_PERMISSIONS : BASE_PERMISSIONS,
+    permissions: ALL_PERMISSIONS,
     status: "active",
     lastLogin: { type: "today_at", time: new Date().toTimeString().slice(0, 5) }
   };
@@ -72,19 +68,11 @@ export function AuthProvider({ children }) {
       profile: auth?.profile ?? null,
       isAuthenticated: Boolean(auth?.token),
 
-      login: ({ email, password }) => {
-        const normalizedEmail = email?.trim().toLowerCase();
-        // Primary admin: admin@savdo.uz (demo) or any email marked as primary
-        const isPrimary = normalizedEmail === "admin@savdo.uz";
-        const profile = buildProfile(normalizedEmail, isPrimary);
-
-        const nextAuth = {
-          token: `demo-token-${Date.now()}`,
-          refreshToken: `demo-refresh-${Date.now()}`,
-          profile,
-          passwordLength: password?.length ?? 0
-        };
-
+      login: async ({ email, password }) => {
+        const res = await authApi.login(email, password);
+        const { user, accessToken, refreshToken } = res.data;
+        const profile = buildProfile(user);
+        const nextAuth = { token: accessToken, refreshToken, profile };
         setAuth(nextAuth);
         return nextAuth;
       },
@@ -94,7 +82,12 @@ export function AuthProvider({ children }) {
           curr ? { ...curr, profile: { ...curr.profile, ...changes } } : curr
         ),
 
-      logout: () => setAuth(null),
+      logout: async () => {
+        try {
+          if (auth?.refreshToken) await authApi.logout();
+        } catch { /* ignore */ }
+        setAuth(null);
+      },
 
       hasPermission: (permission) =>
         Boolean(auth?.profile?.permissions?.includes(permission))
