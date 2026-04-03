@@ -51,7 +51,7 @@ http.interceptors.response.use(
         return http(original);
       } catch {
         localStorage.removeItem(STORAGE_KEY);
-        window.location.href = "/login";
+        window.location.href = "/";
         return Promise.reject(error);
       }
     }
