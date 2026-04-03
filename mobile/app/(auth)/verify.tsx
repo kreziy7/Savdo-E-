@@ -4,8 +4,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { api } from "@/services/api";
 import { useAuthStore } from "@/store/authStore";
 import { useT } from "@/hooks/useT";
+import { Ionicons } from "@expo/vector-icons";
 
-// Demo rejim: "000000" kodi bilan kirish (backend yo'q paytida)
 const DEMO_CODE = "000000";
 
 export default function VerifyScreen() {
@@ -17,13 +17,10 @@ export default function VerifyScreen() {
 
   async function handleVerify() {
     if (code.length !== 6) return;
-
-    // Demo rejim
     if (code === DEMO_CODE) {
       setToken("demo-token", "demo-refresh");
       return;
     }
-
     setLoading(true);
     try {
       const res = await api.post("/auth/verify-otp", {
@@ -38,38 +35,102 @@ export default function VerifyScreen() {
     }
   }
 
+  function enterDemo() {
+    setToken("demo-token", "demo-refresh");
+  }
+
   return (
-    <View className="flex-1 bg-white justify-center px-6">
-      <TouchableOpacity onPress={() => router.back()} className="mb-6">
-        <Text className="text-green-600 text-base">← {t.products.cancel}</Text>
-      </TouchableOpacity>
+    <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#9AB17A" }}>
+      {/* Top */}
+      <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 56, justifyContent: "center", alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ position: "absolute", top: 56, left: 24, flexDirection: "row", alignItems: "center" }}
+        >
+          <Ionicons name="chevron-back" size={20} color="#FBE8CE" />
+          <Text style={{ color: "#FBE8CE", fontWeight: "600" }}>Orqaga</Text>
+        </TouchableOpacity>
 
-      <Text className="text-2xl font-bold mb-2 text-gray-800">SMS kod</Text>
-      <Text className="text-gray-500 mb-8">+998{phone} {t.auth.codeSent}</Text>
-
-      <TextInput
-        className="border border-gray-300 rounded-xl px-4 h-16 text-3xl text-center tracking-widest mb-4 font-bold"
-        placeholder="------"
-        keyboardType="number-pad"
-        maxLength={6}
-        value={code}
-        onChangeText={setCode}
-        autoFocus
-      />
-
-      <TouchableOpacity
-        className={`rounded-xl h-14 items-center justify-center ${
-          code.length === 6 ? "bg-green-600" : "bg-gray-300"
-        }`}
-        onPress={handleVerify}
-        disabled={loading || code.length !== 6}
-      >
-        <Text className="text-white font-semibold text-lg">
-          {loading ? t.auth.checking : t.auth.enter}
+        <View style={{ width: 72, height: 72, backgroundColor: "#FBE8CE", borderRadius: 36, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+          <Text style={{ fontSize: 36 }}>📱</Text>
+        </View>
+        <Text style={{ color: "#fff", fontSize: 22, fontWeight: "800", textAlign: "center" }}>SMS kod</Text>
+        <Text style={{ color: "#E4DFB5", fontSize: 14, marginTop: 6, textAlign: "center" }}>
+          +998{phone} {t.auth.codeSent}
         </Text>
-      </TouchableOpacity>
+      </View>
 
-      <Text className="text-center text-gray-400 text-xs mt-5">{t.auth.demoNote2}</Text>
+      {/* Bottom card */}
+      <View style={{ backgroundColor: "#FBE8CE", borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 24, paddingTop: 28, paddingBottom: 40 }}>
+        <TextInput
+          style={{
+            backgroundColor: "#fff",
+            borderWidth: 2,
+            borderColor: "#C3CC9B",
+            borderRadius: 16,
+            height: 68,
+            fontSize: 36,
+            textAlign: "center",
+            letterSpacing: 12,
+            fontWeight: "800",
+            color: "#2D3A1E",
+            marginBottom: 16,
+          }}
+          placeholder="------"
+          placeholderTextColor="#C3CC9B"
+          keyboardType="number-pad"
+          maxLength={6}
+          value={code}
+          onChangeText={setCode}
+          autoFocus
+        />
+
+        <TouchableOpacity
+          style={{
+            backgroundColor: code.length === 6 ? "#9AB17A" : "#C3CC9B",
+            borderRadius: 16,
+            height: 56,
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 20,
+          }}
+          onPress={handleVerify}
+          disabled={loading || code.length !== 6}
+        >
+          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>
+            {loading ? t.auth.checking : t.auth.enter}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
+          <View style={{ flex: 1, height: 1, backgroundColor: "#C3CC9B" }} />
+          <Text style={{ color: "#9AB17A", marginHorizontal: 12, fontSize: 13 }}>yoki</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: "#C3CC9B" }} />
+        </View>
+
+        {/* Demo kirish */}
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#E4DFB5",
+            borderRadius: 16,
+            height: 52,
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 1.5,
+            borderColor: "#C3CC9B",
+          }}
+          onPress={enterDemo}
+        >
+          <Text style={{ color: "#5C7045", fontWeight: "700", fontSize: 15 }}>
+            🚀 Demo rejimda kirish
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={{ color: "#9AB17A", textAlign: "center", fontSize: 12, marginTop: 12 }}>
+          Demo uchun kod: <Text style={{ fontWeight: "800" }}>000000</Text>
+        </Text>
+      </View>
     </View>
   );
 }

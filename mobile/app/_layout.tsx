@@ -1,33 +1,24 @@
-/**
- * Root layout — ilova kirish nuqtasi.
- *
- * Muammolar hal qilingan:
- *  1. Auth flicker: token MMKV dan yuklanguncha blank ekran ko'rsatiladi
- *     (auth ekraniga noto'g'ri flash bo'lmaydi).
- *  2. Sync: token bor bo'lsa, app foreground'ga kelganda sync ishga tushadi.
- */
 import { useEffect, useState } from "react";
 import { AppState, View } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/store/authStore";
 import { useLangStore } from "@/store/langStore";
+import { useThemeStore } from "@/store/themeStore";
 import { runSync } from "@/services/syncEngine";
 import "../global.css";
 
 export default function RootLayout() {
   const { token, loadToken } = useAuthStore();
   const loadLang = useLangStore((s) => s.loadLang);
+  const loadTheme = useThemeStore((s) => s.loadTheme);
+  const isDark = useThemeStore((s) => s.isDark);
   const [ready, setReady] = useState(false);
 
-  // MMKV sinxron — bir render ichida token + til yuklanadi
   useEffect(() => {
-    loadToken();
-    loadLang();
-    setReady(true);
+    Promise.all([loadToken(), loadLang(), loadTheme()]).then(() => setReady(true));
   }, []);
 
-  // Sync: app ochilganda va foreground'ga kelganda
   useEffect(() => {
     if (!token) return;
     runSync();
@@ -37,12 +28,11 @@ export default function RootLayout() {
     return () => sub.remove();
   }, [token]);
 
-  // Hali yuklanmagan — blank (auth ekraniga noto'g'ri flash oldini olish)
-  if (!ready) return <View className="flex-1 bg-white" />;
+  if (!ready) return <View style={{ flex: 1, backgroundColor: "#1B211A" }} />;
 
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? "light" : "dark"} />
       <Stack screenOptions={{ headerShown: false }}>
         {token ? (
           <Stack.Screen name="(app)" />

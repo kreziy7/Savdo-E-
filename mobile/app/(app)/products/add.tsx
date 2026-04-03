@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from "reac
 import { router } from "expo-router";
 import { database, productsCollection } from "@/db";
 import { useT } from "@/hooks/useT";
+import { Ionicons } from "@expo/vector-icons";
 
 const UNIT_KEYS = ["kg", "dona", "litr", "metr", "paket", "quti"] as const;
 type UnitKey = typeof UNIT_KEYS[number];
@@ -38,7 +39,7 @@ export default function AddProductScreen() {
         });
       });
       router.back();
-    } catch (e) {
+    } catch {
       Alert.alert("Xato", "Saqlashda xatolik");
     } finally {
       setSaving(false);
@@ -46,32 +47,38 @@ export default function AddProductScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" keyboardShouldPersistTaps="handled">
-      <View className="bg-white px-4 pt-14 pb-4 flex-row items-center">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <Text className="text-green-600 text-base">← {t.products.cancel}</Text>
+    <ScrollView style={{ flex: 1, backgroundColor: "#FBE8CE" }} keyboardShouldPersistTaps="handled">
+      {/* Header */}
+      <View style={{ backgroundColor: "#FBE8CE", paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12 }}>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+          <Ionicons name="chevron-back" size={20} color="#9AB17A" />
+          <Text style={{ color: "#9AB17A", fontWeight: "600", fontSize: 14 }}>{t.products.cancel}</Text>
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-800">{t.products.addProduct}</Text>
+        <Text style={{ color: "#2D3A1E", fontSize: 26, fontWeight: "800" }}>{t.products.addProduct}</Text>
       </View>
 
-      <View className="px-4 mt-4 gap-4">
+      <View style={{ paddingHorizontal: 16, gap: 14, paddingBottom: 40 }}>
         <Field label={t.products.name} value={name} onChangeText={setName} placeholder="Masalan: Shakar" />
         <Field label={t.products.buyPrice} value={buyPrice} onChangeText={setBuyPrice} keyboardType="numeric" placeholder="0" />
         <Field label={t.products.sellPrice} value={sellPrice} onChangeText={setSellPrice} keyboardType="numeric" placeholder="0" />
         <Field label={t.products.stock} value={stock} onChangeText={setStock} keyboardType="numeric" placeholder="0" />
 
+        {/* Unit */}
         <View>
-          <Text className="text-gray-600 font-medium mb-2">{t.products.unit}</Text>
-          <View className="flex-row flex-wrap gap-2">
+          <Text style={{ color: "#5C7045", fontWeight: "700", marginBottom: 8 }}>{t.products.unit}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {UNIT_KEYS.map((u) => (
               <TouchableOpacity
                 key={u}
                 onPress={() => setUnit(u)}
-                className={`px-4 py-2 rounded-lg border ${
-                  unit === u ? "bg-green-600 border-green-600" : "bg-white border-gray-300"
-                }`}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 12,
+                  backgroundColor: unit === u ? "#9AB17A" : "#E4DFB5",
+                }}
               >
-                <Text className={unit === u ? "text-white font-medium" : "text-gray-700"}>
+                <Text style={{ color: unit === u ? "#fff" : "#5C7045", fontWeight: "700" }}>
                   {t.products.units[u]}
                 </Text>
               </TouchableOpacity>
@@ -79,23 +86,37 @@ export default function AddProductScreen() {
           </View>
         </View>
 
+        {/* Profit preview */}
         {profit !== null && (
-          <View className="bg-green-50 rounded-xl p-4 border border-green-100">
-            <Text className="text-gray-600 text-sm">{t.products.profit}</Text>
-            <Text className={`font-bold text-xl ${profit >= 0 ? "text-green-600" : "text-red-500"}`}>
-              {profit.toLocaleString()} so'm
+          <View style={{ backgroundColor: profit >= 0 ? "#E4DFB5" : "#FEE2E2", borderRadius: 16, padding: 14 }}>
+            <Text style={{ color: profit >= 0 ? "#7A9460" : "#EF4444", fontSize: 12, fontWeight: "600" }}>
+              {t.products.profit}
+            </Text>
+            <Text style={{ color: profit >= 0 ? "#5C7045" : "#EF4444", fontWeight: "800", fontSize: 22, marginTop: 2 }}>
+              {profit >= 0 ? "+" : ""}{profit.toLocaleString()} so'm
             </Text>
           </View>
         )}
-      </View>
 
-      <View className="px-4 mt-6 mb-10">
+        {/* Save */}
         <TouchableOpacity
-          className={`rounded-xl h-14 items-center justify-center ${saving ? "bg-gray-400" : "bg-green-600"}`}
+          style={{
+            backgroundColor: saving ? "#C3CC9B" : "#9AB17A",
+            borderRadius: 16,
+            height: 56,
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: 8,
+            shadowColor: "#9AB17A",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.35,
+            shadowRadius: 8,
+            elevation: 5,
+          }}
           onPress={handleSave}
           disabled={saving}
         >
-          <Text className="text-white font-semibold text-lg">
+          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>
             {saving ? "..." : t.products.save}
           </Text>
         </TouchableOpacity>
@@ -107,8 +128,21 @@ export default function AddProductScreen() {
 function Field({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
   return (
     <View>
-      <Text className="text-gray-600 font-medium mb-1">{label}</Text>
-      <TextInput className="bg-white border border-gray-300 rounded-xl px-4 h-12 text-base" {...props} />
+      <Text style={{ color: "#5C7045", fontWeight: "700", marginBottom: 6 }}>{label}</Text>
+      <TextInput
+        style={{
+          backgroundColor: "#fff",
+          borderWidth: 1.5,
+          borderColor: "#E4DFB5",
+          borderRadius: 14,
+          paddingHorizontal: 14,
+          height: 50,
+          fontSize: 15,
+          color: "#2D3A1E",
+        }}
+        placeholderTextColor="#C3CC9B"
+        {...props}
+      />
     </View>
   );
 }

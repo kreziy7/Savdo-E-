@@ -1,17 +1,18 @@
-/**
- * Sotuv yozish — ENG MUHIM EKRAN.
- * Maqsad: 3 sekundda sotuv yozib bo'lish.
- * WatermelonDB — avval telephonga yozadi (<80ms), keyin serverga.
- */
 import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, FlatList, Alert } from "react-native";
 import { router } from "expo-router";
-import { database, productsCollection, salesCollection } from "@/db";
+import { database, salesCollection } from "@/db";
 import { Product } from "@/db/models/Product";
 import { useProducts } from "@/hooks/useProducts";
 import { useT } from "@/hooks/useT";
-import { Search, CheckCircle } from "lucide-react-native";
-import { Q } from "@nozbe/watermelondb";
+import { Ionicons } from "@expo/vector-icons";
+
+interface SaleResult {
+  name: string;
+  qty: number;
+  totalAmount: number;
+  profit: number;
+}
 
 export default function AddSaleScreen() {
   const t = useT();
@@ -20,10 +21,10 @@ export default function AddSaleScreen() {
   const [selected, setSelected] = useState<Product | null>(null);
   const [qty, setQty] = useState("1");
   const [saving, setSaving] = useState(false);
-  const [lastSale, setLastSale] = useState<{ name: string; profit: number } | null>(null);
+  const [result, setResult] = useState<SaleResult | null>(null);
 
-  const filtered = allProducts.filter(
-    (p) => p.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = allProducts.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const qtyNum = Number(qty) || 0;
@@ -38,7 +39,6 @@ export default function AddSaleScreen() {
     }
     setSaving(true);
     try {
-      // WatermelonDB: avval telephonga yoz (<80ms)
       await database.write(async () => {
         await salesCollection.create((s) => {
           s.productId = selected.id;
@@ -51,16 +51,12 @@ export default function AddSaleScreen() {
           s.isSynced = false;
           s.serverId = null;
         });
-        // Stock kamaytirish
         await selected.update((p) => {
           p.stockQty = p.stockQty - qtyNum;
           p.isSynced = false;
         });
       });
-      setLastSale({ name: selected.name, profit: totalProfit });
-      setSelected(null);
-      setSearch("");
-      setQty("1");
+      setResult({ name: selected.name, qty: qtyNum, totalAmount, profit: totalProfit });
     } catch {
       Alert.alert("Xato", "Saqlashda muammo");
     } finally {
@@ -68,129 +64,218 @@ export default function AddSaleScreen() {
     }
   }
 
-  return (
-    <View className="flex-1 bg-gray-50">
-      <View className="bg-white px-4 pt-14 pb-4">
-        <TouchableOpacity onPress={() => router.back()} className="mb-3">
-          <Text className="text-green-600">← {t.products.cancel}</Text>
+  function resetForNextSale() {
+    setResult(null);
+    setSelected(null);
+    setSearch("");
+    setQty("1");
+  }
+
+  // ────────────────────────────────────────────────
+  // NATIJA EKRANI
+  // ────────────────────────────────────────────────
+  if (result) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#9AB17A", justifyContent: "center", alignItems: "center", paddingHorizontal: 32 }}>
+        {/* Big check */}
+        <View style={{ width: 96, height: 96, backgroundColor: "#FBE8CE", borderRadius: 48, alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+          <Text style={{ fontSize: 48 }}>✓</Text>
+        </View>
+
+        <Text style={{ color: "#FBE8CE", fontSize: 22, fontWeight: "800", marginBottom: 4, textAlign: "center" }}>
+          Sotuv yozildi!
+        </Text>
+        <Text style={{ color: "#E4DFB5", fontSize: 15, marginBottom: 36, textAlign: "center" }}>
+          {result.name} · {result.qty} {t.sales.qty}
+        </Text>
+
+        {/* Stats */}
+        <View style={{ width: "100%", gap: 12, marginBottom: 40 }}>
+          <View style={{ backgroundColor: "rgba(251,232,206,0.18)", borderRadius: 18, padding: 18, flexDirection: "row", alignItems: "center", gap: 14 }}>
+            <Ionicons name="bag" size={28} color="#FBE8CE" />
+            <View>
+              <Text style={{ color: "#E4DFB5", fontSize: 12, fontWeight: "600" }}>TUSHUM</Text>
+              <Text style={{ color: "#fff", fontSize: 26, fontWeight: "800" }}>
+                {result.totalAmount.toLocaleString()} so'm
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ backgroundColor: "#FBE8CE", borderRadius: 18, padding: 18, flexDirection: "row", alignItems: "center", gap: 14 }}>
+            <Ionicons name="trending-up" size={28} color="#9AB17A" />
+            <View>
+              <Text style={{ color: "#9AB17A", fontSize: 12, fontWeight: "600" }}>SOF FOYDA</Text>
+              <Text style={{ color: "#5C7045", fontSize: 32, fontWeight: "800" }}>
+                +{result.profit.toLocaleString()} so'm
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Buttons */}
+        <TouchableOpacity
+          onPress={resetForNextSale}
+          style={{ backgroundColor: "#FBE8CE", borderRadius: 16, height: 54, width: "100%", alignItems: "center", justifyContent: "center", marginBottom: 12 }}
+        >
+          <Text style={{ color: "#5C7045", fontWeight: "800", fontSize: 16 }}>+ Yana sotuv yozish</Text>
         </TouchableOpacity>
-        <Text className="text-2xl font-bold text-gray-800">{t.sales.addSale}</Text>
+
+        <TouchableOpacity
+          onPress={() => router.replace("/(app)")}
+          style={{ height: 54, width: "100%", alignItems: "center", justifyContent: "center" }}
+        >
+          <Text style={{ color: "#E4DFB5", fontWeight: "600", fontSize: 15 }}>Bosh sahifaga qaytish</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // ────────────────────────────────────────────────
+  // SOTUV YOZISH EKRANI
+  // ────────────────────────────────────────────────
+  return (
+    <View style={{ flex: 1, backgroundColor: "#FBE8CE" }}>
+      <View style={{ backgroundColor: "#FBE8CE", paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12 }}>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+          <Ionicons name="chevron-back" size={20} color="#9AB17A" />
+          <Text style={{ color: "#9AB17A", fontWeight: "600", fontSize: 14 }}>{t.products.cancel}</Text>
+        </TouchableOpacity>
+        <Text style={{ color: "#2D3A1E", fontSize: 26, fontWeight: "800" }}>{t.sales.addSale}</Text>
       </View>
 
-      {/* Oxirgi sotuv banner */}
-      {lastSale && (
-        <View className="mx-4 mt-3 bg-green-50 border border-green-200 rounded-xl p-3 flex-row items-center gap-2">
-          <CheckCircle size={20} color="#16a34a" />
-          <Text className="text-green-700 font-medium flex-1">
-            {lastSale.name} — +{lastSale.profit.toLocaleString()} so'm {t.sales.written}
-          </Text>
-        </View>
-      )}
-
-      <View className="px-4 mt-3 flex-1">
+      <View style={{ flex: 1, paddingHorizontal: 16 }}>
         {!selected ? (
           <>
-            <View className="flex-row items-center bg-white border border-gray-300 rounded-xl px-3 mb-3">
-              <Search size={18} color="#9ca3af" />
+            <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 14, paddingHorizontal: 12, marginBottom: 12, borderWidth: 1, borderColor: "#E4DFB5" }}>
+              <Ionicons name="search" size={18} color="#9AB17A" />
               <TextInput
-                className="flex-1 h-12 ml-2 text-base"
+                style={{ flex: 1, height: 48, marginLeft: 8, fontSize: 15, color: "#2D3A1E" }}
                 placeholder={t.sales.searchProduct}
+                placeholderTextColor="#C3CC9B"
                 value={search}
                 onChangeText={setSearch}
                 autoFocus
               />
               {search.length > 0 && (
                 <TouchableOpacity onPress={() => setSearch("")}>
-                  <Text className="text-gray-400 px-2">✕</Text>
+                  <Text style={{ color: "#C3CC9B", fontSize: 18, paddingHorizontal: 4 }}>✕</Text>
                 </TouchableOpacity>
               )}
             </View>
+
             <FlatList
               data={filtered}
               keyExtractor={(p) => p.id}
               keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  className={`bg-white rounded-xl p-4 mb-2 shadow-sm flex-row justify-between items-center ${
-                    item.stockQty === 0 ? "opacity-50" : ""
-                  }`}
+                  style={{
+                    backgroundColor: item.stockQty === 0 ? "#f5f5f5" : "#fff",
+                    borderRadius: 16,
+                    padding: 14,
+                    marginBottom: 8,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    borderWidth: 1,
+                    borderColor: "#E4DFB5",
+                    opacity: item.stockQty === 0 ? 0.5 : 1,
+                  }}
                   onPress={() => { if (item.stockQty > 0) { setSelected(item); setSearch(""); } }}
                   disabled={item.stockQty === 0}
                 >
                   <View>
-                    <Text className="font-medium text-gray-800">{item.name}</Text>
-                    <Text className={`text-xs mt-0.5 ${item.isLowStock ? "text-amber-500" : "text-gray-400"}`}>
+                    <Text style={{ color: "#2D3A1E", fontWeight: "700", fontSize: 15 }}>{item.name}</Text>
+                    <Text style={{ color: item.isLowStock ? "#D97706" : "#C3CC9B", fontSize: 12, marginTop: 2 }}>
                       {t.sales.stock} {item.stockQty} {item.unit}
                     </Text>
                   </View>
-                  <Text className="text-green-600 font-semibold">
-                    {item.sellPrice.toLocaleString()} so'm
-                  </Text>
+                  <View style={{ alignItems: "flex-end" }}>
+                    <Text style={{ color: "#9AB17A", fontWeight: "800", fontSize: 15 }}>
+                      {item.sellPrice.toLocaleString()} so'm
+                    </Text>
+                    <Text style={{ color: "#C3CC9B", fontSize: 11 }}>
+                      foyda: +{item.profit.toLocaleString()}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               )}
               ListEmptyComponent={
-                <Text className="text-center text-gray-400 mt-8">
+                <Text style={{ color: "#C3CC9B", textAlign: "center", marginTop: 32, fontSize: 15 }}>
                   {search ? t.sales.noProduct : t.sales.searchProduct}
                 </Text>
               }
             />
           </>
         ) : (
-          <View className="gap-4">
-            <View className="bg-white rounded-xl p-4 flex-row justify-between items-center shadow-sm">
-              <View className="flex-1">
-                <Text className="font-semibold text-lg text-gray-800">{selected.name}</Text>
-                <Text className="text-gray-400 text-sm">
-                  {t.sales.stock} {selected.stockQty} {selected.unit} • {selected.sellPrice.toLocaleString()} so'm
+          <View style={{ gap: 12 }}>
+            <View style={{ backgroundColor: "#fff", borderRadius: 16, padding: 16, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderWidth: 1, borderColor: "#E4DFB5" }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: "#2D3A1E", fontWeight: "700", fontSize: 16 }}>{selected.name}</Text>
+                <Text style={{ color: "#C3CC9B", fontSize: 13, marginTop: 2 }}>
+                  {t.sales.stock} {selected.stockQty} {selected.unit} · {selected.sellPrice.toLocaleString()} so'm
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => { setSelected(null); setQty("1"); }}>
-                <Text className="text-gray-400 text-xl px-2">✕</Text>
+              <TouchableOpacity onPress={() => { setSelected(null); setQty("1"); }} style={{ padding: 4 }}>
+                <Text style={{ color: "#C3CC9B", fontSize: 20 }}>✕</Text>
               </TouchableOpacity>
             </View>
 
             <View>
-              <Text className="text-gray-600 font-medium mb-1">{t.sales.qty}</Text>
-              <View className="flex-row gap-2 items-center">
+              <Text style={{ color: "#5C7045", fontWeight: "700", marginBottom: 8 }}>{t.sales.qty}</Text>
+              <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
                 <TouchableOpacity
-                  className="w-12 h-16 bg-white border border-gray-300 rounded-xl items-center justify-center"
+                  style={{ width: 52, height: 64, backgroundColor: "#E4DFB5", borderRadius: 14, alignItems: "center", justifyContent: "center" }}
                   onPress={() => setQty(String(Math.max(1, qtyNum - 1)))}
                 >
-                  <Text className="text-2xl text-gray-600">−</Text>
+                  <Text style={{ fontSize: 26, color: "#5C7045", fontWeight: "700" }}>−</Text>
                 </TouchableOpacity>
                 <TextInput
-                  className="flex-1 bg-white border border-gray-300 rounded-xl h-16 text-3xl text-center font-bold"
+                  style={{ flex: 1, backgroundColor: "#fff", borderRadius: 14, height: 64, fontSize: 32, textAlign: "center", fontWeight: "800", color: "#2D3A1E", borderWidth: 1, borderColor: "#E4DFB5" }}
                   keyboardType="numeric"
                   value={qty}
                   onChangeText={setQty}
                   selectTextOnFocus
                 />
                 <TouchableOpacity
-                  className="w-12 h-16 bg-white border border-gray-300 rounded-xl items-center justify-center"
+                  style={{ width: 52, height: 64, backgroundColor: "#9AB17A", borderRadius: 14, alignItems: "center", justifyContent: "center" }}
                   onPress={() => setQty(String(qtyNum + 1))}
                 >
-                  <Text className="text-2xl text-gray-600">+</Text>
+                  <Text style={{ fontSize: 26, color: "#fff", fontWeight: "700" }}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            <View className="bg-green-50 rounded-xl p-4 border border-green-100 gap-2">
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">{t.sales.totalAmount}</Text>
-                <Text className="font-bold text-gray-800">{totalAmount.toLocaleString()} so'm</Text>
+            {/* Foyda preview */}
+            <View style={{ backgroundColor: "#E4DFB5", borderRadius: 16, padding: 16, gap: 8 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ color: "#7A9460" }}>{t.sales.totalAmount}</Text>
+                <Text style={{ color: "#2D3A1E", fontWeight: "700" }}>{totalAmount.toLocaleString()} so'm</Text>
               </View>
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">{t.sales.totalProfit}</Text>
-                <Text className="font-bold text-green-600">{totalProfit.toLocaleString()} so'm</Text>
+              <View style={{ height: 1, backgroundColor: "#C3CC9B" }} />
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Text style={{ color: "#5C7045", fontWeight: "700" }}>SOF FOYDA</Text>
+                <Text style={{ color: "#5C7045", fontWeight: "800", fontSize: 20 }}>+{totalProfit.toLocaleString()} so'm</Text>
               </View>
             </View>
 
             <TouchableOpacity
-              className={`rounded-xl h-16 items-center justify-center shadow-sm ${saving ? "bg-gray-400" : "bg-green-600"}`}
+              style={{
+                backgroundColor: saving ? "#C3CC9B" : "#9AB17A",
+                borderRadius: 16,
+                height: 64,
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: "#9AB17A",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.35,
+                shadowRadius: 8,
+                elevation: 5,
+              }}
               onPress={handleSale}
               disabled={saving}
             >
-              <Text className="text-white font-bold text-xl">
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20 }}>
                 {saving ? "..." : `✓  ${t.sales.write}`}
               </Text>
             </TouchableOpacity>

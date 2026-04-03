@@ -3,22 +3,26 @@ import { useState } from "react";
 import { router } from "expo-router";
 import { useProducts } from "@/hooks/useProducts";
 import { useT } from "@/hooks/useT";
-import { Plus, Search, AlertTriangle } from "lucide-react-native";
+import { useTheme } from "@/hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function ProductsScreen() {
   const [search, setSearch] = useState("");
   const products = useProducts(search);
   const t = useT();
+  const { c } = useTheme();
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <View className="bg-white px-4 pt-14 pb-4">
-        <Text className="text-2xl font-bold mb-3 text-gray-800">{t.products.title}</Text>
-        <View className="flex-row items-center bg-gray-100 rounded-xl px-3">
-          <Search size={18} color="#9ca3af" />
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      {/* Header */}
+      <View style={{ backgroundColor: c.bg, paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 }}>
+        <Text style={{ color: c.text, fontSize: 28, fontWeight: "800", marginBottom: 14 }}>{t.products.title}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: c.bgCard, borderRadius: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: c.border }}>
+          <Ionicons name="search" size={17} color={c.textMuted} />
           <TextInput
-            className="flex-1 h-11 ml-2 text-base"
+            style={{ flex: 1, height: 46, marginLeft: 10, fontSize: 15, color: c.text }}
             placeholder={t.products.search}
+            placeholderTextColor={c.textMuted}
             value={search}
             onChangeText={setSearch}
           />
@@ -28,48 +32,63 @@ export default function ProductsScreen() {
       <FlatList
         data={products}
         keyExtractor={(p) => p.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100, paddingTop: 8 }}
         ListEmptyComponent={
-          <View className="items-center py-12">
-            <Text className="text-gray-400">{t.products.noProducts}</Text>
+          <View style={{ alignItems: "center", paddingTop: 80 }}>
+            <Text style={{ fontSize: 48, marginBottom: 12 }}>📦</Text>
+            <Text style={{ color: c.textMuted, fontSize: 16, fontWeight: "600" }}>{t.products.noProducts}</Text>
           </View>
         }
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="bg-white rounded-xl p-4 mb-3 shadow-sm"
+            style={{ backgroundColor: c.bgCard, borderRadius: 18, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: c.border }}
             onPress={() => router.push(`/(app)/products/${item.id}`)}
           >
-            <View className="flex-row justify-between items-start">
-              <Text className="font-semibold text-base text-gray-800 flex-1">{item.name}</Text>
-              <View className="flex-row items-center gap-1">
-                {item.isLowStock && <AlertTriangle size={14} color="#f59e0b" />}
-                <Text className={`text-sm ${item.isLowStock ? "text-amber-500 font-semibold" : "text-gray-500"}`}>
-                  {item.stockQty} {item.unit}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>{item.name}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4, gap: 6 }}>
+                  {item.isLowStock && <Ionicons name="warning" size={13} color={c.warn} />}
+                  <Text style={{ color: item.isLowStock ? c.warn : c.textMuted, fontSize: 13, fontWeight: "600" }}>
+                    {item.stockQty} {item.unit}
+                  </Text>
+                </View>
+              </View>
+              <View style={{ backgroundColor: c.bgMuted, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 }}>
+                <Text style={{ color: c.primary, fontWeight: "800", fontSize: 13 }}>
+                  {item.sellPrice.toLocaleString()} so'm
                 </Text>
               </View>
             </View>
-            <View className="flex-row justify-between mt-1">
-              <Text className="text-gray-400 text-sm">
-                {t.products.buyPrice.split(" (")[0]}: {item.buyPrice.toLocaleString()} so'm
-              </Text>
-              <Text className="text-green-600 font-medium text-sm">
-                {t.products.sellPrice.split(" (")[0]}: {item.sellPrice.toLocaleString()} so'm
-              </Text>
-            </View>
-            <View className="mt-1">
-              <Text className="text-xs text-green-700">
-                {t.products.profit} {item.profit.toLocaleString()} so'm
-              </Text>
+
+            <View style={{ height: 1, backgroundColor: c.border, marginVertical: 12 }} />
+
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <View>
+                <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>XARID</Text>
+                <Text style={{ color: c.text, fontWeight: "700", fontSize: 13 }}>{item.buyPrice.toLocaleString()}</Text>
+              </View>
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>SOTUV</Text>
+                <Text style={{ color: c.text, fontWeight: "700", fontSize: 13 }}>{item.sellPrice.toLocaleString()}</Text>
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                  <Ionicons name="trending-up" size={11} color={c.primary} />
+                  <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>FOYDA</Text>
+                </View>
+                <Text style={{ color: c.primary, fontWeight: "800", fontSize: 14 }}>+{item.profit.toLocaleString()}</Text>
+              </View>
             </View>
           </TouchableOpacity>
         )}
       />
 
       <TouchableOpacity
-        className="absolute bottom-8 right-6 bg-green-600 w-14 h-14 rounded-full items-center justify-center shadow-lg"
+        style={{ position: "absolute", bottom: 28, right: 20, backgroundColor: c.primary, width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", shadowColor: c.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 8 }}
         onPress={() => router.push("/(app)/products/add")}
       >
-        <Plus size={28} color="white" />
+        <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
     </View>
   );

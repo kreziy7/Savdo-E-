@@ -1,112 +1,140 @@
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, Switch } from "react-native";
 import { router } from "expo-router";
-import { Globe, CreditCard, LogOut, ChevronRight, Check } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/store/authStore";
 import { useLangStore } from "@/store/langStore";
+import { useThemeStore } from "@/store/themeStore";
+import { useTheme } from "@/hooks/useTheme";
 import { useT } from "@/hooks/useT";
 import { Lang } from "@/i18n";
 
-const LANGS: { code: Lang; label: string; native: string }[] = [
-  { code: "uz", label: "UZ", native: "O'zbek" },
-  { code: "ru", label: "RU", native: "Русский" },
-  { code: "en", label: "EN", native: "English" },
+const LANGS: { code: Lang; label: string; native: string; flag: string }[] = [
+  { code: "uz", label: "UZ", native: "O'zbek", flag: "🇺🇿" },
+  { code: "ru", label: "RU", native: "Русский", flag: "🇷🇺" },
+  { code: "en", label: "EN", native: "English", flag: "🇬🇧" },
 ];
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const { c } = useTheme();
+  return (
+    <View style={{ paddingHorizontal: 20, marginBottom: 8 }}>
+      <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "700", letterSpacing: 1.5, marginBottom: 8, marginLeft: 4 }}>
+        {title.toUpperCase()}
+      </Text>
+      <View style={{ backgroundColor: c.bgCard, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: c.border }}>
+        {children}
+      </View>
+    </View>
+  );
+}
+
+function Row({ icon, label, sub, right, onPress, danger }: {
+  icon: string; label: string; sub?: string;
+  right?: React.ReactNode; onPress?: () => void; danger?: boolean;
+}) {
+  const { c } = useTheme();
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+      style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14 }}
+    >
+      <View style={{ width: 38, height: 38, backgroundColor: danger ? "#FEE2E2" : c.bgMuted, borderRadius: 12, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+        <Text style={{ fontSize: 18 }}>{icon}</Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: danger ? c.danger : c.text, fontWeight: "700", fontSize: 14 }}>{label}</Text>
+        {sub && <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 1 }}>{sub}</Text>}
+      </View>
+      {right}
+    </TouchableOpacity>
+  );
+}
 
 export default function SettingsScreen() {
   const clearToken = useAuthStore((s) => s.clearToken);
   const { lang, setLang } = useLangStore();
+  const { isDark, toggleTheme } = useThemeStore();
+  const { c } = useTheme();
   const t = useT();
 
   function handleLogout() {
     Alert.alert(t.settings.logout, "Chiqmoqchimisiz?", [
       { text: t.products.cancel, style: "cancel" },
-      {
-        text: t.settings.logout,
-        style: "destructive",
-        onPress: () => clearToken(),
-      },
+      { text: t.settings.logout, style: "destructive", onPress: () => clearToken() },
     ]);
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
+    <ScrollView style={{ flex: 1, backgroundColor: c.bg }} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View className="bg-white px-4 pt-14 pb-4">
-        <Text className="text-2xl font-bold text-gray-800">{t.settings.title}</Text>
+      <View style={{ backgroundColor: c.primary, paddingHorizontal: 20, paddingTop: 56, paddingBottom: 28, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, marginBottom: 24 }}>
+        <Text style={{ color: "#fff", fontSize: 28, fontWeight: "800" }}>{t.settings.title}</Text>
+        <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, marginTop: 4 }}>Savdo App v1.0.0</Text>
       </View>
 
-      {/* Language section */}
-      <View className="px-4 mt-6">
-        <Text className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
-          {t.settings.language}
-        </Text>
-        <View className="bg-white rounded-2xl overflow-hidden shadow-sm">
-          {LANGS.map((l, idx) => (
+      {/* Appearance */}
+      <Section title="Ko'rinish">
+        <Row
+          icon={isDark ? "🌙" : "☀️"}
+          label={isDark ? "Qorong'i rejim" : "Yorug' rejim"}
+          sub="Mavzu almashtirish"
+          right={
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: c.border, true: c.primary }}
+              thumbColor="#fff"
+            />
+          }
+        />
+      </Section>
+
+      {/* Language */}
+      <Section title={t.settings.language}>
+        {LANGS.map((l, idx) => (
+          <View key={l.code}>
             <TouchableOpacity
-              key={l.code}
-              className={`flex-row items-center px-4 py-4 ${
-                idx < LANGS.length - 1 ? "border-b border-gray-100" : ""
-              }`}
+              style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14 }}
               onPress={() => setLang(l.code)}
             >
-              <View className="w-9 h-9 bg-green-50 rounded-full items-center justify-center mr-3">
-                <Globe size={18} color="#16a34a" />
+              <View style={{ width: 38, height: 38, backgroundColor: c.bgMuted, borderRadius: 12, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+                <Text style={{ fontSize: 20 }}>{l.flag}</Text>
               </View>
-              <View className="flex-1">
-                <Text className="font-medium text-gray-800">{l.native}</Text>
-                <Text className="text-xs text-gray-400">{l.label}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: c.text, fontWeight: "700", fontSize: 14 }}>{l.native}</Text>
+                <Text style={{ color: c.textMuted, fontSize: 12 }}>{l.label}</Text>
               </View>
-              {lang === l.code && <Check size={20} color="#16a34a" />}
+              {lang === l.code && (
+                <View style={{ backgroundColor: c.primary, borderRadius: 10, padding: 4 }}>
+                  <Ionicons name="checkmark" size={13} color="#fff" />
+                </View>
+              )}
             </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+            {idx < LANGS.length - 1 && <View style={{ height: 1, backgroundColor: c.border, marginLeft: 66 }} />}
+          </View>
+        ))}
+      </Section>
 
-      {/* Subscription section */}
-      <View className="px-4 mt-6">
-        <Text className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
-          {t.settings.subscription}
-        </Text>
-        <View className="bg-white rounded-2xl overflow-hidden shadow-sm">
-          <TouchableOpacity
-            className="flex-row items-center px-4 py-4"
-            onPress={() => router.push("/(app)/settings/subscription")}
-          >
-            <View className="w-9 h-9 bg-green-50 rounded-full items-center justify-center mr-3">
-              <CreditCard size={18} color="#16a34a" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-gray-800">{t.settings.subscription}</Text>
-              <Text className="text-xs text-gray-400">{t.subscription.free} — {t.subscription.active}</Text>
-            </View>
-            <ChevronRight size={18} color="#9ca3af" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      {/* Subscription */}
+      <Section title={t.settings.subscription}>
+        <Row
+          icon="💳"
+          label={t.settings.subscription}
+          sub={`${t.subscription.free} — ${t.subscription.active}`}
+          right={<Ionicons name="chevron-forward" size={18} color={c.textMuted} />}
+          onPress={() => router.push("/(app)/settings/subscription")}
+        />
+      </Section>
 
-      {/* Account section */}
-      <View className="px-4 mt-6">
-        <Text className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
-          Akkaunt
-        </Text>
-        <View className="bg-white rounded-2xl overflow-hidden shadow-sm">
-          <TouchableOpacity
-            className="flex-row items-center px-4 py-4"
-            onPress={handleLogout}
-          >
-            <View className="w-9 h-9 bg-red-50 rounded-full items-center justify-center mr-3">
-              <LogOut size={18} color="#ef4444" />
-            </View>
-            <Text className="flex-1 font-medium text-red-500">{t.settings.logout}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      {/* Account */}
+      <Section title="Akkaunt">
+        <Row icon="🚪" label={t.settings.logout} danger onPress={handleLogout} />
+      </Section>
 
-      {/* App version */}
-      <View className="items-center mt-10 mb-8">
-        <Text className="text-gray-400 text-sm">{t.settings.version} 1.0.0</Text>
-        <Text className="text-gray-300 text-xs mt-1">Savdo App \u00a9 2024</Text>
-      </View>
+      <Text style={{ color: c.textMuted, textAlign: "center", fontSize: 12, marginTop: 16, marginBottom: 40, opacity: 0.6 }}>
+        Savdo App © 2024
+      </Text>
     </ScrollView>
   );
 }

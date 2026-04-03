@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useState } from "react";
 import { useSales } from "@/hooks/useSales";
 import { useT } from "@/hooks/useT";
-import { TrendingUp, ShoppingCart, Package } from "lucide-react-native";
+import { useTheme } from "@/hooks/useTheme";
 
 type Period = "today" | "week" | "month";
 
@@ -10,6 +10,7 @@ export default function ReportsScreen() {
   const [period, setPeriod] = useState<Period>("today");
   const sales = useSales(period);
   const t = useT();
+  const { c } = useTheme();
 
   const revenue = sales.reduce((s, x) => s + x.totalAmount, 0);
   const profit = sales.reduce((s, x) => s + x.profit, 0);
@@ -17,102 +18,103 @@ export default function ReportsScreen() {
 
   const productMap: Record<string, { name: string; revenue: number; qty: number; profit: number }> = {};
   sales.forEach((s) => {
-    if (!productMap[s.productName]) {
-      productMap[s.productName] = { name: s.productName, revenue: 0, qty: 0, profit: 0 };
-    }
+    if (!productMap[s.productName]) productMap[s.productName] = { name: s.productName, revenue: 0, qty: 0, profit: 0 };
     productMap[s.productName].revenue += s.totalAmount;
     productMap[s.productName].qty += s.qty;
     productMap[s.productName].profit += s.profit;
   });
-  const topProducts = Object.values(productMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  const topProducts = Object.values(productMap).sort((a, b) => b.profit - a.profit).slice(0, 5);
 
-  const PERIOD_LABELS: Record<Period, string> = {
-    today: t.sales.filters.today,
-    week: t.sales.filters.week,
-    month: t.sales.filters.month,
-  };
+  const FILTERS: { key: Period; label: string }[] = [
+    { key: "today", label: t.sales.filters.today },
+    { key: "week", label: t.sales.filters.week },
+    { key: "month", label: t.sales.filters.month },
+  ];
+
+  const maxProfit = topProducts[0]?.profit || 1;
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
-      <View className="bg-white px-4 pt-14 pb-4">
-        <Text className="text-2xl font-bold mb-3 text-gray-800">{t.reports.title}</Text>
-        <View className="flex-row gap-2">
-          {(["today", "week", "month"] as Period[]).map((p) => (
+    <ScrollView style={{ flex: 1, backgroundColor: c.bg }} showsVerticalScrollIndicator={false}>
+      <View style={{ backgroundColor: c.bg, paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 }}>
+        <Text style={{ color: c.text, fontSize: 28, fontWeight: "800", marginBottom: 14 }}>{t.reports.title}</Text>
+        <View style={{ flexDirection: "row", backgroundColor: c.bgMuted, borderRadius: 14, padding: 4 }}>
+          {FILTERS.map((f) => (
             <TouchableOpacity
-              key={p}
-              onPress={() => setPeriod(p)}
-              className={`flex-1 py-2 rounded-lg ${period === p ? "bg-green-600" : "bg-gray-100"}`}
+              key={f.key}
+              onPress={() => setPeriod(f.key)}
+              style={{ flex: 1, paddingVertical: 8, borderRadius: 11, backgroundColor: period === f.key ? c.primary : "transparent", alignItems: "center" }}
             >
-              <Text className={`text-center text-sm font-medium ${period === p ? "text-white" : "text-gray-600"}`}>
-                {PERIOD_LABELS[p]}
-              </Text>
+              <Text style={{ color: period === f.key ? "#fff" : c.textSub, fontSize: 13, fontWeight: "700" }}>{f.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      <View className="px-4 mt-4 gap-3 mb-8">
-        {/* Asosiy 3 karta */}
-        <View className="flex-row gap-3">
-          <View className="flex-1 bg-white rounded-xl p-4 shadow-sm">
-            <View className="flex-row items-center gap-1 mb-1">
-              <ShoppingCart size={14} color="#9ca3af" />
-              <Text className="text-gray-500 text-xs">{t.reports.totalRevenue}</Text>
+      <View style={{ paddingHorizontal: 20, paddingBottom: 40, gap: 12 }}>
+        {/* Big stats */}
+        <View style={{ backgroundColor: c.primary, borderRadius: 22, padding: 22 }}>
+          <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, fontWeight: "700", letterSpacing: 1.5 }}>TUSHUM</Text>
+          <Text style={{ color: "#fff", fontSize: 36, fontWeight: "800", marginTop: 2, letterSpacing: -1 }}>
+            {revenue.toLocaleString()}
+          </Text>
+          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 14 }}>so'm</Text>
+          <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.2)", marginVertical: 16 }} />
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <View>
+              <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "600" }}>SOF FOYDA</Text>
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20 }}>+{profit.toLocaleString()} so'm</Text>
             </View>
-            <Text className="text-base font-bold text-gray-800">{revenue.toLocaleString()} so'm</Text>
-          </View>
-          <View className="flex-1 bg-white rounded-xl p-4 shadow-sm">
-            <View className="flex-row items-center gap-1 mb-1">
-              <TrendingUp size={14} color="#16a34a" />
-              <Text className="text-gray-500 text-xs">{t.reports.totalProfit}</Text>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "600" }}>SOTUVLAR</Text>
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20 }}>{sales.length} ta</Text>
             </View>
-            <Text className="text-base font-bold text-green-600">{profit.toLocaleString()} so'm</Text>
           </View>
         </View>
 
-        <View className="flex-row gap-3">
-          <View className="flex-1 bg-white rounded-xl p-4 shadow-sm">
-            <Text className="text-gray-500 text-xs mb-1">{t.reports.salesCount}</Text>
-            <Text className="text-2xl font-bold text-gray-800">{sales.length} ta</Text>
+        {/* Margin */}
+        <View style={{ backgroundColor: c.bgCard, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: c.border }}>
+          <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "600" }}>RENTABELLIK (MARGIN)</Text>
+          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 8 }}>
+            <Text style={{ color: margin >= 20 ? c.primary : c.warn, fontSize: 40, fontWeight: "800" }}>{margin}%</Text>
+            <Text style={{ color: c.textMuted, fontSize: 14, marginBottom: 6 }}>{margin >= 20 ? "🟢 Yaxshi" : "🟡 Past"}</Text>
           </View>
-          <View className="flex-1 bg-white rounded-xl p-4 shadow-sm">
-            <Text className="text-gray-500 text-xs mb-1">Margin</Text>
-            <Text className={`text-2xl font-bold ${margin >= 20 ? "text-green-600" : "text-amber-500"}`}>
-              {margin}%
-            </Text>
+          {/* Bar */}
+          <View style={{ height: 8, backgroundColor: c.bgMuted, borderRadius: 4, marginTop: 8 }}>
+            <View style={{ height: 8, backgroundColor: margin >= 20 ? c.primary : c.warn, borderRadius: 4, width: `${Math.min(margin, 100)}%` }} />
           </View>
         </View>
 
-        {/* Top 5 tovar */}
-        <View className="bg-white rounded-xl p-4 shadow-sm">
-          <View className="flex-row items-center gap-2 mb-3">
-            <Package size={18} color="#16a34a" />
-            <Text className="font-semibold text-gray-800">{t.reports.top5}</Text>
-          </View>
-          {topProducts.length === 0 ? (
-            <Text className="text-gray-400 text-center py-4">{t.reports.noData}</Text>
-          ) : (
-            topProducts.map((p, i) => (
-              <View key={p.name} className="flex-row items-center py-3 border-b border-gray-50">
-                <View className={`w-6 h-6 rounded-full items-center justify-center mr-3 ${
-                  i === 0 ? "bg-yellow-100" : i === 1 ? "bg-gray-100" : "bg-orange-50"
-                }`}>
-                  <Text className="text-xs font-bold">{i + 1}</Text>
+        {/* Top products */}
+        {topProducts.length > 0 && (
+          <View style={{ backgroundColor: c.bgCard, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: c.border }}>
+            <Text style={{ color: c.text, fontSize: 16, fontWeight: "800", marginBottom: 16 }}>🏆 {t.reports.top5}</Text>
+            {topProducts.map((p, i) => (
+              <View key={p.name} style={{ marginBottom: i < topProducts.length - 1 ? 16 : 0 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
+                    <Text style={{ fontSize: 18 }}>{"🥇🥈🥉🏅🏅"[i]}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: c.text, fontWeight: "700", fontSize: 14 }}>{p.name}</Text>
+                      <Text style={{ color: c.textMuted, fontSize: 12 }}>{p.qty} ta · {p.revenue.toLocaleString()} so'm</Text>
+                    </View>
+                  </View>
+                  <Text style={{ color: c.primary, fontWeight: "800", fontSize: 14 }}>+{p.profit.toLocaleString()}</Text>
                 </View>
-                <View className="flex-1">
-                  <Text className="font-medium text-gray-800">{p.name}</Text>
-                  <Text className="text-gray-400 text-xs">{p.qty} ta sotildi</Text>
-                </View>
-                <View className="items-end">
-                  <Text className="text-green-600 font-medium text-sm">
-                    +{p.profit.toLocaleString()} so'm
-                  </Text>
-                  <Text className="text-gray-400 text-xs">{p.revenue.toLocaleString()} aylanma</Text>
+                {/* Progress bar */}
+                <View style={{ height: 5, backgroundColor: c.bgMuted, borderRadius: 3 }}>
+                  <View style={{ height: 5, backgroundColor: c.primary, borderRadius: 3, width: `${(p.profit / maxProfit) * 100}%`, opacity: 0.4 + (0.6 * (1 - i / 5)) }} />
                 </View>
               </View>
-            ))
-          )}
-        </View>
+            ))}
+          </View>
+        )}
+
+        {topProducts.length === 0 && (
+          <View style={{ alignItems: "center", paddingVertical: 40 }}>
+            <Text style={{ fontSize: 48, marginBottom: 12 }}>📊</Text>
+            <Text style={{ color: c.textMuted, fontSize: 16, fontWeight: "600" }}>{t.reports.noData}</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );

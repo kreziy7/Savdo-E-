@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { router } from "expo-router";
-import { Check, ChevronLeft } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useT } from "@/hooks/useT";
 
 type PlanKey = "free" | "pro" | "biznes";
@@ -67,7 +67,7 @@ export default function SubscriptionScreen() {
       {/* Header */}
       <View className="bg-white px-4 pt-14 pb-4 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <ChevronLeft size={24} color="#16a34a" />
+          <Ionicons name="chevron-back" size={24} color="#16a34a" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-800">{t.subscription.title}</Text>
       </View>
@@ -75,7 +75,7 @@ export default function SubscriptionScreen() {
       {/* Current plan badge */}
       <View className="px-4 mt-4">
         <View className="bg-green-50 border border-green-200 rounded-xl p-3 flex-row items-center">
-          <Check size={16} color="#16a34a" />
+          <Ionicons name="checkmark" size={16} color="#16a34a" />
           <Text className="ml-2 text-green-700 text-sm font-medium">
             {t.subscription.current}: {nameMap[currentPlan]}
           </Text>
@@ -129,7 +129,7 @@ export default function SubscriptionScreen() {
               <View className="gap-2">
                 {features.map((feature) => (
                   <View key={feature} className="flex-row items-center gap-2">
-                    <Check size={14} color={plan.color} />
+                    <Ionicons name="checkmark" size={14} color={plan.color} />
                     <Text className="text-gray-700 text-sm flex-1">{feature}</Text>
                   </View>
                 ))}

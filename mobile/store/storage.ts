@@ -1,15 +1,20 @@
-/**
- * MMKV — AsyncStorage dan 10x tez, SQLite dan ham tezroq.
- * Token, til va kichik sozlamalar uchun ishlatiladi.
- */
-import { MMKV } from "react-native-mmkv";
-
-export const storage = new MMKV({ id: "savdo-storage" });
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const mmkv = {
-  getString: (key: string) => storage.getString(key) ?? null,
-  setString: (key: string, value: string) => storage.set(key, value),
-  delete: (key: string) => storage.delete(key),
-  getBoolean: (key: string) => storage.getBoolean(key) ?? false,
-  setBoolean: (key: string, value: boolean) => storage.set(key, value),
+  getString: async (key: string): Promise<string | null> => {
+    return await AsyncStorage.getItem(key);
+  },
+  setString: async (key: string, value: string): Promise<void> => {
+    await AsyncStorage.setItem(key, value);
+  },
+  delete: async (key: string): Promise<void> => {
+    await AsyncStorage.removeItem(key);
+  },
+  getBoolean: async (key: string): Promise<boolean> => {
+    const val = await AsyncStorage.getItem(key);
+    return val === "true";
+  },
+  setBoolean: async (key: string, value: boolean): Promise<void> => {
+    await AsyncStorage.setItem(key, value ? "true" : "false");
+  },
 };

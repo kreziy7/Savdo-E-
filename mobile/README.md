@@ -74,8 +74,7 @@ mobile/
 ├── babel.config.js
 ├── metro.config.js
 ├── tailwind.config.js
-└── tsconfig.json
-```
+└── tsconfig.json```
 
 ## Ishga tushirish
 

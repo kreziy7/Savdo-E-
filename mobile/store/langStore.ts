@@ -1,29 +1,25 @@
-/**
- * Lang store — MMKV bilan sinxron.
- * Til almashganda darhol saqlanadi, async kutmaydi.
- */
 import { create } from "zustand";
 import { mmkv } from "./storage";
 import { Lang } from "@/i18n";
 
 interface LangState {
   lang: Lang;
-  loadLang: () => void;
-  setLang: (lang: Lang) => void;
+  loadLang: () => Promise<void>;
+  setLang: (lang: Lang) => Promise<void>;
 }
 
 export const useLangStore = create<LangState>((set) => ({
   lang: "uz",
 
-  loadLang: () => {
-    const stored = mmkv.getString("lang");
+  loadLang: async () => {
+    const stored = await mmkv.getString("lang");
     if (stored === "uz" || stored === "ru" || stored === "en") {
       set({ lang: stored });
     }
   },
 
-  setLang: (lang: Lang) => {
-    mmkv.setString("lang", lang);
+  setLang: async (lang: Lang) => {
+    await mmkv.setString("lang", lang);
     set({ lang });
   },
 }));

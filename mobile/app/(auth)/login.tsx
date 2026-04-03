@@ -5,82 +5,87 @@ import { useLangStore } from "@/store/langStore";
 import { useT } from "@/hooks/useT";
 import { Lang } from "@/i18n";
 
-const LANGS: { code: Lang; label: string }[] = [
-  { code: "uz", label: "UZ" },
-  { code: "ru", label: "RU" },
-  { code: "en", label: "EN" },
+const LANGS: { code: Lang; label: string; flag: string }[] = [
+  { code: "uz", label: "UZ", flag: "🇺🇿" },
+  { code: "ru", label: "RU", flag: "🇷🇺" },
+  { code: "en", label: "EN", flag: "🇬🇧" },
 ];
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
   const { lang, setLang } = useLangStore();
   const t = useT();
+  const isValid = phone.length >= 9;
 
   function handleLogin() {
-    if (phone.length < 9) return;
-    // Verify ekraniga yo'naltirish (backend tayyor bo'lganda SMS yuboriladi)
+    if (!isValid) return;
     router.push({ pathname: "/(auth)/verify", params: { phone } });
   }
 
   return (
-    <View className="flex-1 bg-white justify-center px-6">
-      {/* Language selector */}
-      <View className="absolute top-14 right-6 flex-row gap-2">
-        {LANGS.map((l) => (
-          <TouchableOpacity
-            key={l.code}
-            onPress={() => setLang(l.code)}
-            className={`px-3 py-1 rounded-lg border ${
-              lang === l.code
-                ? "bg-green-600 border-green-600"
-                : "bg-white border-gray-300"
-            }`}
-          >
-            <Text
-              className={`text-sm font-semibold ${
-                lang === l.code ? "text-white" : "text-gray-600"
-              }`}
+    <View style={{ flex: 1, backgroundColor: "#1B211A" }}>
+      {/* Top background */}
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
+        {/* Lang */}
+        <View style={{ position: "absolute", top: 56, right: 20, flexDirection: "row", gap: 8 }}>
+          {LANGS.map((l) => (
+            <TouchableOpacity
+              key={l.code}
+              onPress={() => setLang(l.code)}
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 10,
+                backgroundColor: lang === l.code ? "#8BAE66" : "rgba(255,255,255,0.1)",
+              }}
             >
-              {l.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Logo */}
-      <View className="items-center mb-10">
-        <View className="w-20 h-20 bg-green-600 rounded-2xl items-center justify-center mb-4">
-          <Text className="text-white text-4xl font-bold">S</Text>
+              <Text style={{ color: lang === l.code ? "#fff" : "#8BAE66", fontWeight: "700", fontSize: 12 }}>
+                {l.flag} {l.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-        <Text className="text-3xl font-bold text-gray-800">Savdo</Text>
-        <Text className="text-gray-500 mt-1">{t.auth.appDesc}</Text>
+
+        {/* Logo */}
+        <View style={{ alignItems: "center" }}>
+          <View style={{ width: 100, height: 100, backgroundColor: "#8BAE66", borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+            <Text style={{ fontSize: 48 }}>📊</Text>
+          </View>
+          <Text style={{ color: "#EBD5AB", fontSize: 36, fontWeight: "800", letterSpacing: -1 }}>Savdo</Text>
+          <Text style={{ color: "#628141", fontSize: 14, marginTop: 6 }}>{t.auth.appDesc}</Text>
+        </View>
       </View>
 
-      {/* Phone input */}
-      <Text className="text-gray-600 font-medium mb-2">{t.auth.phone}</Text>
-      <View className="flex-row items-center border border-gray-300 rounded-xl px-4 mb-4 bg-white">
-        <Text className="text-gray-500 mr-2 text-base">+998</Text>
-        <TextInput
-          className="flex-1 h-14 text-lg"
-          placeholder="90 123 45 67"
-          keyboardType="number-pad"
-          maxLength={9}
-          value={phone}
-          onChangeText={setPhone}
-        />
+      {/* Bottom sheet */}
+      <View style={{ backgroundColor: "#253020", borderTopLeftRadius: 36, borderTopRightRadius: 36, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 48 }}>
+        <Text style={{ color: "#EBD5AB", fontSize: 22, fontWeight: "800", marginBottom: 20 }}>Kirish</Text>
+
+        <Text style={{ color: "#8BAE66", fontSize: 13, fontWeight: "600", marginBottom: 8 }}>{t.auth.phone}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#1B211A", borderRadius: 16, paddingHorizontal: 16, marginBottom: 20, borderWidth: 1.5, borderColor: "#3A5030" }}>
+          <View style={{ marginRight: 10, paddingRight: 10, borderRightWidth: 1, borderRightColor: "#3A5030" }}>
+            <Text style={{ color: "#8BAE66", fontSize: 16, fontWeight: "700" }}>+998</Text>
+          </View>
+          <TextInput
+            style={{ flex: 1, height: 58, fontSize: 20, color: "#EBD5AB", fontWeight: "600", letterSpacing: 1 }}
+            placeholder="90 123 45 67"
+            placeholderTextColor="#3A5030"
+            keyboardType="number-pad"
+            maxLength={9}
+            value={phone}
+            onChangeText={setPhone}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={{ backgroundColor: isValid ? "#8BAE66" : "#2E3D28", borderRadius: 16, height: 58, alignItems: "center", justifyContent: "center", shadowColor: "#8BAE66", shadowOffset: { width: 0, height: 4 }, shadowOpacity: isValid ? 0.4 : 0, shadowRadius: 8, elevation: isValid ? 6 : 0 }}
+          onPress={handleLogin}
+          disabled={!isValid}
+        >
+          <Text style={{ color: isValid ? "#fff" : "#3A5030", fontWeight: "800", fontSize: 17 }}>{t.auth.enter}</Text>
+        </TouchableOpacity>
+
+        <Text style={{ color: "#628141", textAlign: "center", fontSize: 12, marginTop: 16 }}>{t.auth.demoNote}</Text>
       </View>
-
-      <TouchableOpacity
-        className={`rounded-xl h-14 items-center justify-center ${
-          phone.length >= 9 ? "bg-green-600" : "bg-gray-300"
-        }`}
-        onPress={handleLogin}
-        disabled={phone.length < 9}
-      >
-        <Text className="text-white font-semibold text-lg">{t.auth.enter}</Text>
-      </TouchableOpacity>
-
-      <Text className="text-center text-gray-400 text-sm mt-6">{t.auth.demoNote}</Text>
     </View>
   );
 }

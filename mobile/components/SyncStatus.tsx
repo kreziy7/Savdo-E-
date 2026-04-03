@@ -1,19 +1,13 @@
-/**
- * Sinxronizatsiya holati ko'rsatkichi.
- * Faqat pending yozuvlar bo'lsa yoki sync ishlayotganda ko'rinadi.
- */
 import { View, Text } from "react-native";
 import { useSyncStore } from "@/store/syncStore";
 
 export function SyncStatus() {
   const { isSyncing, pendingCount } = useSyncStore();
-
   if (!isSyncing && pendingCount === 0) return null;
-
   return (
-    <View className="flex-row items-center gap-1 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
-      <Text className="text-amber-600 text-xs font-medium">
-        {isSyncing ? "⟳ Sync..." : `⏳ ${pendingCount} kutmoqda`}
+    <View style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 }}>
+      <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>
+        {isSyncing ? "⟳ Sync" : `⏳ ${pendingCount}`}
       </Text>
     </View>
   );

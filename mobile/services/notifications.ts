@@ -1,18 +1,17 @@
-import * as Notifications from "expo-notifications";
-import { api } from "./api";
+import { Platform } from "react-native";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
+// expo-notifications Expo Go SDK 53+ da ishlamaydi — dinamik import ishlatamiz
 export async function registerForPushNotifications(): Promise<void> {
-  const { status } = await Notifications.requestPermissionsAsync();
-  if (status !== "granted") return;
-
-  const token = await Notifications.getExpoPushTokenAsync();
-  await api.post("/user/push-token", { token: token.data });
+  if (Platform.OS === "web") return;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Notifications = require("expo-notifications");
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== "granted") return;
+    const token = await Notifications.getExpoPushTokenAsync();
+    const { api } = require("./api");
+    await api.post("/user/push-token", { token: token.data });
+  } catch {
+    // Expo Go da silent fail
+  }
 }
