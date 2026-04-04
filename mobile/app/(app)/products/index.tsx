@@ -65,17 +65,17 @@ export default function ProductsScreen() {
 
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <View>
-                <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>XARID</Text>
+                <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>{t.products.buyLabel.toUpperCase()}</Text>
                 <Text style={{ color: c.text, fontWeight: "700", fontSize: 13 }}>{item.buyPrice.toLocaleString()}</Text>
               </View>
               <View style={{ alignItems: "center" }}>
-                <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>SOTUV</Text>
+                <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>{t.products.sellLabel.toUpperCase()}</Text>
                 <Text style={{ color: c.text, fontWeight: "700", fontSize: 13 }}>{item.sellPrice.toLocaleString()}</Text>
               </View>
               <View style={{ alignItems: "flex-end" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
                   <Ionicons name="trending-up" size={11} color={c.primary} />
-                  <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>FOYDA</Text>
+                  <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>{t.products.profitLabel.toUpperCase()}</Text>
                 </View>
                 <Text style={{ color: c.primary, fontWeight: "800", fontSize: 14 }}>+{item.profit.toLocaleString()}</Text>
               </View>

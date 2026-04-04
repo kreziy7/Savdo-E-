@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { database } from "@/db";
 import { useProduct } from "@/hooks/useProducts";
 import { useT } from "@/hooks/useT";
-import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/hooks/useTheme";
+import { useRoleStore } from "@/store/roleStore";
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const product = useProduct(id);
   const t = useT();
+  const { c } = useTheme();
+  const { isAdmin } = useRoleStore();
 
   const [name, setName] = useState("");
   const [buyPrice, setBuyPrice] = useState("");
@@ -30,14 +34,19 @@ export default function ProductDetailScreen() {
 
   if (!product || !initialized.current) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#FBE8CE" }}>
-        <Text style={{ color: "#C3CC9B" }}>Yuklanmoqda...</Text>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: c.bg }}>
+        <Ionicons name="hourglass" size={32} color={c.border} />
+        <Text style={{ color: c.textMuted, marginTop: 8 }}>{t.common.loading}</Text>
       </View>
     );
   }
 
   async function handleUpdate() {
     if (!product) return;
+    if (!isAdmin()) {
+      Alert.alert(t.employees.restricted, t.employees.adminOnly);
+      return;
+    }
     setSaving(true);
     try {
       await database.write(async () => {
@@ -51,7 +60,7 @@ export default function ProductDetailScreen() {
       });
       router.back();
     } catch {
-      Alert.alert("Xato", "Yangilashda xatolik");
+      Alert.alert(t.common.error, t.common.saveError);
     } finally {
       setSaving(false);
     }
@@ -79,59 +88,68 @@ export default function ProductDetailScreen() {
   const profit = Number(sellPrice) - Number(buyPrice);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#FBE8CE" }} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ flex: 1, backgroundColor: c.bg }} keyboardShouldPersistTaps="handled">
       {/* Header */}
-      <View style={{ backgroundColor: "#FBE8CE", paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center" }}>
-          <Ionicons name="chevron-back" size={20} color="#9AB17A" />
-          <Text style={{ color: "#9AB17A", fontWeight: "600" }}>{t.products.cancel}</Text>
+      <View style={{ backgroundColor: c.bg, paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Ionicons name="chevron-back" size={20} color={c.primary} />
+          <Text style={{ color: c.primary, fontWeight: "600" }}>{t.products.cancel}</Text>
         </TouchableOpacity>
-        <Text style={{ color: "#2D3A1E", fontSize: 18, fontWeight: "800" }}>{t.products.update}</Text>
+        <Text style={{ color: c.text, fontSize: 18, fontWeight: "800" }}>{t.products.update}</Text>
         <TouchableOpacity onPress={handleArchive} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <Ionicons name="trash" size={16} color="#EF4444" />
-          <Text style={{ color: "#EF4444", fontSize: 13, fontWeight: "600" }}>{t.products.delete}</Text>
+          <Ionicons name="trash" size={16} color={c.danger} />
+          <Text style={{ color: c.danger, fontSize: 13, fontWeight: "600" }}>{t.products.delete}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={{ paddingHorizontal: 16, gap: 14, paddingBottom: 40 }}>
         {[
-          { label: t.products.name, value: name, setter: setName, numeric: false },
-          { label: t.products.buyPrice, value: buyPrice, setter: setBuyPrice, numeric: true },
+          { label: t.products.name,      value: name,      setter: setName,      numeric: false },
+          { label: t.products.buyPrice,  value: buyPrice,  setter: setBuyPrice,  numeric: true },
           { label: t.products.sellPrice, value: sellPrice, setter: setSellPrice, numeric: true },
-          { label: t.products.stock, value: stock, setter: setStock, numeric: true },
+          { label: t.products.stock,     value: stock,     setter: setStock,     numeric: true },
         ].map(({ label, value, setter, numeric }) => (
           <View key={label}>
-            <Text style={{ color: "#5C7045", fontWeight: "700", marginBottom: 6 }}>{label}</Text>
+            <Text style={{ color: c.primaryDark, fontWeight: "700", marginBottom: 6 }}>{label}</Text>
             <TextInput
-              style={{ backgroundColor: "#fff", borderWidth: 1.5, borderColor: "#E4DFB5", borderRadius: 14, paddingHorizontal: 14, height: 50, fontSize: 15, color: "#2D3A1E" }}
+              style={{ backgroundColor: c.bgCard, borderWidth: 1.5, borderColor: c.border, borderRadius: 14, paddingHorizontal: 14, height: 50, fontSize: 15, color: c.text }}
               value={value}
               onChangeText={setter}
               keyboardType={numeric ? "numeric" : "default"}
-              placeholderTextColor="#C3CC9B"
+              placeholderTextColor={c.border}
             />
           </View>
         ))}
 
         {buyPrice && sellPrice && (
-          <View style={{ backgroundColor: profit >= 0 ? "#E4DFB5" : "#FEE2E2", borderRadius: 16, padding: 16 }}>
-            <Text style={{ color: profit >= 0 ? "#7A9460" : "#EF4444", fontSize: 12, fontWeight: "600" }}>
-              {t.products.profit}
-            </Text>
-            <Text style={{ color: profit >= 0 ? "#5C7045" : "#EF4444", fontWeight: "800", fontSize: 24, marginTop: 2 }}>
-              {profit >= 0 ? "+" : ""}{profit.toLocaleString()} so'm
-            </Text>
+          <View style={{ backgroundColor: profit >= 0 ? c.bgMuted : "#FEE2E2", borderRadius: 16, padding: 16, flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Ionicons
+              name={profit >= 0 ? "trending-up" : "trending-down"}
+              size={20}
+              color={profit >= 0 ? c.primaryDark : c.danger}
+            />
+            <View>
+              <Text style={{ color: profit >= 0 ? c.accent : c.danger, fontSize: 12, fontWeight: "600" }}>
+                {t.products.profit}
+              </Text>
+              <Text style={{ color: profit >= 0 ? c.primaryDark : c.danger, fontWeight: "800", fontSize: 24, marginTop: 2 }}>
+                {profit >= 0 ? "+" : ""}{profit.toLocaleString()} so'm
+              </Text>
+            </View>
           </View>
         )}
 
         <TouchableOpacity
           style={{
-            backgroundColor: saving ? "#C3CC9B" : "#9AB17A",
+            backgroundColor: saving ? c.border : c.primary,
             borderRadius: 16,
             height: 56,
             alignItems: "center",
             justifyContent: "center",
+            flexDirection: "row",
+            gap: 8,
             marginTop: 8,
-            shadowColor: "#9AB17A",
+            shadowColor: c.primary,
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.35,
             shadowRadius: 8,
@@ -140,9 +158,14 @@ export default function ProductDetailScreen() {
           onPress={handleUpdate}
           disabled={saving}
         >
-          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>
-            {saving ? "..." : t.products.update}
-          </Text>
+          {saving ? (
+            <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>...</Text>
+          ) : (
+            <>
+              <Ionicons name="checkmark-circle" size={20} color="#fff" />
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>{t.products.update}</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </ScrollView>

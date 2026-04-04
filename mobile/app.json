@@ -25,7 +25,8 @@
       "package": "uz.savdo.app",
       "permissions": [
         "NOTIFICATIONS",
-        "RECEIVE_BOOT_COMPLETED"
+        "RECEIVE_BOOT_COMPLETED",
+        "CAMERA"
       ]
     },
     "plugins": [
@@ -45,7 +46,9 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-sharing",
+      "expo-camera"
     ],
     "experiments": {
       "typedRoutes": true

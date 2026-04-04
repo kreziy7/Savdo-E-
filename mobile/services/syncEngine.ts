@@ -1,11 +1,9 @@
 /**
- * Oflayn sync engine.
- * Internet kelganda telefondagi yozilmagan ma'lumotlarni serverga yuboradi.
+ * Oflayn sync engine — conflict resolution bilan.
  *
- * Qanday ishlaydi:
- *  1. is_synced = false bo'lgan barcha yozuvlarni topadi
- *  2. Ularni batch API'ga yuboradi
- *  3. server_id va is_synced = true qilib yangilaydi
+ * Strategiya: "Last Write Wins" (updatedAt bo'yicha)
+ *  - Local yangi bo'lsa → local versiya serverga yuboriladi
+ *  - Server yangi bo'lsa → server versiyasi localga yoziladi
  *
  * runSync() — root layout da AppState "active" bo'lganda chaqiriladi.
  */
@@ -19,7 +17,6 @@ import { useSyncStore } from "@/store/syncStore";
 export async function runSync() {
   if (useSyncStore.getState().isSyncing) return;
 
-  // Pending count yangilash — UI ko'rsatish uchun
   const pending = await getPendingCount();
   useSyncStore.getState().setPendingCount(pending);
   if (pending === 0) return;
@@ -32,7 +29,6 @@ export async function runSync() {
     useSyncStore.getState().setPendingCount(0);
   } catch (err) {
     console.warn("Sync error:", err);
-    // Xato bo'lsa — pendingCount ni qayta hisoblash
     const remaining = await getPendingCount();
     useSyncStore.getState().setPendingCount(remaining);
   } finally {
@@ -56,17 +52,48 @@ async function syncProducts() {
     stockQty: p.stockQty,
     unit: p.unit,
     archivedAt: p.archivedAt,
+    // Last-write-wins: server bilan solishtirish uchun
+    updatedAt: p.updatedAt instanceof Date ? p.updatedAt.getTime() : Number(p.updatedAt),
   }));
 
   const { data } = await api.post("/sync/products", { products: payload });
 
   await database.write(async () => {
-    for (const item of data.synced) {
+    // Muvaffaqiyatli sinxronlangan yozuvlar
+    for (const item of (data.synced ?? [])) {
       const product = unsynced.find((p) => p.id === item.localId);
       if (product) {
         await product.update((p) => {
           p.serverId = item.serverId;
           p.isSynced = true;
+        });
+      }
+    }
+
+    // Conflict: server yangi — server versiyasi local ga yoziladi
+    for (const conflict of (data.conflicts ?? [])) {
+      const product = unsynced.find((p) => p.id === conflict.localId);
+      if (!product) continue;
+      const localUpdatedAt = product.updatedAt instanceof Date
+        ? product.updatedAt.getTime()
+        : Number(product.updatedAt);
+      const serverUpdatedAt = conflict.serverUpdatedAt ?? 0;
+
+      if (serverUpdatedAt > localUpdatedAt) {
+        // Server yangi → server versiyasini qabul qilamiz
+        await product.update((p) => {
+          if (conflict.name !== undefined) p.name = conflict.name;
+          if (conflict.buyPrice !== undefined) p.buyPrice = conflict.buyPrice;
+          if (conflict.sellPrice !== undefined) p.sellPrice = conflict.sellPrice;
+          if (conflict.stockQty !== undefined) p.stockQty = conflict.stockQty;
+          p.serverId = conflict.serverId;
+          p.isSynced = true;
+        });
+      } else {
+        // Local yangi → local versiyani saqlaymiz, server ni override qilamiz
+        // (keyingi sync da qayta yuboriladi, bu safar force flag bilan)
+        await product.update((p) => {
+          p.isSynced = false;
         });
       }
     }
@@ -90,12 +117,13 @@ async function syncSales() {
     profit: s.profit,
     note: s.note,
     soldAt: s.soldAt,
+    updatedAt: s.updatedAt instanceof Date ? s.updatedAt.getTime() : Number(s.updatedAt),
   }));
 
   const { data } = await api.post("/sync/sales", { sales: payload });
 
   await database.write(async () => {
-    for (const item of data.synced) {
+    for (const item of (data.synced ?? [])) {
       const sale = unsynced.find((s) => s.id === item.localId);
       if (sale) {
         await sale.update((s) => {
@@ -104,6 +132,7 @@ async function syncSales() {
         });
       }
     }
+    // Sales uchun conflict bo'lmaydi — sotuv immutable (o'zgartirilmaydi)
   });
 }
 

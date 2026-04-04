@@ -1,89 +1,110 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert, Linking } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useT } from "@/hooks/useT";
+import { useTheme } from "@/hooks/useTheme";
+import { useSubscriptionStore, Plan } from "@/store/subscriptionStore";
 
-type PlanKey = "free" | "pro" | "biznes";
+type PlanKey = Plan;
 
-interface Plan {
+interface PlanConfig {
   key: PlanKey;
   price: string;
   color: string;
   bgColor: string;
   borderColor: string;
+  paymeUrl?: string;
+  clickUrl?: string;
 }
 
-const PLANS: Plan[] = [
-  {
-    key: "free",
-    price: "Bepul",
-    color: "#6b7280",
-    bgColor: "#f9fafb",
-    borderColor: "#e5e7eb",
+const PLANS: PlanConfig[] = [
+  { key: "free",   price: "Bepul",  color: "#6b7280", bgColor: "#f9fafb", borderColor: "#e5e7eb" },
+  { key: "pro",    price: "24,900", color: "#16a34a", bgColor: "#f0fdf4", borderColor: "#16a34a",
+    paymeUrl: "https://payme.uz/checkout/pro-plan",
+    clickUrl: "https://my.click.uz/services/pay?service_id=pro_plan",
   },
-  {
-    key: "pro",
-    price: "24,900",
-    color: "#16a34a",
-    bgColor: "#f0fdf4",
-    borderColor: "#16a34a",
-  },
-  {
-    key: "biznes",
-    price: "49,900",
-    color: "#7c3aed",
-    bgColor: "#faf5ff",
-    borderColor: "#7c3aed",
+  { key: "biznes", price: "49,900", color: "#7c3aed", bgColor: "#faf5ff", borderColor: "#7c3aed",
+    paymeUrl: "https://payme.uz/checkout/biznes-plan",
+    clickUrl: "https://my.click.uz/services/pay?service_id=biznes_plan",
   },
 ];
 
 export default function SubscriptionScreen() {
   const t = useT();
-  const currentPlan: PlanKey = "free";
+  const { c } = useTheme();
+  const { plan: currentPlan, upgrade, expiresAt } = useSubscriptionStore();
 
-  function handleUpgrade(plan: PlanKey) {
-    if (plan === "free") return;
+  function handleUpgrade(planConfig: PlanConfig) {
+    if (planConfig.key === "free") return;
     Alert.alert(
       t.subscription.upgrade,
       t.subscription.demoNote,
-      [{ text: "OK" }]
+      [
+        { text: t.common.cancel, style: "cancel" },
+        {
+          text: "Payme",
+          onPress: () => {
+            // Demo rejimda: local subscription 30 kun
+            upgrade(planConfig.key, 30);
+            Alert.alert(t.subscription.active, `${planConfig.key.toUpperCase()} 30 kun faollashtirildi (demo)`);
+          },
+        },
+        {
+          text: "Click",
+          onPress: () => {
+            upgrade(planConfig.key, 30);
+            Alert.alert(t.subscription.active, `${planConfig.key.toUpperCase()} 30 kun faollashtirildi (demo)`);
+          },
+        },
+      ]
     );
   }
 
   const featuresMap: Record<PlanKey, string[]> = {
-    free: t.subscription.freeFeatures,
-    pro: t.subscription.proFeatures,
+    free:   t.subscription.freeFeatures,
+    pro:    t.subscription.proFeatures,
     biznes: t.subscription.biznesFeatures,
   };
 
   const nameMap: Record<PlanKey, string> = {
-    free: t.subscription.free,
-    pro: t.subscription.pro,
+    free:   t.subscription.free,
+    pro:    t.subscription.pro,
     biznes: t.subscription.biznes,
   };
 
+  const expiryText = expiresAt
+    ? new Date(expiresAt).toLocaleDateString()
+    : null;
+
   return (
-    <ScrollView className="flex-1 bg-gray-50">
+    <ScrollView style={{ flex: 1, backgroundColor: c.bg }}>
       {/* Header */}
-      <View className="bg-white px-4 pt-14 pb-4 flex-row items-center">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <Ionicons name="chevron-back" size={24} color="#16a34a" />
+      <View style={{ backgroundColor: c.bgCard, paddingHorizontal: 16, paddingTop: 56, paddingBottom: 16, flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: c.border }}>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
+          <Ionicons name="chevron-back" size={24} color={c.primary} />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-800">{t.subscription.title}</Text>
+        <Text style={{ fontSize: 20, fontWeight: "800", color: c.text }}>{t.subscription.title}</Text>
       </View>
 
       {/* Current plan badge */}
-      <View className="px-4 mt-4">
-        <View className="bg-green-50 border border-green-200 rounded-xl p-3 flex-row items-center">
-          <Ionicons name="checkmark" size={16} color="#16a34a" />
-          <Text className="ml-2 text-green-700 text-sm font-medium">
-            {t.subscription.current}: {nameMap[currentPlan]}
-          </Text>
+      <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+        <View style={{ backgroundColor: c.bgMuted, borderWidth: 1, borderColor: c.border, borderRadius: 12, padding: 12, flexDirection: "row", alignItems: "center" }}>
+          <Ionicons name="checkmark-circle" size={16} color={c.primary} />
+          <View style={{ marginLeft: 8 }}>
+            <Text style={{ color: c.textSub, fontSize: 14, fontWeight: "600" }}>
+              {t.subscription.current}: {nameMap[currentPlan]}
+            </Text>
+            {expiryText && (
+              <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 2 }}>
+                {expiryText} gacha
+              </Text>
+            )}
+          </View>
         </View>
       </View>
 
       {/* Plan cards */}
-      <View className="px-4 mt-4 gap-4 mb-8">
+      <View style={{ paddingHorizontal: 16, marginTop: 16, gap: 16, marginBottom: 32 }}>
         {PLANS.map((plan) => {
           const isActive = plan.key === currentPlan;
           const features = featuresMap[plan.key];
@@ -95,63 +116,56 @@ export default function SubscriptionScreen() {
                 backgroundColor: plan.bgColor,
                 borderColor: isActive ? plan.color : plan.borderColor,
                 borderWidth: isActive ? 2 : 1,
+                borderRadius: 20,
+                padding: 20,
               }}
-              className="rounded-2xl p-5 shadow-sm"
             >
-              {/* Plan name and price */}
-              <View className="flex-row items-center justify-between mb-3">
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                 <View>
-                  <Text style={{ color: plan.color }} className="text-xl font-bold">
+                  <Text style={{ color: plan.color, fontSize: 20, fontWeight: "800" }}>
                     {nameMap[plan.key]}
                   </Text>
-                  <Text className="text-gray-500 text-sm">
-                    {plan.key === "free"
-                      ? plan.price
-                      : `${plan.price} ${t.subscription.perMonth}`}
+                  <Text style={{ color: "#6b7280", fontSize: 13, marginTop: 2 }}>
+                    {plan.key === "free" ? plan.price : `${plan.price} ${t.subscription.perMonth}`}
                   </Text>
                 </View>
                 {isActive && (
-                  <View
-                    style={{ backgroundColor: plan.color }}
-                    className="px-3 py-1 rounded-full"
-                  >
-                    <Text className="text-white text-xs font-semibold">
-                      {t.subscription.active}
-                    </Text>
+                  <View style={{ backgroundColor: plan.color, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 }}>
+                    <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{t.subscription.active}</Text>
                   </View>
                 )}
               </View>
 
-              {/* Divider */}
-              <View className="h-px bg-gray-200 mb-3" />
+              <View style={{ height: 1, backgroundColor: "#e5e7eb", marginBottom: 12 }} />
 
-              {/* Features list */}
-              <View className="gap-2">
+              <View style={{ gap: 8, marginBottom: 12 }}>
                 {features.map((feature) => (
-                  <View key={feature} className="flex-row items-center gap-2">
+                  <View key={feature} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                     <Ionicons name="checkmark" size={14} color={plan.color} />
-                    <Text className="text-gray-700 text-sm flex-1">{feature}</Text>
+                    <Text style={{ color: "#374151", fontSize: 13, flex: 1 }}>{feature}</Text>
                   </View>
                 ))}
               </View>
 
-              {/* Upgrade button */}
+              {/* Payment buttons */}
               {!isActive && (
-                <TouchableOpacity
-                  style={{ backgroundColor: plan.color }}
-                  className="mt-4 rounded-xl h-12 items-center justify-center"
-                  onPress={() => handleUpgrade(plan.key)}
-                >
-                  <Text className="text-white font-semibold">{t.subscription.upgrade}</Text>
-                </TouchableOpacity>
+                <View style={{ gap: 8 }}>
+                  <TouchableOpacity
+                    style={{ backgroundColor: plan.color, borderRadius: 12, height: 48, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}
+                    onPress={() => handleUpgrade(plan)}
+                  >
+                    <Ionicons name="card" size={18} color="#fff" />
+                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{t.subscription.upgrade} (Payme / Click)</Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
           );
         })}
 
-        {/* Demo note */}
-        <View className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-          <Text className="text-yellow-700 text-sm text-center">
+        <View style={{ backgroundColor: c.bgMuted, borderWidth: 1, borderColor: c.border, borderRadius: 12, padding: 16, flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Ionicons name="information-circle" size={16} color={c.textSub} />
+          <Text style={{ color: c.textSub, fontSize: 13, flex: 1 }}>
             {t.subscription.demoNote}
           </Text>
         </View>

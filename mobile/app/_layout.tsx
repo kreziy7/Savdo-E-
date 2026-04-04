@@ -5,6 +5,8 @@ import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/store/authStore";
 import { useLangStore } from "@/store/langStore";
 import { useThemeStore } from "@/store/themeStore";
+import { useSubscriptionStore } from "@/store/subscriptionStore";
+import { useRoleStore } from "@/store/roleStore";
 import { runSync } from "@/services/syncEngine";
 import "../global.css";
 
@@ -12,11 +14,13 @@ export default function RootLayout() {
   const { token, loadToken } = useAuthStore();
   const loadLang = useLangStore((s) => s.loadLang);
   const loadTheme = useThemeStore((s) => s.loadTheme);
+  const loadSubscription = useSubscriptionStore((s) => s.load);
+  const loadRole = useRoleStore((s) => s.load);
   const isDark = useThemeStore((s) => s.isDark);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    Promise.all([loadToken(), loadLang(), loadTheme()]).then(() => setReady(true));
+    Promise.all([loadToken(), loadLang(), loadTheme(), loadSubscription(), loadRole()]).then(() => setReady(true));
   }, []);
 
   useEffect(() => {

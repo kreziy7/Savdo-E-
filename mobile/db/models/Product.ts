@@ -1,5 +1,5 @@
 import { Model } from "@nozbe/watermelondb";
-import { field, date, readonly, writer } from "@nozbe/watermelondb/decorators";
+import { field, date, readonly } from "@nozbe/watermelondb/decorators";
 
 export class Product extends Model {
   static table = "products";
@@ -9,6 +9,7 @@ export class Product extends Model {
   @field("sell_price") declare sellPrice: number;
   @field("stock_qty") declare stockQty: number;
   @field("unit") declare unit: string;
+  @field("category_id") declare categoryId: string | null;
   @field("archived_at") declare archivedAt: number | null;
   @field("is_synced") declare isSynced: boolean;
   @field("server_id") declare serverId: string | null;

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/services/api";
 import { useAuthStore } from "@/store/authStore";
 import { useT } from "@/hooks/useT";
-import { Ionicons } from "@expo/vector-icons";
+import { dark } from "@/theme/colors";
 
 const DEMO_CODE = "000000";
 
@@ -14,11 +15,12 @@ export default function VerifyScreen() {
   const [loading, setLoading] = useState(false);
   const setToken = useAuthStore((s) => s.setToken);
   const t = useT();
+  const c = dark;
 
   async function handleVerify() {
     if (code.length !== 6) return;
     if (code === DEMO_CODE) {
-      setToken("demo-token", "demo-refresh");
+      await setToken("demo-token", "demo-refresh");
       return;
     }
     setLoading(true);
@@ -27,57 +29,57 @@ export default function VerifyScreen() {
         phone: `+998${phone}`,
         code,
       });
-      setToken(res.data.accessToken, res.data.refreshToken);
+      await setToken(res.data.accessToken, res.data.refreshToken);
     } catch {
-      Alert.alert("Xato", "Kod noto'g'ri yoki muddati o'tgan");
+      Alert.alert(t.common.error, t.auth.wrongCode);
     } finally {
       setLoading(false);
     }
   }
 
-  function enterDemo() {
-    setToken("demo-token", "demo-refresh");
+  async function enterDemo() {
+    await setToken("demo-token", "demo-refresh");
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#9AB17A" }}>
+    <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: c.primary }}>
       {/* Top */}
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 56, justifyContent: "center", alignItems: "center" }}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={{ position: "absolute", top: 56, left: 24, flexDirection: "row", alignItems: "center" }}
+          style={{ position: "absolute", top: 56, left: 24, flexDirection: "row", alignItems: "center", gap: 4 }}
         >
-          <Ionicons name="chevron-back" size={20} color="#FBE8CE" />
-          <Text style={{ color: "#FBE8CE", fontWeight: "600" }}>Orqaga</Text>
+          <Ionicons name="chevron-back" size={20} color={c.bg} />
+          <Text style={{ color: c.bg, fontWeight: "600" }}>{t.auth.back}</Text>
         </TouchableOpacity>
 
-        <View style={{ width: 72, height: 72, backgroundColor: "#FBE8CE", borderRadius: 36, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-          <Text style={{ fontSize: 36 }}>📱</Text>
+        <View style={{ width: 80, height: 80, backgroundColor: c.bg, borderRadius: 40, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+          <Ionicons name="phone-portrait" size={40} color={c.primary} />
         </View>
-        <Text style={{ color: "#fff", fontSize: 22, fontWeight: "800", textAlign: "center" }}>SMS kod</Text>
-        <Text style={{ color: "#E4DFB5", fontSize: 14, marginTop: 6, textAlign: "center" }}>
+        <Text style={{ color: "#fff", fontSize: 22, fontWeight: "800", textAlign: "center" }}>{t.auth.smsCode}</Text>
+        <Text style={{ color: c.bgMuted, fontSize: 14, marginTop: 6, textAlign: "center" }}>
           +998{phone} {t.auth.codeSent}
         </Text>
       </View>
 
       {/* Bottom card */}
-      <View style={{ backgroundColor: "#FBE8CE", borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 24, paddingTop: 28, paddingBottom: 40 }}>
+      <View style={{ backgroundColor: c.bg, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 24, paddingTop: 28, paddingBottom: 40 }}>
         <TextInput
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: c.bgCard,
             borderWidth: 2,
-            borderColor: "#C3CC9B",
+            borderColor: c.border,
             borderRadius: 16,
             height: 68,
             fontSize: 36,
             textAlign: "center",
             letterSpacing: 12,
             fontWeight: "800",
-            color: "#2D3A1E",
+            color: c.text,
             marginBottom: 16,
           }}
           placeholder="------"
-          placeholderTextColor="#C3CC9B"
+          placeholderTextColor={c.border}
           keyboardType="number-pad"
           maxLength={6}
           value={code}
@@ -87,16 +89,19 @@ export default function VerifyScreen() {
 
         <TouchableOpacity
           style={{
-            backgroundColor: code.length === 6 ? "#9AB17A" : "#C3CC9B",
+            backgroundColor: code.length === 6 ? c.primary : c.bgMuted,
             borderRadius: 16,
             height: 56,
             alignItems: "center",
             justifyContent: "center",
+            flexDirection: "row",
+            gap: 8,
             marginBottom: 20,
           }}
           onPress={handleVerify}
           disabled={loading || code.length !== 6}
         >
+          <Ionicons name={loading ? "hourglass" : "checkmark-circle"} size={20} color="#fff" />
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>
             {loading ? t.auth.checking : t.auth.enter}
           </Text>
@@ -104,31 +109,34 @@ export default function VerifyScreen() {
 
         {/* Divider */}
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
-          <View style={{ flex: 1, height: 1, backgroundColor: "#C3CC9B" }} />
-          <Text style={{ color: "#9AB17A", marginHorizontal: 12, fontSize: 13 }}>yoki</Text>
-          <View style={{ flex: 1, height: 1, backgroundColor: "#C3CC9B" }} />
+          <View style={{ flex: 1, height: 1, backgroundColor: c.border }} />
+          <Text style={{ color: c.textMuted, marginHorizontal: 12, fontSize: 13 }}>{t.auth.or}</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: c.border }} />
         </View>
 
         {/* Demo kirish */}
         <TouchableOpacity
           style={{
-            backgroundColor: "#E4DFB5",
+            backgroundColor: c.bgCard,
             borderRadius: 16,
             height: 52,
             alignItems: "center",
             justifyContent: "center",
+            flexDirection: "row",
+            gap: 8,
             borderWidth: 1.5,
-            borderColor: "#C3CC9B",
+            borderColor: c.border,
           }}
           onPress={enterDemo}
         >
-          <Text style={{ color: "#5C7045", fontWeight: "700", fontSize: 15 }}>
-            🚀 Demo rejimda kirish
+          <Ionicons name="rocket" size={18} color={c.primaryDark} />
+          <Text style={{ color: c.primaryDark, fontWeight: "700", fontSize: 15 }}>
+            {t.auth.enterDemo}
           </Text>
         </TouchableOpacity>
 
-        <Text style={{ color: "#9AB17A", textAlign: "center", fontSize: 12, marginTop: 12 }}>
-          Demo uchun kod: <Text style={{ fontWeight: "800" }}>000000</Text>
+        <Text style={{ color: c.textMuted, textAlign: "center", fontSize: 12, marginTop: 12 }}>
+          {t.auth.demoCodeHint} <Text style={{ fontWeight: "800" }}>000000</Text>
         </Text>
       </View>
     </View>

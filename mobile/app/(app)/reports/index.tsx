@@ -1,10 +1,34 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
 import { useSales } from "@/hooks/useSales";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 
 type Period = "today" | "week" | "month";
+
+const MEDALS = ["trophy", "medal", "ribbon", "star", "star-half"] as const;
+
+async function exportCSV(period: string, sales: any[], errorTitle: string, errorMsg: string) {
+  try {
+    const header = "Product;Qty;Amount;Profit;Date";
+    const rows = sales.map((s) => [
+      s.productName,
+      s.qty,
+      s.totalAmount,
+      s.profit,
+      new Date(s.soldAt).toLocaleString(),
+    ].join(";"));
+    const csv = [header, ...rows].join("\n");
+    const uri = FileSystem.cacheDirectory + `report_${period}_${Date.now()}.csv`;
+    await FileSystem.writeAsStringAsync(uri, csv, { encoding: FileSystem.EncodingType.UTF8 });
+    await Sharing.shareAsync(uri, { mimeType: "text/csv" });
+  } catch (e) {
+    Alert.alert(errorTitle, errorMsg);
+  }
+}
 
 export default function ReportsScreen() {
   const [period, setPeriod] = useState<Period>("today");
@@ -27,16 +51,28 @@ export default function ReportsScreen() {
 
   const FILTERS: { key: Period; label: string }[] = [
     { key: "today", label: t.sales.filters.today },
-    { key: "week", label: t.sales.filters.week },
+    { key: "week",  label: t.sales.filters.week },
     { key: "month", label: t.sales.filters.month },
   ];
 
   const maxProfit = topProducts[0]?.profit || 1;
+  const isGoodMargin = margin >= 20;
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: c.bg }} showsVerticalScrollIndicator={false}>
       <View style={{ backgroundColor: c.bg, paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 }}>
-        <Text style={{ color: c.text, fontSize: 28, fontWeight: "800", marginBottom: 14 }}>{t.reports.title}</Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <Text style={{ color: c.text, fontSize: 28, fontWeight: "800" }}>{t.reports.title}</Text>
+          {sales.length > 0 && (
+            <TouchableOpacity
+              onPress={() => exportCSV(period, sales, t.common.error, t.common.exportError)}
+              style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: c.bgMuted, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: c.border }}
+            >
+              <Ionicons name="download" size={16} color={c.primary} />
+              <Text style={{ color: c.primary, fontWeight: "700", fontSize: 13 }}>CSV</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         <View style={{ flexDirection: "row", backgroundColor: c.bgMuted, borderRadius: 14, padding: 4 }}>
           {FILTERS.map((f) => (
             <TouchableOpacity
@@ -53,54 +89,68 @@ export default function ReportsScreen() {
       <View style={{ paddingHorizontal: 20, paddingBottom: 40, gap: 12 }}>
         {/* Big stats */}
         <View style={{ backgroundColor: c.primary, borderRadius: 22, padding: 22 }}>
-          <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, fontWeight: "700", letterSpacing: 1.5 }}>TUSHUM</Text>
-          <Text style={{ color: "#fff", fontSize: 36, fontWeight: "800", marginTop: 2, letterSpacing: -1 }}>
-            {revenue.toLocaleString()}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <Ionicons name="cash" size={14} color="rgba(255,255,255,0.65)" />
+            <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, fontWeight: "700", letterSpacing: 1.5 }}>{t.reports.revenue.toUpperCase()}</Text>
+          </View>
+          <Text style={{ color: "#fff", fontSize: 36, fontWeight: "800", marginTop: 2, letterSpacing: -1 }}>{revenue.toLocaleString()}</Text>
           <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 14 }}>so'm</Text>
           <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.2)", marginVertical: 16 }} />
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <View>
-              <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "600" }}>SOF FOYDA</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <Ionicons name="trending-up" size={12} color="rgba(255,255,255,0.65)" />
+                <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "600" }}>{t.reports.totalProfit.toUpperCase()}</Text>
+              </View>
               <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20 }}>+{profit.toLocaleString()} so'm</Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
-              <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "600" }}>SOTUVLAR</Text>
-              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20 }}>{sales.length} ta</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <Ionicons name="cart" size={12} color="rgba(255,255,255,0.65)" />
+                <Text style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "600" }}>{t.reports.sales.toUpperCase()}</Text>
+              </View>
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20 }}>{sales.length}</Text>
             </View>
           </View>
         </View>
 
         {/* Margin */}
         <View style={{ backgroundColor: c.bgCard, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: c.border }}>
-          <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "600" }}>RENTABELLIK (MARGIN)</Text>
-          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 8 }}>
-            <Text style={{ color: margin >= 20 ? c.primary : c.warn, fontSize: 40, fontWeight: "800" }}>{margin}%</Text>
-            <Text style={{ color: c.textMuted, fontSize: 14, marginBottom: 6 }}>{margin >= 20 ? "🟢 Yaxshi" : "🟡 Past"}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Ionicons name="analytics" size={14} color={c.textMuted} />
+            <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "600" }}>{t.reports.margin.toUpperCase()}</Text>
           </View>
-          {/* Bar */}
+          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 8 }}>
+            <Text style={{ color: isGoodMargin ? c.primary : c.warn, fontSize: 40, fontWeight: "800" }}>{margin}%</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 6 }}>
+              <Ionicons name={isGoodMargin ? "checkmark-circle" : "alert-circle"} size={16} color={isGoodMargin ? c.primary : c.warn} />
+              <Text style={{ color: isGoodMargin ? c.primary : c.warn, fontSize: 13, fontWeight: "600" }}>{isGoodMargin ? t.reports.good : t.reports.low}</Text>
+            </View>
+          </View>
           <View style={{ height: 8, backgroundColor: c.bgMuted, borderRadius: 4, marginTop: 8 }}>
-            <View style={{ height: 8, backgroundColor: margin >= 20 ? c.primary : c.warn, borderRadius: 4, width: `${Math.min(margin, 100)}%` }} />
+            <View style={{ height: 8, backgroundColor: isGoodMargin ? c.primary : c.warn, borderRadius: 4, width: `${Math.min(margin, 100)}%` }} />
           </View>
         </View>
 
         {/* Top products */}
         {topProducts.length > 0 && (
           <View style={{ backgroundColor: c.bgCard, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: c.border }}>
-            <Text style={{ color: c.text, fontSize: 16, fontWeight: "800", marginBottom: 16 }}>🏆 {t.reports.top5}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <Ionicons name="trophy" size={18} color={c.primary} />
+              <Text style={{ color: c.text, fontSize: 16, fontWeight: "800" }}>{t.reports.top5}</Text>
+            </View>
             {topProducts.map((p, i) => (
               <View key={p.name} style={{ marginBottom: i < topProducts.length - 1 ? 16 : 0 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
-                    <Text style={{ fontSize: 18 }}>{"🥇🥈🥉🏅🏅"[i]}</Text>
+                    <Ionicons name={MEDALS[i] as any} size={18} color={i === 0 ? "#F59E0B" : i === 1 ? "#9CA3AF" : i === 2 ? "#CD7C2F" : c.textMuted} />
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: c.text, fontWeight: "700", fontSize: 14 }}>{p.name}</Text>
-                      <Text style={{ color: c.textMuted, fontSize: 12 }}>{p.qty} ta · {p.revenue.toLocaleString()} so'm</Text>
+                      <Text style={{ color: c.textMuted, fontSize: 12 }}>{p.qty} · {p.revenue.toLocaleString()} so'm</Text>
                     </View>
                   </View>
                   <Text style={{ color: c.primary, fontWeight: "800", fontSize: 14 }}>+{p.profit.toLocaleString()}</Text>
                 </View>
-                {/* Progress bar */}
                 <View style={{ height: 5, backgroundColor: c.bgMuted, borderRadius: 3 }}>
                   <View style={{ height: 5, backgroundColor: c.primary, borderRadius: 3, width: `${(p.profit / maxProfit) * 100}%`, opacity: 0.4 + (0.6 * (1 - i / 5)) }} />
                 </View>
@@ -111,7 +161,7 @@ export default function ReportsScreen() {
 
         {topProducts.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 40 }}>
-            <Text style={{ fontSize: 48, marginBottom: 12 }}>📊</Text>
+            <Ionicons name="stats-chart" size={52} color={c.border} style={{ marginBottom: 12 }} />
             <Text style={{ color: c.textMuted, fontSize: 16, fontWeight: "600" }}>{t.reports.noData}</Text>
           </View>
         )}

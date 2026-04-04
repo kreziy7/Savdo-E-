@@ -45,11 +45,11 @@ export default function SalesScreen() {
         {sales.length > 0 && (
           <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
             <View style={{ flex: 1, backgroundColor: c.bgCard, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: c.border }}>
-              <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>TUSHUM</Text>
+              <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "600" }}>{t.sales.revenue.toUpperCase()}</Text>
               <Text style={{ color: c.text, fontWeight: "800", fontSize: 16, marginTop: 2 }}>{totalRevenue.toLocaleString()} so'm</Text>
             </View>
             <View style={{ flex: 1, backgroundColor: c.primary, borderRadius: 14, padding: 14 }}>
-              <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: "600" }}>SOF FOYDA</Text>
+              <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: "600" }}>{t.sales.netProfit.toUpperCase()}</Text>
               <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16, marginTop: 2 }}>{totalProfit.toLocaleString()} so'm</Text>
             </View>
           </View>
@@ -79,7 +79,10 @@ export default function SalesScreen() {
               </Text>
             </View>
             {!item.isSynced && (
-              <Text style={{ color: c.warn, fontSize: 11, marginTop: 6 }}>⏳ Sinxronlanmagan</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 }}>
+                <Ionicons name="time" size={12} color={c.warn} />
+                <Text style={{ color: c.warn, fontSize: 11 }}>{t.sales.syncing}</Text>
+              </View>
             )}
           </View>
         )}
