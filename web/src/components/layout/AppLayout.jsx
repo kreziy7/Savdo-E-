@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Home, Package, ShoppingCart, BarChart2, Settings } from 'lucide-react';
+import { Home, Package, ShoppingCart, BarChart2, Settings, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 
@@ -56,6 +56,7 @@ export default function AppLayout() {
     { to: '/sales',    label: t('sales'),     icon: ShoppingCart },
     { to: '/reports',  label: t('reports'),   icon: BarChart2 },
     { to: '/settings', label: t('settings'),  icon: Settings },
+    { to: '/profile',  label: t('profile'),   icon: User },
   ];
 
   return (
