@@ -142,8 +142,12 @@ export default function Login() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
     try {
-      await login({ email: form.email.trim(), password: form.password });
-      navigate(from, { replace: true });
+      const user = await login({ email: form.email.trim(), password: form.password });
+      if (['ADMIN', 'SUPER_ADMIN'].includes(user?.role)) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(from === '/login' ? '/' : from, { replace: true });
+      }
     } catch (_) {}
   };
 
