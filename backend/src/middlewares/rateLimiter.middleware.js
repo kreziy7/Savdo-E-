@@ -16,11 +16,11 @@ const apiLimiter = rateLimit({
 });
 
 /**
- * Strict auth rate limiter — 10 attempts per 15 minutes
+ * Strict auth rate limiter — 10 attempts per 15 minutes (prod) / 100 (dev)
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === 'development' ? 100 : 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
