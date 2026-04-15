@@ -14,7 +14,20 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminOrders from './pages/admin/AdminOrders';
+import AdminProducts from './pages/admin/AdminProducts';
+
 import useAuthStore from './store/authStore';
+
+function AdminRoute({ children }) {
+  const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  if (!accessToken) return <Navigate to="/login" replace />;
+  if (!['ADMIN', 'SUPER_ADMIN'].includes(user?.role)) return <Navigate to="/" replace />;
+  return children;
+}
 
 export default function App() {
   const fetchMe = useAuthStore((s) => s.fetchMe);
@@ -51,7 +64,7 @@ export default function App() {
           <GuestRoute><Register /></GuestRoute>
         } />
 
-        {/* Protected app routes */}
+        {/* Protected user routes */}
         <Route element={
           <ProtectedRoute><AppLayout /></ProtectedRoute>
         }>
@@ -61,6 +74,12 @@ export default function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
           <Route path="profile" element={<Profile />} />
+
+          {/* Admin-only routes */}
+          <Route path="admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+          <Route path="admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+          <Route path="admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
         </Route>
 
         {/* Catch-all */}
