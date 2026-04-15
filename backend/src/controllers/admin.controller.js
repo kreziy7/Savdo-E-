@@ -47,6 +47,18 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { order }, 'Order status updated'));
 });
 
+// ── Admin Registration ─────────────────────────────────────────────────────
+
+const registerSuperAdmin = asyncHandler(async (req, res) => {
+  const user = await adminService.registerSuperAdmin(req.body);
+  res.status(201).json(new ApiResponse(201, { user }, 'Super Admin registered successfully'));
+});
+
+const registerAdmin = asyncHandler(async (req, res) => {
+  const user = await adminService.registerAdmin(req.body);
+  res.status(201).json(new ApiResponse(201, { user }, 'Admin registered successfully'));
+});
+
 module.exports = {
   getDashboardStats,
   getAllUsers,
@@ -56,4 +68,6 @@ module.exports = {
   deleteUser,
   getAllOrders,
   updateOrderStatus,
+  registerSuperAdmin,
+  registerAdmin,
 };
