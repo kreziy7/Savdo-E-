@@ -4,6 +4,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+ARG VITE_ADMIN_URL=http://localhost:3001
+ENV VITE_ADMIN_URL=$VITE_ADMIN_URL
 RUN npm run build
 
 # ── Stage 2: serve with nginx ────────────────────────────────────────────────

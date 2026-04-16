@@ -7,6 +7,8 @@ import { ProtectedRoute, GuestRoute } from './components/common/ProtectedRoute';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Sales from './pages/Sales';
@@ -63,6 +65,10 @@ export default function App() {
         <Route path="/register" element={
           <GuestRoute><Register /></GuestRoute>
         } />
+        <Route path="/forgot-password" element={
+          <GuestRoute><ForgotPasswordPage /></GuestRoute>
+        } />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* Protected user routes */}
         <Route element={

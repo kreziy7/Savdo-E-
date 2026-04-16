@@ -6,6 +6,7 @@ import {
   Star, Users, CheckCircle, ShoppingBag, Globe
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { GoogleLogin } from '@react-oauth/google';
 import useAuthStore from '../store/authStore';
 
 const LANGS = ['uz', 'ru', 'en'];
@@ -150,10 +151,20 @@ export default function Register() {
   const [pwdTouched, setPwdTouched] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const register  = useAuthStore((s) => s.register);
-  const login     = useAuthStore((s) => s.login);
-  const isLoading = useAuthStore((s) => s.isLoading);
-  const navigate  = useNavigate();
+  const register     = useAuthStore((s) => s.register);
+  const login        = useAuthStore((s) => s.login);
+  const googleLogin  = useAuthStore((s) => s.googleLogin);
+  const isLoading    = useAuthStore((s) => s.isLoading);
+  const navigate     = useNavigate();
+
+  const handleGoogleSuccess = async ({ credential }) => {
+    try {
+      const user = await googleLogin(credential);
+      if (!['ADMIN', 'SUPER_ADMIN'].includes(user?.role)) {
+        navigate('/');
+      }
+    } catch (_) {}
+  };
 
   const rules    = getRules(t);
   const pwdValid = rules.every((r) => r.test(form.password));
@@ -241,7 +252,27 @@ export default function Register() {
             <p className="text-[#64748B] text-sm mt-0.5">{tx.register_sub}</p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="p-6 pt-4 flex flex-col gap-4">
+          {/* Google register */}
+          <div className="px-6 pt-4 pb-2 flex flex-col gap-3">
+            <div className="flex items-center justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => {}}
+                width="352"
+                shape="rectangular"
+                theme="outline"
+                text="signup_with"
+                locale="uz"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-[#E2E8F0]" />
+              <span className="text-xs text-[#94A3B8] font-medium">yoki</span>
+              <div className="flex-1 h-px bg-[#E2E8F0]" />
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate className="px-6 pb-4 flex flex-col gap-4">
             {/* Name */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-[#374151] uppercase tracking-wider">{tx.name_label}</label>
@@ -302,7 +333,7 @@ export default function Register() {
           </form>
 
           {/* Trust badges */}
-          <div className="px-6 pb-5 border-t border-[#F1F5F9] pt-4 flex flex-col gap-2">
+          <div className="px-6 pb-5 pt-4 border-t border-[#F1F5F9] flex flex-col gap-2">
             {tx.trust.map((text, i) => (
               <div key={i} className="flex items-center gap-2 text-xs text-[#94A3B8]">
                 <CheckCircle size={13} className="text-green-400 flex-shrink-0" />

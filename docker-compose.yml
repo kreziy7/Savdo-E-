@@ -39,7 +39,11 @@ services:
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
       BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS:-10}
       ADMIN_SETUP_KEY: ${ADMIN_SETUP_KEY:-savdo_admin_setup_2026}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-savdo_super_secret_jwt_key_2026}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-24h}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
       CORS_ORIGIN: http://localhost:3000,http://localhost:3001
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-825239798783-l1lteibkgtf34v4afme0g4qe4avhrgft.apps.googleusercontent.com}
     ports:
       - "5000:5000"
     networks:
@@ -50,6 +54,8 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+      args:
+        VITE_ADMIN_URL: http://localhost:3001
     container_name: savdo_web
     restart: unless-stopped
     depends_on:

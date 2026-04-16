@@ -20,7 +20,7 @@ const loginSchema = Joi.object({
 });
 
 const refreshTokenSchema = Joi.object({
-  refreshToken: Joi.string().required(),
+  refreshToken: Joi.string().optional(), // cookie orqali ham yuborilishi mumkin
 });
 
 const updateProfileSchema = Joi.object({
@@ -81,10 +81,29 @@ const registerSuperAdminSchema = Joi.object({
   setupKey: Joi.string().required(),
 });
 
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().lowercase().required(),
+});
+
+const resetPasswordSchema = Joi.object({
+  token: Joi.string().required(),
+  password: Joi.string()
+    .min(8)
+    .max(128)
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .required()
+    .messages({
+      'string.pattern.base':
+        'Parol kamida bitta katta, bitta kichik harf va bitta raqam bo\'lishi kerak',
+    }),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
   refreshTokenSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   updateProfileSchema,
   addressSchema,
   changePasswordSchema,

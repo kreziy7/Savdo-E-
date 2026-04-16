@@ -3,6 +3,7 @@ import { useAuth } from "../store";
 import { RoleGuard } from "../components/guards/RoleGuard";
 import { AdminLayout } from "../layouts/AdminLayout";
 import { LoginPage } from "../pages/auth/LoginPage";
+import { SsoPage } from "../pages/auth/SsoPage";
 import { AdminsPage } from "../pages/admins/AdminsPage";
 import { AuditLogsPage } from "../pages/audit-logs/AuditLogsPage";
 import { ContentPage } from "../pages/content/ContentPage";
@@ -41,6 +42,9 @@ export function AppRouter() {
       <Routes>
         {/* Public — login */}
         <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
+
+        {/* SSO — web saytdan token bilan kirish */}
+        <Route path="/sso" element={<SsoPage />} />
 
         {/* Protected admin routes */}
         <Route element={<RequireAuth><AdminLayout /></RequireAuth>}>

@@ -64,4 +64,30 @@ const getMe = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { user: req.user }, 'User retrieved'));
 });
 
-module.exports = { register, login, refreshToken, logout, logoutAll, getMe };
+const forgotPassword = asyncHandler(async (req, res) => {
+  const resetBaseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  await authService.forgotPassword(req.body.email, resetBaseUrl);
+  // Always 200 to prevent email enumeration
+  res.status(200).json(
+    new ApiResponse(200, null, 'Agar email mavjud bo\'lsa, tiklash havolasi yuborildi')
+  );
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  await authService.resetPassword(req.body.token, req.body.password);
+  res.status(200).json(new ApiResponse(200, null, 'Parol muvaffaqiyatli yangilandi'));
+});
+
+const googleAuth = asyncHandler(async (req, res) => {
+  const meta = { userAgent: req.headers['user-agent'] || '', ip: req.ip };
+  const { credential } = req.body;
+  const { user, accessToken, refreshToken } = await authService.googleAuth(credential, meta);
+
+  res.cookie('refreshToken', refreshToken, COOKIE_OPTIONS);
+
+  res.status(200).json(
+    new ApiResponse(200, { user, accessToken, refreshToken }, 'Google orqali kirish muvaffaqiyatli')
+  );
+});
+
+module.exports = { register, login, refreshToken, logout, logoutAll, getMe, forgotPassword, resetPassword, googleAuth };

@@ -1,659 +1,343 @@
-# 🛒 Savdo-E | MDH Commerce Management Platform 🚀
+# Savdo-E — Commerce Management Platform
 
-![Savdo-E](https://img.shields.io/badge/Savdo--E-Premium_Commerce-0B3D2E?style=for-the-badge&logo=shopify&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Development-2ECC71?style=for-the-badge)
-![AI](https://img.shields.io/badge/AI-Gemini_1.5-4285F4?style=for-the-badge)
-![Languages](https://img.shields.io/badge/Languages-5_Langs-6C5CE7?style=for-the-badge)
+![Backend](https://img.shields.io/badge/Backend-Node.js%20%2F%20Express-339933?style=flat-square&logo=node.js&logoColor=white)
+![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Database](https://img.shields.io/badge/Database-MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![Auth](https://img.shields.io/badge/Auth-JWT%20%2B%20Google%20OAuth-4285F4?style=flat-square&logo=google&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active-2ECC71?style=flat-square)
 
-Complete commerce ecosystem for MDH region (Uzbekistan, Kazakhstan, Tajikistan, Kyrgyzstan) with Web, Mobile, and Admin platforms.
-
----
-
-## 📋 Table of Contents
-
-1. [Project Overview](#1-project-overview)
-2. [Core Features](#2-core-features)
-3. [Platforms](#3-platforms)
-4. [Technology Stack](#4-technology-stack)
-5. [System Architecture](#5-system-architecture)
-6. [Setup & Installation](#6-setup--installation)
-7. [API Reference](#7-api-reference)
-8. [Roles & Permissions](#8-roles--permissions)
-9. [Security](#9-security)
-10. [Development Timeline](#10-development-timeline)
-11. [Roadmap](#11-roadmap)
+Kichik va o'rta biznes uchun savdo menejeri — mahsulotlar, savdolar, hisobotlar, admin panel.
 
 ---
 
-## 1. Project Overview
+## Tarkib
 
-**Savdo-E** is an AI-powered commerce management platform designed for 830,000+ traders in the MDH (Central Asia) region. It provides a unified solution across web, mobile, and admin platforms for:
-
-- **Product Management**: Add, edit, and organize inventory
-- **Sales Tracking**: Quick sales logging with automatic profit calculation
-- **Analytics**: Real-time dashboards and historical reports
-- **Offline Support**: Full functionality without internet connection
-- **Multi-Language**: 5 languages, 4 countries, 4 currencies
-- **AI Integration**: Gemini AI for inventory analysis and business insights
-- **Admin Control**: Role-based access with audit logging
-
-### Key Values
-✅ **Offline-First** — Works without internet (mobile + web via IndexedDB)
-✅ **Fast & Simple** — Log a sale in 3 seconds
-✅ **Multi-Region** — UZ, RU, EN + KZ, TJ, KG support
-✅ **Scalable** — From 1 store to enterprise
-✅ **Secure** — JWT auth, role-based access, audit logging
+1. [Arxitektura](#arxitektura)
+2. [Tech Stack](#tech-stack)
+3. [Ishga tushirish](#ishga-tushirish)
+4. [API Endpointlar](#api-endpointlar)
+5. [Rollar va Huquqlar](#rollar-va-huquqlar)
+6. [Xavfsizlik](#xavfsizlik)
+7. [Docker](#docker)
 
 ---
 
-## 2. Core Features
+## Arxitektura
 
-### AI-Powered Assistant
-- **Inventory Analysis**: "What's in stock?" → Instant answer
-- **Sales Insights**: Trend analysis, profit optimization
-- **Natural Language**: Ask in UZ, RU, EN
-- **Multi-Purpose**: Analytics, forecasting, recommendations
+```
+┌─────────────────┐    ┌─────────────────┐
+│  Web Frontend   │    │  Admin Panel    │
+│  localhost:5173 │    │  localhost:5174 │
+│  (React + Vite) │    │  (React + Vite) │
+└────────┬────────┘    └────────┬────────┘
+         │                      │
+         └──────────┬───────────┘
+                    ↓
+         ┌──────────────────┐
+         │  Backend API     │
+         │  localhost:5000  │
+         │  (Node/Express)  │
+         └────────┬─────────┘
+                  ↓
+         ┌──────────────────┐
+         │    MongoDB       │
+         │  savdo_db        │
+         └──────────────────┘
+```
 
-### Localization (i18n)
-- **5 Languages**: UZ (Cyrillic/Latin), RU, EN, KZ, TJ, KG
-- **4 Currencies**: UZS, KZT, TJS, KGS (+ RUB, USD)
-- **4 Countries**: Uzbekistan, Kazakhstan, Tajikistan, Kyrgyzstan
-- **Auto-Detection**: IP-based language/currency selection
+**Login oqimi (ADMIN/SUPER_ADMIN):**
+```
+Web Login → JWT token → SSO redirect → Admin Panel (/sso?token=...)
+```
 
-### Real-Time Analytics
-- Dashboard stats (revenue, profit, inventory)
-- Top products analysis
-- Daily/weekly/monthly trends
-- Export: CSV, Excel, PDF
-
-### Role-Based Access
-- **Super Admin**: 1 per system (global settings, admin management)
-- **Admin**: Unlimited (user & content management)
-- **Custom Roles**: Permission matrix for fine-grained control
-- **Audit Logging**: Track all changes with timestamps
-
----
-
-## 3. Platforms
-
-### 📱 Mobile App (Expo/React Native)
-**Purpose**: Quick sales logging, offline operations
-**Key Screens**: Login → Dashboard → Products → Sales → Reports
-**Tech**: Expo, WatermelonDB (offline), MMKV (tokens), Zustand (state)
-**Timeline**: 10 days
-**Key Feature**: Works completely offline, syncs automatically when online
+**Google OAuth oqimi:**
+```
+Google tugmasi → id_token → POST /auth/google → JWT token → Dashboard
+```
 
 ---
 
-### 🌐 Web Platform (Next.js)
-**Purpose**: Full commerce management, multi-country support
+## Tech Stack
 
-**MVP (8 weeks):**
-- Landing page (hero, features, pricing)
-- Authentication (phone + SMS OTP)
-- Dashboard (stats, charts, activity)
-- Products (CRUD with Cloudinary upload)
-- Sales (3-second quick input modal)
-- Reports (daily/monthly analytics)
-- Pricing plans (FREE / STANDARD / PRO)
-- Settings (profile, language, currency)
+### Backend
+| Texnologiya | Versiya | Maqsad |
+|-------------|---------|--------|
+| Node.js | 20+ | Runtime |
+| Express.js | 4.x | API server |
+| MongoDB + Mongoose | 7.x | Ma'lumotlar bazasi |
+| JWT | — | Access + Refresh tokenlar |
+| google-auth-library | 10.x | Google OAuth token tekshirish |
+| Bcryptjs | — | Parol shifrlash |
+| Joi | — | Input validatsiya |
+| Helmet | — | HTTP xavfsizlik headerlari |
+| express-rate-limit | — | Rate limiting |
+| Nodemailer | — | Email yuborish |
+| Winston | — | Logging |
 
-**Phase 2 (V2):**
-- Advanced analytics
-- Excel/PDF export
-- Full multilingual support for all 5 languages
-
-**Tech**: Next.js 14, Tailwind CSS, React Query, next-i18next, IndexedDB
-**Timeline**: 8 weeks total
-
----
-
-### 🖥️ Admin Panel (React/Next.js)
-**Purpose**: Platform administration & user management
-
-**Core Modules:**
-- Dashboard (system stats, quick actions)
-- User Management (CRUD, blocking, search/filter)
-- Admin Management (Super Admin only)
-- Role & Permissions (matrix, custom roles)
-- Reports (system analytics)
-- Audit Logs (activity tracking)
-- Settings (security, notifications)
-
-**Roles:**
-- **Super Admin**: Full access (1 per system)
-- **Admin**: Users & content (unlimited)
-- **Custom**: Configurable via permission matrix
-
-**Tech**: React 18, TypeScript, React Query, React Hook Form, Recharts
-**Timeline**: 5-6 weeks (organized in sprints)
-
----
-
-## 4. Technology Stack
-
-### Backend (Node.js/Express/MongoDB)
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Runtime | Node.js v18+ | Async, scalable |
-| Server | Express.js | Lightweight API |
-| Database | MongoDB + Mongoose | Flexible, scalable |
-| Auth | JWT + Bcrypt | Stateless security |
-| AI | Google Gemini API | Advanced analytics |
-| Validation | Joi/Zod | Type safety |
-| Logging | Winston/Morgan | Production ready |
-| File Storage | Cloudinary | Image management |
-| Payment | Payme + Click | MDH payment gateways |
-
-### Web (Next.js 14)
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Framework | Next.js 14 App Router | SSR, routing, SEO |
-| UI | React 18 + Tailwind | Modern, responsive |
-| i18n | next-i18next | 5 languages |
-| State | TanStack Query + Zustand | Server/client state |
-| Forms | React Hook Form + Zod | Validation, type-safe |
-| Charts | Recharts | Analytics |
-| Offline | IndexedDB + idb-keyval | Persistence |
-| Hosting | Vercel | Deployment |
-
-### Mobile (Expo/React Native)
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Framework | Expo + React Native | Cross-platform |
-| Navigation | Expo Router | File-based routing |
-| UI | NativeWind | Tailwind for native |
-| Offline DB | WatermelonDB | Local storage + sync |
-| State | Zustand | App state |
-| Tokens | MMKV | Encrypted storage |
-| HTTP | Axios | API requests |
+### Web Frontend
+| Texnologiya | Versiya | Maqsad |
+|-------------|---------|--------|
+| React | 18.x | UI |
+| Vite | 4.x | Build tool |
+| Zustand | — | State management |
+| @react-oauth/google | 0.13.x | Google OAuth |
+| React Router | 6.x | Routing |
+| Axios | — | HTTP so'rovlar |
+| TanStack Query | — | Server state |
+| i18next | — | UZ / RU / EN tillari |
+| Tailwind CSS | — | Stillar |
 
 ### Admin Panel
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Framework | React 18/Next.js | SPA or SSR |
-| UI | Tailwind CSS | Responsive design |
-| Tables | TanStack Table v8 | Data grids |
-| Forms | React Hook Form | Type-safe validation |
-| State | React Query + Zustand | Data fetching |
+| Texnologiya | Maqsad |
+|-------------|--------|
+| React + Vite | UI |
+| React Router | Routing |
+| Zustand | Auth state |
+| Recharts | Grafiklar |
 
 ---
 
-## 5. System Architecture
+## Ishga tushirish
 
-### High-Level Flow
-```
-Web/Mobile/Admin Clients
-        ↓
-  API Gateway (JWT auth, rate limit, CORS)
-        ↓
-Express.js Backend
-        ├─ Auth (JWT + refresh tokens)
-        ├─ Products (CRUD)
-        ├─ Sales (logging + analytics)
-        ├─ Users & Admins (management)
-        ├─ Reports (aggregation)
-        ├─ AI Integration (Gemini)
-        └─ Audit Logging
-        ↓
-MongoDB Database
-        ├─ Users
-        ├─ Products
-        ├─ Sales
-        ├─ Audit Logs
-        └─ System Config
-```
+### Talablar
+- Node.js 18+
+- MongoDB (local yoki Atlas)
+- Google Cloud OAuth Client ID
 
-### Offline Sync (Mobile)
-```
-User Action (Offline)
-        ↓
-WatermelonDB (Local Storage)
-        ↓
-Zustand (App State)
-        ↓
-Internet Available?
-    ├─ YES → Sync Engine → Backend API → Confirm
-    └─ NO  → Queue → Retry on reconnect
-```
+### 1. Backend
 
-### Database Schema (Key Collections)
-
-**Users:**
-```json
-{
-  _id: ObjectId,
-  phone: String (unique),
-  name: String,
-  email: String,
-  role: String (user/admin/super_admin),
-  subscription: {
-    plan: String,
-    status: Boolean,
-    expiresAt: Date
-  },
-  settings: {
-    language: String,
-    currency: String,
-    timezone: String
-  },
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-**Products:**
-```json
-{
-  _id: ObjectId,
-  userId: ObjectId,
-  name: String,
-  description: String,
-  buyPrice: Number,
-  sellPrice: Number,
-  quantity: Number,
-  unit: String,
-  image: String (Cloudinary URL),
-  category: String,
-  status: String (active/inactive),
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-**Sales:**
-```json
-{
-  _id: ObjectId,
-  userId: ObjectId,
-  productId: ObjectId,
-  quantity: Number,
-  totalPrice: Number,
-  profit: Number,
-  paymentMethod: String,
-  timestamp: Date,
-  syncedAt: Date
-}
-```
-
-**Audit Logs:**
-```json
-{
-  _id: ObjectId,
-  userId: ObjectId,
-  action: String (CREATE/UPDATE/DELETE/LOGIN),
-  entity: String,
-  entityId: ObjectId,
-  oldValue: Object,
-  newValue: Object,
-  ipAddress: String,
-  userAgent: String,
-  timestamp: Date
-}
-```
-
-### Project Structure
-
-```
-savdo-e/
-├── backend/                    # Node.js + Express
-│   ├── src/
-│   │   ├── config/            # DB, env, constants
-│   │   ├── controllers/       # Request handlers
-│   │   ├── middleware/        # Auth, validation, error
-│   │   ├── models/            # Mongoose schemas
-│   │   ├── routes/            # API endpoints
-│   │   ├── services/          # Business logic
-│   │   └── utils/             # Helpers
-│   ├── .env
-│   └── server.js
-│
-├── web/                        # Next.js 14 Web App
-│   ├── src/
-│   │   ├── app/               # Pages (App Router)
-│   │   │   ├── (auth)/        # login, verify
-│   │   │   └── (dashboard)/   # protected routes
-│   │   ├── components/        # Reusable UI
-│   │   ├── features/          # Feature modules
-│   │   ├── lib/               # Utils & config
-│   │   ├── hooks/             # Custom hooks
-│   │   └── store/             # Zustand state
-│   ├── public/
-│   ├── locales/               # i18n translations
-│   └── package.json
-│
-├── mobile/                     # Expo App
-│   ├── app/                   # Screens (Expo Router)
-│   │   ├── (auth)/
-│   │   └── (app)/
-│   ├── db/                    # WatermelonDB schema
-│   ├── store/                 # Zustand
-│   ├── services/              # API, sync engine
-│   ├── components/            # Native UI
-│   └── package.json
-│
-├── admin/                      # Admin Panel (React/Next.js)
-│   ├── src/
-│   │   ├── app/               # Pages
-│   │   ├── components/
-│   │   │   ├── layout/        # AppLayout, Sidebar, Topbar
-│   │   │   ├── shared/        # Button, Input, Modal, etc.
-│   │   │   └── guards/        # ProtectedRoute, RoleGuard
-│   │   ├── features/          # Feature modules
-│   │   └── lib/
-│   └── package.json
-│
-└── docs/                       # Documentation
-    ├── API.md
-    ├── ARCHITECTURE.md
-    └── DEPLOYMENT.md
-```
-
----
-
-## 6. Setup & Installation
-
-### Prerequisites
-- Node.js v18+
-- MongoDB Atlas or Local MongoDB
-- Google Gemini API Key
-- Cloudinary Account
-- Payme/Click Merchant Accounts
-
-### Backend Setup
 ```bash
 cd backend
 npm install
-
-# Create .env
-cat > .env << 'EOF'
-PORT=5002
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/savdo_db
-JWT_ACCESS_SECRET=your_secret_min_32_chars
-JWT_REFRESH_SECRET=your_secret_min_32_chars
-GEMINI_API_KEY=AIzaSy...
-CLOUDINARY_URL=cloudinary://...
-NODE_ENV=development
-CORS_ORIGIN=http://localhost:3000,http://localhost:5173
-EOF
-
-npm run dev
-# Server: http://localhost:5002
 ```
 
-### Web Setup
+`.env` fayl yarating:
+```env
+PORT=5000
+NODE_ENV=development
+MONGO_URI=mongodb://localhost:27017/savdo_db
+
+JWT_ACCESS_SECRET=your_secret_key
+JWT_ACCESS_EXPIRES_IN=24h
+JWT_REFRESH_SECRET=your_refresh_secret
+JWT_REFRESH_EXPIRES_IN=7d
+
+BCRYPT_SALT_ROUNDS=10
+ADMIN_SETUP_KEY=your_admin_setup_key
+CORS_ORIGIN=http://localhost:5173,http://localhost:5174
+CLIENT_URL=http://localhost:5173
+
+GOOGLE_CLIENT_ID=your_google_client_id
+
+# SMTP (ixtiyoriy — bo'lmasa consolega chiqadi)
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_USER=your@gmail.com
+# SMTP_PASS=app_password
+```
+
+```bash
+npm run dev
+# http://localhost:5000
+```
+
+Super Admin yaratish (bir marta):
+```bash
+npm run seed:admin
+```
+
+### 2. Web Frontend
+
 ```bash
 cd web
+npm install
+```
 
-# If new project:
-npx create-next-app@latest . --typescript --tailwind --app --src-dir
+`web/.env`:
+```env
+VITE_ADMIN_URL=http://localhost:5174
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+```
 
-npm install axios @tanstack/react-query next-i18next idb-keyval zustand recharts
-
-# .env.local
-cat > .env.local << 'EOF'
-NEXT_PUBLIC_API_URL=http://localhost:5002/api/v1
-NEXT_PUBLIC_DEFAULT_LANGUAGE=uz
-NEXT_PUBLIC_DEFAULT_CURRENCY=UZS
-EOF
-
+```bash
 npm run dev
-# App: http://localhost:3000
+# http://localhost:5173
 ```
 
-### Mobile Setup
+### 3. Admin Panel
+
 ```bash
-cd mobile
-
-npx create-expo-app . --template blank-typescript
-npx expo install expo-router nativewind zustand axios @nozbe/watermelondb react-native-mmkv
-
-# .env.local
-EXPO_PUBLIC_API_URL=http://your-backend:5002/api/v1
-
-npx expo start
-# Scan QR with Expo Go
-```
-
-### Admin Panel Setup
-```bash
-cd admin
+cd web/admin
 npm install
 npm run dev
-# App: http://localhost:3001
+# http://localhost:5174
 ```
 
 ---
 
-## 7. API Reference
+## API Endpointlar
+
+Base URL: `http://localhost:5000/api/v1`
+
+### Auth
+
+| Method | Endpoint | Tavsif | Auth |
+|--------|----------|--------|------|
+| POST | `/auth/register` | Ro'yxatdan o'tish | — |
+| POST | `/auth/login` | Email/parol bilan kirish | — |
+| POST | `/auth/google` | Google OAuth bilan kirish | — |
+| POST | `/auth/refresh-token` | Token yangilash | — |
+| POST | `/auth/forgot-password` | Parolni tiklash havolasi | — |
+| POST | `/auth/reset-password` | Yangi parol o'rnatish | — |
+| GET  | `/auth/me` | Joriy foydalanuvchi | JWT |
+| POST | `/auth/logout` | Chiqish | JWT |
+| POST | `/auth/logout-all` | Barcha qurilmalardan chiqish | JWT |
+
+### Mahsulotlar
+
+| Method | Endpoint | Tavsif | Auth |
+|--------|----------|--------|------|
+| GET | `/products` | Mahsulotlar ro'yxati | JWT |
+| POST | `/products` | Mahsulot qo'shish | JWT |
+| GET | `/products/:id` | Mahsulot ko'rish | JWT |
+| PATCH | `/products/:id` | Mahsulot tahrirlash | JWT |
+| DELETE | `/products/:id` | Mahsulot o'chirish | JWT |
+
+### Savdolar
+
+| Method | Endpoint | Auth |
+|--------|----------|------|
+| GET | `/sales` | JWT |
+| POST | `/sales` | JWT |
+
+### Hisobotlar
+
+| Method | Endpoint | Auth |
+|--------|----------|------|
+| GET | `/reports/summary` | JWT |
+| GET | `/reports/daily` | JWT |
+
+### Admin
+
+| Method | Endpoint | Auth |
+|--------|----------|------|
+| GET | `/admin/stats` | ADMIN/SUPER_ADMIN |
+| GET | `/admin/users` | ADMIN/SUPER_ADMIN |
+
+---
+
+## Rollar va Huquqlar
+
+| Rol | Tavsif | Kirish |
+|-----|--------|--------|
+| `USER` | Oddiy foydalanuvchi | Web dashboard |
+| `ADMIN` | Administrator | Web + Admin panel |
+| `SUPER_ADMIN` | Bosh administrator | Web + Admin panel (to'liq) |
+
+**ADMIN/SUPER_ADMIN login oqimi:**
+1. Web `/login` sahifasida email/parol yoki Google bilan kiradi
+2. `authStore` rol tekshiradi
+3. SSO orqali `http://localhost:5174/sso?token=...` ga yo'naltiriladi
+4. Admin panel token saqlaydi va `/dashboard` ga o'tadi
+
+---
+
+## Xavfsizlik
 
 ### Authentication
-```
-POST /api/v1/auth/register
-  { phone: "+998...", password: "..." }
+- **JWT Access Token** — 24 soat, `JWT_ACCESS_SECRET` bilan
+- **JWT Refresh Token** — 7 kun, rotatsiya bilan (eski token bekor qilinadi)
+- **Google OAuth** — `google-auth-library` bilan ID token tekshirish
+- **Bcrypt** — parollar 10 round bilan hashlangan
+- **HttpOnly Cookie** — refresh token cookie da saqlandi
 
-POST /api/v1/auth/send-otp
-  { phone: "+998..." }
+### API himoyasi
+- **Helmet.js** — XSS, clickjacking va boshqa HTTP hujumlardan himoya
+- **CORS** — faqat ruxsat etilgan originlar (`.env` da belgilangan)
+- **Rate Limiting** — Auth: dev 100 / prod 10 req per 15 min
+- **Rate Limiting** — API: dev 1000 / prod 100 req per 15 min
+- **Joi Validatsiya** — barcha input tekshiriladi
+- **express-mongo-sanitize** — NoSQL injection oldini olish
+- **Password Policy** — katta harf + kichik harf + raqam, min 8 belgi
 
-POST /api/v1/auth/verify-otp
-  { phone: "+998...", otp: "1234" }
+### Parolni tiklash
+- Crypto `randomBytes(32)` — tasodifiy token
+- SHA-256 hash — DB da saqlanadi (raw token faqat emailga yuboriladi)
+- 15 daqiqa amal qilish muddati
+- Parol o'zgarsa barcha sessiyalar bekor qilinadi
+- Email enumeration oldini olish — har doim 200 qaytaradi
 
-POST /api/v1/auth/refresh
-  { refreshToken: "..." }
+---
 
-POST /api/v1/auth/logout
+## Docker
 
-GET /api/v1/auth/me
-  Headers: { Authorization: "Bearer ..." }
-```
+```bash
+# Barcha servislarni ishga tushirish
+docker compose up -d
 
-### Products
-```
-GET /api/v1/products?search=&category=&page=1
-GET /api/v1/products/:id
-POST /api/v1/products
-  { name, buyPrice, sellPrice, quantity, unit, image, category }
-PATCH /api/v1/products/:id
-DELETE /api/v1/products/:id
-```
-
-### Sales
-```
-GET /api/v1/sales?startDate=&endDate=&page=1
-POST /api/v1/sales
-  { productId, quantity, paymentMethod, timestamp }
-GET /api/v1/sales/daily?date=2024-01-01
-```
-
-### Reports
-```
-GET /api/v1/reports/dashboard
-GET /api/v1/reports/monthly?month=1&year=2024
-POST /api/v1/reports/export
-  { format: "csv|excel|pdf", startDate, endDate }
+# Portlar:
+# Web:    http://localhost:3000
+# Admin:  http://localhost:3001
+# API:    http://localhost:5000
 ```
 
-### AI
-```
-POST /api/v1/ai/ask
-  { question: "Omborda nima qoldi?" }
-
-POST /api/v1/ai/analyze-sales
-  { startDate, endDate }
+`.env.docker` faylini nusxalab `.env` yarating:
+```bash
+cp .env.docker .env
+# Keyin .env dagi secretlarni o'zgartiring
 ```
 
-### Admin Only
-```
-GET /api/v1/admins
-POST /api/v1/admins
-  { name, email, role, permissions }
-PATCH /api/v1/admins/:id
-DELETE /api/v1/admins/:id
+### Docker xavfsizligi
+- Backend: non-root `savdo` user
+- 2-stage build (Alpine Linux)
+- Nginx reverse proxy (web va admin)
+- MongoDB healthcheck (`mongosh ping`)
 
-GET /api/v1/audit-logs?action=&userId=&page=1
+---
+
+## Loyiha strukturasi
+
+```
+Savdo-E/
+├── backend/
+│   ├── src/
+│   │   ├── config/           # DB ulanish
+│   │   ├── controllers/      # Route handlerlari
+│   │   ├── middlewares/      # Auth, RBAC, validatsiya, rate limit
+│   │   ├── models/           # Mongoose sxemalar
+│   │   ├── routes/           # API routelar
+│   │   ├── services/         # Biznes logika
+│   │   ├── utils/            # Yordamchi funksiyalar
+│   │   └── validators/       # Joi sxemalar
+│   ├── Dockerfile
+│   └── .env
+│
+├── web/                      # Asosiy sayt (port 5173)
+│   ├── src/
+│   │   ├── api/              # Axios so'rovlar
+│   │   ├── components/       # UI komponentlar
+│   │   ├── i18n/             # UZ/RU/EN tarjimalar
+│   │   ├── pages/            # Sahifalar
+│   │   ├── store/            # Zustand state
+│   │   └── hooks/
+│   ├── nginx.conf
+│   └── Dockerfile
+│
+├── web/admin/                # Admin panel (port 5174)
+│   ├── src/
+│   │   ├── components/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── router/
+│   │   └── store/
+│   ├── nginx.conf
+│   └── Dockerfile
+│
+├── docker-compose.yml
+└── .env.docker
 ```
 
 ---
 
-## 8. Roles & Permissions
-
-### Super Admin (1 per system)
-| Feature | Access |
-|---------|:------:|
-| Dashboard | ✅ |
-| User Management | ✅ |
-| Admin Management | ✅ |
-| Role & Permissions | ✅ |
-| Products | ✅ |
-| Sales | ✅ |
-| Reports | ✅ |
-| Export | ✅ |
-| Audit Logs | ✅ |
-| System Settings | ✅ |
-
-### Admin (Unlimited)
-| Feature | Access |
-|---------|:------:|
-| Dashboard | ✅ |
-| User Management | ✅ |
-| Products | ✅ |
-| Sales | ✅ |
-| Reports | ✅ |
-| Export | ✅ |
-| Admin Management | ❌ |
-| Audit Logs | ❌ |
-
-### Singleton Rule
-- Only **1 Super Admin** allowed in system
-- First admin created is Super Admin
-- Subsequent admins default to `Admin` role
-- UI blocks second Super Admin creation
-- Backend enforces via validation
-
----
-
-## 9. Security
-
-### Authentication
-- **JWT Tokens**: Access (15 min) + Refresh (30 days)
-- **Bcrypt Hashing**: Password security (10 rounds)
-- **HttpOnly Cookies**: Token storage
-- **Token Refresh**: Automatic rotation
-
-### API Security
-- **Helmet.js**: HTTP headers protection
-- **CORS**: Whitelist allowed domains
-- **Rate Limiting**: 100 req/min per IP
-- **Input Validation**: Joi/Zod schema validation
-- **Mongo Sanitize**: NoSQL injection prevention
-
-### Audit & Compliance
-- **Audit Logging**: All admin actions tracked
-- **IP Tracking**: Log user's IP address
-- **User Agent**: Device/browser tracking
-- **Timestamp**: Precise action timestamps
-
----
-
-## 10. Development Timeline
-
-### Mobile (10 days)
-| Day | Task | Status |
-|-----|------|--------|
-| 1 | Expo setup, routing, auth screens | |
-| 2 | SMS OTP integration | |
-| 3 | WatermelonDB & models | |
-| 4 | Products screen (CRUD) | |
-| 5 | Sales quick input | |
-| 6 | Dashboard & reports | |
-| 7 | Offline sync engine | |
-| 8 | Backend integration | |
-| 9 | Push notifications | |
-| 10 | Testing & APK build | |
-
-### Web (8 weeks)
-| Week | Task | Status |
-|------|------|--------|
-| 1 | Next.js setup, i18n, landing, auth | |
-| 2 | Dashboard, products CRUD | |
-| 3 | Sales modal, reports, offline | |
-| 4 | Payme/Click payment integration | |
-| 5-6 | KZ/TJ/KG languages, currencies | |
-| 7-8 | SEO, optimization, deployment | |
-
-### Admin Panel (5-6 weeks in sprints)
-| Sprint | Focus | Status |
-|--------|-------|--------|
-| 1 | Project setup, design system, auth | |
-| 2 | Dashboard, users list & forms | |
-| 3 | Admin management, roles | |
-| 4 | Reports, settings, profile | |
-| 5 | Audit logs, notifications | |
-
----
-
-## 11. Roadmap
-
-### MVP (Current)
-- [x] Authentication (phone + OTP)
-- [x] Dashboard & Analytics
-- [x] Product Management
-- [x] Sales Logging
-- [x] Offline Mode
-- [x] Multi-language (UZ, RU, EN)
-- [x] Admin Panel (basic)
-
-### Phase 2 (V1.1)
-- [ ] Advanced Analytics
-- [ ] Excel/PDF Export
-- [ ] Full multilingual (KZ, TJ, KG)
-- [ ] Payment Integration (Payme, Click)
-- [ ] Notification Center
-
-### Phase 3 (V1.2)
-- [ ] 2FA (2-factor authentication)
-- [ ] Real-time Notifications
-- [ ] Telegram Bot Integration
-- [ ] QR Code Generator
-- [ ] Multi-Store Support
-
-### Phase 4 (V2)
-- [ ] AI Recommendations
-- [ ] Demand Forecasting
-- [ ] Supplier Management
-- [ ] Expense Tracking
-- [ ] Inventory Alerts
-
----
-
-## Monthly Costs
-
-| Service | Cost | Notes |
-|---------|------|-------|
-| Web Hosting (Vercel) | Free | Included plan |
-| Backend + DB (Railway) | $10-20 | Scalable |
-| Image Storage (Cloudinary) | Free | 25 GB free tier |
-| SMS (Eskiz) | ~50-100 | Per transaction |
-| Monitoring (Sentry) | Free | 5K errors/month |
-| Domain | ~$15 | Annual |
-| **Total** | **~$35-50** | Per month |
-
----
-
-## Contributing
-
-This project is being developed for the MDH region. Contributions welcome for:
-- Bug fixes
-- Language translations
-- Performance optimization
-- Security improvements
-
----
-
-## License
-
-MIT License - Use freely for commercial projects
-
----
-
-**Savdo-E — Commerce Management Made Simple for MDH 🚀**
+**Savdo-E — Kichik biznes uchun savdo menejeri**

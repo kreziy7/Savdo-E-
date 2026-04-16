@@ -5,6 +5,7 @@ import {
   ShieldCheck, Star, Users, CheckCircle, ShoppingBag, Globe
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { GoogleLogin } from '@react-oauth/google';
 import useAuthStore from '../store/authStore';
 
 const LANGS = ['uz', 'ru', 'en'];
@@ -124,10 +125,20 @@ export default function Login() {
   const [errors, setErrors] = useState({});
 
   const login = useAuthStore((s) => s.login);
+  const googleLogin = useAuthStore((s) => s.googleLogin);
   const isLoading = useAuthStore((s) => s.isLoading);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
+
+  const handleGoogleSuccess = async ({ credential }) => {
+    try {
+      const user = await googleLogin(credential);
+      if (!['ADMIN', 'SUPER_ADMIN'].includes(user?.role)) {
+        navigate(from === '/login' ? '/' : from, { replace: true });
+      }
+    } catch (_) {}
+  };
 
   const validate = () => {
     const e = {};
@@ -143,9 +154,8 @@ export default function Login() {
     setErrors({});
     try {
       const user = await login({ email: form.email.trim(), password: form.password });
-      if (['ADMIN', 'SUPER_ADMIN'].includes(user?.role)) {
-        navigate('/admin', { replace: true });
-      } else {
+      // ADMIN/SUPER_ADMIN — authStore o'zi admin panelga SSO orqali yo'naltiradi
+      if (!['ADMIN', 'SUPER_ADMIN'].includes(user?.role)) {
         navigate(from === '/login' ? '/' : from, { replace: true });
       }
     } catch (_) {}
@@ -211,7 +221,27 @@ export default function Login() {
             <p className="text-[#64748B] text-sm mt-0.5">{tx.login_sub}</p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="p-6 pt-4 flex flex-col gap-4">
+          {/* Google login */}
+          <div className="px-6 pt-4 pb-2 flex flex-col gap-3">
+            <div className="flex items-center justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => {}}
+                width="352"
+                shape="rectangular"
+                theme="outline"
+                text="signin_with"
+                locale="uz"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-[#E2E8F0]" />
+              <span className="text-xs text-[#94A3B8] font-medium">yoki</span>
+              <div className="flex-1 h-px bg-[#E2E8F0]" />
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate className="px-6 pb-4 flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-[#374151] uppercase tracking-wider">{t('email')}</label>
               <input type="email" autoComplete="email" value={form.email} onChange={onChange('email')} placeholder={t('enter_email')} className={cls('email')} />
@@ -234,6 +264,11 @@ export default function Login() {
                 </button>
               </div>
               {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
+              <div className="flex justify-end mt-1">
+                <Link to="/forgot-password" className="text-xs text-green-600 hover:text-green-700 hover:underline">
+                  {t('forgot_password') || 'Parolni unutdingizmi?'}
+                </Link>
+              </div>
             </div>
 
             <button
