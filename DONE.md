@@ -1,6 +1,6 @@
 # DONE — Savdo-E Loyiha Holati
 
-> Sana: 2026-04-16
+> Oxirgi yangilanish: 2026-04-17
 > Barcha qilingan ishlar, tuzatilgan xatolar va kritik o'zgarishlar
 
 ---
@@ -263,6 +263,63 @@ c953af4  fix(backend): increase auth rate limit to 100 in development mode
 54e7b45  feat(docker): add full Docker setup for all services
 1799569  feat: merge Xasan & Abdulaziz branches, connect admin panel to backend
 ```
+
+---
+
+## 11. 2026-04-17 — Bugungi Ishlar
+
+### 11.1 Muammolar hal qilindi
+
+#### MUAMMO #1 — MongoDB ishlamayotgan edi
+- **Xato:** `connect ECONNREFUSED 127.0.0.1:27017` — backend start bo'lmadi
+- **Sabab:** `savdo_mongo` Docker konteyneri to'xtatilgan edi
+- **Yechim:** `docker start savdo_mongo` — konteyner qayta ishga tushirildi
+
+#### MUAMMO #2 — Backend ishlamayotgan edi
+- **Xato:** `connect ECONNREFUSED 127.0.0.1:5000` — frontend proxy xatosi
+- **Sabab:** Backend MongoDB'ga ulana olmay crash bo'lgan edi
+- **Yechim:** MongoDB ishga tushgach backend o'zi ulanib ishladi
+
+#### MUAMMO #3 — Google OAuth xatosi
+- **Xato:** `The given origin is not allowed for the given client ID`
+- **Sabab:** Google Cloud Console'da `localhost:5173`, `5174`, `5175`, `5176` originlari qo'shilmagan edi
+- **Yechim:** Google Cloud Console → Credentials → Authorized JavaScript origins'ga quyidagilar qo'shildi:
+  - `http://localhost:5173`
+  - `http://localhost:5174`
+  - `http://localhost:5175`
+  - `http://localhost:5176`
+
+### 11.2 Offline POS — Yangi Funksionallik qo'shildi
+
+| Fayl | Tavsif |
+|------|--------|
+| `web/src/services/offlineDB.js` | IndexedDB wrapper — mahsulotlar va kutilayotgan savdolarni local saqlash |
+| `web/src/services/webSyncService.js` | Offline/online sinxronizatsiya servisi (pull + push) |
+| `web/src/api/sync.api.js` | `/sync/pull` va `/sync/push` API chaqiruvlar |
+| `web/src/hooks/useOnlineStatus.js` | Real-time online/offline holatini kuzatuvchi hook |
+| `web/src/pages/pos/PosNewSale.jsx` | Offline rejimda savdo qilish imkoniyati |
+| `web/src/pages/pos/PosSales.jsx` | Offline savdolar ko'rinishi |
+| `web/src/components/layout/PosLayout.jsx` | Offline indikator qo'shildi |
+| `web/src/App.jsx` | Offline integratsiya |
+| `web/src/main.jsx` | Offline integratsiya |
+
+**Qanday ishlaydi:**
+- Internet bo'lsa → savdolar to'g'ridan-to'g'ri backendga yuboriladi
+- Internet bo'lmasa → savdolar IndexedDB'ga saqlanadi
+- Internet qaytganda → barcha kutilayotgan savdolar avtomatik sync bo'ladi
+
+### 11.3 Bugungi Commit
+```
+a38a69e  feat(pos): add offline support with IndexedDB sync
+```
+
+### 11.4 Servislar holati (bugun kechqurun)
+| Servis | URL | Holat |
+|--------|-----|-------|
+| MongoDB | `localhost:27017` | ✅ Docker konteyner |
+| Backend API | `http://localhost:5000` | ✅ |
+| Web Frontend | `http://localhost:5173` | ✅ |
+| Admin Panel | `http://localhost:5174` | ✅ |
 
 ---
 
