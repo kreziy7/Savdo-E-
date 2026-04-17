@@ -3,7 +3,14 @@ import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 
 import AppLayout from './components/layout/AppLayout';
+import PosLayout from './components/layout/PosLayout';
 import { ProtectedRoute, GuestRoute } from './components/common/ProtectedRoute';
+
+import PosDashboard from './pages/pos/PosDashboard';
+import PosSales from './pages/pos/PosSales';
+import PosNewSale from './pages/pos/PosNewSale';
+import PosProducts from './pages/pos/PosProducts';
+import PosReports from './pages/pos/PosReports';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -86,6 +93,17 @@ export default function App() {
           <Route path="admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
           <Route path="admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
           <Route path="admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
+        </Route>
+
+        {/* POS routes */}
+        <Route path="pos" element={
+          <ProtectedRoute><PosLayout /></ProtectedRoute>
+        }>
+          <Route index element={<PosDashboard />} />
+          <Route path="products" element={<PosProducts />} />
+          <Route path="sales" element={<PosSales />} />
+          <Route path="sales/new" element={<PosNewSale />} />
+          <Route path="reports" element={<PosReports />} />
         </Route>
 
         {/* Catch-all */}
