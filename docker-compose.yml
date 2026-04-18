@@ -41,8 +41,8 @@ services:
       ADMIN_SETUP_KEY: ${ADMIN_SETUP_KEY:-savdo_admin_setup_2026}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-savdo_super_secret_jwt_key_2026}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-24h}
-      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
-      CORS_ORIGIN: http://localhost:3000,http://localhost:3001
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
+      CORS_ORIGIN: http://localhost:5173,http://localhost:5174
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-825239798783-l1lteibkgtf34v4afme0g4qe4avhrgft.apps.googleusercontent.com}
     ports:
       - "5000:5000"
@@ -55,13 +55,14 @@ services:
       context: ./web
       dockerfile: Dockerfile
       args:
-        VITE_ADMIN_URL: http://localhost:3001
+        VITE_ADMIN_URL: http://localhost:5174
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-825239798783-l1lteibkgtf34v4afme0g4qe4avhrgft.apps.googleusercontent.com}
     container_name: savdo_web
     restart: unless-stopped
     depends_on:
       - backend
     ports:
-      - "3000:80"
+      - "5173:80"
     networks:
       - savdo_net
 
@@ -75,7 +76,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "3001:80"
+      - "5174:80"
     networks:
       - savdo_net
 

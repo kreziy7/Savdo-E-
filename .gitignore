@@ -39,3 +39,6 @@ logs/
 
 # Coverage
 coverage/
+
+# Vite temp files
+*.timestamp-*.mjs

@@ -7,8 +7,10 @@
     "doc": "docs"
   },
   "scripts": {
-    "dev": "concurrently --names \"BACKEND,WEB,ADMIN\" --prefix-colors \"cyan,green,yellow\" \"npm run dev:backend\" \"npm run dev:web\" \"npm run dev:admin\"",
-    "dev:backend": "cd backend && node src/server.js",
+    "dev": "npm run dev:prepare && concurrently --kill-others-on-fail --names \"BACKEND,WEB,ADMIN\" --prefix-colors \"cyan,green,yellow\" \"npm run dev:backend\" \"npm run dev:web\" \"npm run dev:admin\"",
+    "dev:prepare": "docker stop savdo_web savdo_admin savdo_backend 2>/dev/null; npm run dev:mongo",
+    "dev:mongo": "docker start savdo_mongo 2>/dev/null || docker run -d --name savdo_mongo -p 27017:27017 -v savdo_mongo_data:/data/db mongo:7",
+    "dev:backend": "cd backend && npx nodemon src/server.js",
     "dev:web": "cd web && npm run dev",
     "dev:admin": "cd web/admin && npm run dev",
     "install:all": "npm install && cd backend && npm install && cd ../web && npm install && cd admin && npm install",
