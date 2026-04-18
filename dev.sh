@@ -1,4 +1,6 @@
 #!/bin/bash
+# Linux/Mac uchun dev script
+# Ishga tushirish: bash dev.sh yoki ./dev.sh
 
 set -e
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -9,40 +11,115 @@ log()  { echo -e "${GREEN}[DEV]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 err()  { echo -e "${RED}[ERR]${NC} $1"; exit 1; }
 
-# ── Docker tekshirish ─────────────────────────────────────────────────────────
-if ! command -v docker &>/dev/null; then
-  err "Docker topilmadi. https://docs.docker.com/get-docker/ dan o'rnating."
-fi
-
 # ── Node.js tekshirish ────────────────────────────────────────────────────────
 if ! command -v node &>/dev/null; then
   err "Node.js topilmadi. https://nodejs.org dan o'rnating (v18+)."
 fi
 
-# ── .env fayl tekshirish ──────────────────────────────────────────────────────
+# ── .env fayllar tekshirish va yaratish ──────────────────────────────────────
 if [ ! -f "$ROOT/backend/.env" ]; then
   warn "backend/.env topilmadi — .env.example dan nusxa olinmoqda..."
   cp "$ROOT/backend/.env.example" "$ROOT/backend/.env"
-  warn "backend/.env yaratildi. Kerakli qiymatlarni to'ldiring va qayta ishga tushiring."
+  log "backend/.env yaratildi ✓"
+fi
+
+if [ ! -f "$ROOT/web/.env" ]; then
+  warn "web/.env topilmadi — .env.example dan nusxa olinmoqda..."
+  cp "$ROOT/web/.env.example" "$ROOT/web/.env"
+  log "web/.env yaratildi ✓"
 fi
 
 # ── Dependencies o'rnatish ────────────────────────────────────────────────────
 install_if_needed() {
-  local dir="$1"
-  local name="$2"
+  local dir="$1" name="$2"
   if [ ! -d "$dir/node_modules" ]; then
-    log "$name uchun npm install..."
+    log "$name: npm install..."
     (cd "$dir" && npm install --silent)
     log "$name — o'rnatildi ✓"
   fi
 }
 
-install_if_needed "$ROOT"          "Root"
-install_if_needed "$ROOT/backend"  "Backend"
-install_if_needed "$ROOT/web"      "Web"
+install_if_needed "$ROOT"           "Root"
+install_if_needed "$ROOT/backend"   "Backend"
+install_if_needed "$ROOT/web"       "Web"
 install_if_needed "$ROOT/web/admin" "Admin"
 
-# ── Cleanup on exit ───────────────────────────────────────────────────────────
+# ── Portlarni tozalash ────────────────────────────────────────────────────────
+for PORT in 5000 5173 5174; do
+  PID=$(lsof -ti:$PORT 2>/dev/null || true)
+  if [ -n "$PID" ]; then
+    warn "Port $PORT band — tozalanmoqda (PID $PID)..."
+    kill -9 $PID 2>/dev/null || true
+  fi
+done
+
+# ── MongoDB ishga tushirish ───────────────────────────────────────────────────
+log "MongoDB tekshirilmoqda..."
+
+MONGO_READY=false
+
+# 1. Avval local mongod tekshir
+if command -v mongod &>/dev/null; then
+  if ! pgrep -x mongod &>/dev/null; then
+    log "Local mongod ishga tushirilmoqda..."
+    mkdir -p /tmp/savdo_mongo_data
+    mongod --dbpath /tmp/savdo_mongo_data --port 27017 --fork \
+      --logpath /tmp/savdo_mongo.log --bind_ip 127.0.0.1 &>/dev/null || true
+    sleep 2
+  fi
+  if pgrep -x mongod &>/dev/null; then
+    log "Local MongoDB tayyor ✓"
+    MONGO_READY=true
+  fi
+fi
+
+# 2. Docker bilan urinib ko'r
+if [ "$MONGO_READY" = false ] && command -v docker &>/dev/null; then
+  log "Docker bilan MongoDB ishga tushirilmoqda..."
+
+  # Konflikt bo'lsa to'xtat
+  CONFLICT=$(docker ps --format '{{.Names}}' --filter "publish=27017" 2>/dev/null | grep -v "^savdo_mongo$" || true)
+  if [ -n "$CONFLICT" ]; then
+    warn "Port 27017 ni '$CONFLICT' ishlatmoqda — to'xtatilmoqda..."
+    docker stop "$CONFLICT" &>/dev/null || true
+  fi
+
+  if docker inspect savdo_mongo &>/dev/null; then
+    docker start savdo_mongo &>/dev/null || true
+  else
+    docker run -d --name savdo_mongo \
+      -p 127.0.0.1:27017:27017 \
+      -v savdo_mongo_data:/data/db \
+      mongo:7 &>/dev/null
+  fi
+
+  # Tayyor bo'lishini kut (30 sek)
+  for i in $(seq 1 30); do
+    if docker exec savdo_mongo mongosh --quiet --eval "db.runCommand({ping:1})" &>/dev/null; then
+      log "Docker MongoDB tayyor ✓"
+      MONGO_READY=true
+      break
+    fi
+    sleep 1
+  done
+fi
+
+if [ "$MONGO_READY" = false ]; then
+  echo ""
+  echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${RED}  MongoDB topilmadi!${NC}"
+  echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo ""
+  echo "  Ubuntu/Debian da o'rnatish:"
+  echo "  sudo apt-get install -y mongodb-org"
+  echo "  sudo systemctl start mongod"
+  echo ""
+  echo "  Yoki Docker o'rnating: https://docs.docker.com/get-docker/"
+  echo ""
+  exit 1
+fi
+
+# ── Cleanup ───────────────────────────────────────────────────────────────────
 PIDS=()
 cleanup() {
   echo ""
@@ -50,67 +127,24 @@ cleanup() {
   for pid in "${PIDS[@]}"; do
     kill "$pid" 2>/dev/null || true
   done
+  # Local mongod fork bo'lsa to'xtat
+  if command -v mongod &>/dev/null; then
+    pkill -x mongod 2>/dev/null || true
+  fi
   wait 2>/dev/null
   exit 0
 }
 trap cleanup SIGINT SIGTERM
-
-# ── MongoDB ───────────────────────────────────────────────────────────────────
-log "MongoDB tekshirilmoqda..."
-
-# Port 27017 ni boshqa container ishlatayotgan bo'lsa to'xtatish
-CONFLICT=$(docker ps --format '{{.Names}}' --filter "publish=27017" 2>/dev/null | grep -v "^savdo_mongo$" || true)
-if [ -n "$CONFLICT" ]; then
-  warn "Port 27017 ni '$CONFLICT' ishlatmoqda — to'xtatilmoqda..."
-  docker stop "$CONFLICT" 2>/dev/null || true
-fi
-
-# savdo_mongo port binding bor-yo'qligini tekshirish
-if docker inspect savdo_mongo &>/dev/null; then
-  MONGO_PORT=$(docker inspect savdo_mongo 2>/dev/null \
-    | grep -A3 '"27017/tcp"' | grep '"HostPort"' | head -1 \
-    | tr -d ' "' | cut -d: -f2 || true)
-
-  if [ -z "$MONGO_PORT" ]; then
-    warn "savdo_mongo port binding yo'q — qayta yaratilmoqda..."
-    docker rm -f savdo_mongo 2>/dev/null || true
-    docker run -d --name savdo_mongo \
-      -p 127.0.0.1:27017:27017 \
-      -v savdo_mongo_data:/data/db \
-      mongo:7
-  else
-    docker start savdo_mongo 2>/dev/null || true
-  fi
-else
-  log "savdo_mongo yaratilmoqda..."
-  docker run -d --name savdo_mongo \
-    -p 127.0.0.1:27017:27017 \
-    -v savdo_mongo_data:/data/db \
-    mongo:7
-fi
-
-# MongoDB tayyor bo'lishini kutish (max 30 sek)
-log "MongoDB tayyor bo'lishini kutilmoqda..."
-for i in $(seq 1 30); do
-  if docker exec savdo_mongo mongosh --quiet --eval "db.runCommand({ping:1})" &>/dev/null; then
-    log "MongoDB tayyor! ✓"
-    break
-  fi
-  if [ "$i" -eq 30 ]; then
-    err "MongoDB 30 sekundda ishga tushmadi. 'docker logs savdo_mongo' tekshiring."
-  fi
-  sleep 1
-done
 
 # ── Backend (port 5000) ───────────────────────────────────────────────────────
 log "Backend ishga tushirilmoqda (port 5000)..."
 (cd "$ROOT/backend" && npx nodemon src/server.js 2>&1 | sed 's/^/[BACKEND] /') &
 PIDS+=($!)
 
-# Backend portini kutish (max 15 sek)
-for i in $(seq 1 15); do
+# Backend tayyor bo'lishini kut
+for i in $(seq 1 20); do
   if nc -z localhost 5000 2>/dev/null; then
-    log "Backend tayyor! ✓"
+    log "Backend tayyor ✓"
     break
   fi
   sleep 1
