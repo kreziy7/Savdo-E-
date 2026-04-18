@@ -3,8 +3,9 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
+  base: command === "build" ? "/admin/" : "/",
   server: {
     port: 5174,
     strictPort: true,

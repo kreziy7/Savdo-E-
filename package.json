@@ -13,6 +13,8 @@
     "dev:backend": "cd backend && npx nodemon src/server.js",
     "dev:web": "cd web && npm run dev",
     "dev:admin": "cd web/admin && npm run dev",
+    "build": "cd web && npm run build && cd admin && npm run build",
+    "start": "NODE_ENV=production node backend/src/server.js",
     "install:all": "npm install && cd backend && npm install && cd ../web && npm install && cd admin && npm install",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",

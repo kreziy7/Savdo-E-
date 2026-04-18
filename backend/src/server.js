@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
+const path = require('path');
 
 const connectDB = require('./config/db');
 const routes = require('./routes/index');
@@ -26,20 +27,25 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
   .map((o) => o.trim());
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS policy: Origin ${origin} not allowed`));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+// Production da frontend backend bilan bir serverda — CORS faqat dev uchun
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+        }
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+  );
+} else {
+  app.use(cors({ origin: true, credentials: true }));
+}
 
 app.use(apiLimiter);          // Global rate limiting
 
@@ -76,7 +82,23 @@ app.get('/health', (req, res) => {
 
 app.use('/api/v1', routes);
 
-// ── 404 Handler ────────────────────────────────────────────────────────────
+// ── Static Frontend (production only) ─────────────────────────────────────
+
+if (process.env.NODE_ENV === 'production') {
+  const webDist   = path.join(__dirname, '../../web/dist');
+  const adminDist = path.join(__dirname, '../../web/admin/dist');
+
+  // Admin panel — /admin/*
+  app.use('/admin', express.static(adminDist));
+  app.get('/admin', (req, res) => res.redirect('/admin/'));
+  app.get('/admin/*', (req, res) => res.sendFile(path.join(adminDist, 'index.html')));
+
+  // Web frontend — /*
+  app.use(express.static(webDist));
+  app.get('*', (req, res) => res.sendFile(path.join(webDist, 'index.html')));
+}
+
+// ── 404 Handler (API only) ─────────────────────────────────────────────────
 
 app.use((req, res, next) => {
   next(new ApiError(404, `Route ${req.originalUrl} not found`));

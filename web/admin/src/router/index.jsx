@@ -37,8 +37,10 @@ function GuestOnly({ children }) {
 }
 
 export function AppRouter() {
+  const basename = import.meta.env.BASE_URL.replace(/\/$/, "");
+
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter basename={basename} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         {/* Public — login */}
         <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
