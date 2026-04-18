@@ -83,6 +83,7 @@ export function AdminDataProvider({ children }) {
 
   // ── Load remote data on mount ────────────────────────────
   useEffect(() => {
+    if (!profile) { setLoading(false); return; }  // login qilinmagan — so'rov yuborma
     if (loadedRef.current) return;
     loadedRef.current = true;
 

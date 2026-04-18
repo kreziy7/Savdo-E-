@@ -62,6 +62,12 @@ export function AuthProvider({ children }) {
     }
   }, [auth]);
 
+  useEffect(() => {
+    const handle = () => setAuth(null);
+    window.addEventListener("auth:logout", handle);
+    return () => window.removeEventListener("auth:logout", handle);
+  }, []);
+
   const value = useMemo(
     () => ({
       auth,

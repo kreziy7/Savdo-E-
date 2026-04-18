@@ -52,7 +52,7 @@ http.interceptors.response.use(
         return http(original);
       } catch {
         localStorage.removeItem(STORAGE_KEY);
-        window.location.href = "/";
+        window.dispatchEvent(new Event("auth:logout"));
         return Promise.reject(error);
       }
     }
