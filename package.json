@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "npm run dev:prepare && concurrently --kill-others-on-fail --names \"BACKEND,WEB,ADMIN\" --prefix-colors \"cyan,green,yellow\" \"npm run dev:backend\" \"npm run dev:web\" \"npm run dev:admin\"",
-    "dev:prepare": "docker stop savdo_web savdo_admin savdo_backend 2>/dev/null; npm run dev:mongo",
+    "dev:prepare": "docker stop savdo_web savdo_admin savdo_backend 2>/dev/null; fuser -k 5000/tcp 5173/tcp 5174/tcp 2>/dev/null; sleep 1; npm run dev:mongo",
     "dev:mongo": "docker start savdo_mongo 2>/dev/null || docker run -d --name savdo_mongo -p 27017:27017 -v savdo_mongo_data:/data/db mongo:7",
     "dev:backend": "cd backend && npx nodemon src/server.js",
     "dev:web": "cd web && npm run dev",
