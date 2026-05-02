@@ -144,8 +144,8 @@ export default function SettingsScreen() {
         />
       </Section>
 
-      {/* Employees */}
-      <Section title={t.employees.title}>
+      {/* Employees — vaqtincha yashirilgan, PIN flow + backend tayyor bo'lganda ochish */}
+      {/* <Section title={t.employees.title}>
         <Row
           iconName="people"
           label={t.employees.title}
@@ -159,7 +159,7 @@ export default function SettingsScreen() {
           label={role === "admin" ? t.employees.switchToCashier : t.employees.switchToAdmin}
           onPress={() => setRole(role === "admin" ? "cashier" : "admin")}
         />
-      </Section>
+      </Section> */}
 
       {/* Account */}
       <Section title={t.settings.account}>
