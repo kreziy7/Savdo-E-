@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AppState, View } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/store/authStore";
 import { useLangStore } from "@/store/langStore";
@@ -24,6 +24,15 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (!ready) return;
+    if (token) {
+      router.replace("/(app)");
+    } else {
+      router.replace("/(auth)/login");
+    }
+  }, [token, ready]);
+
+  useEffect(() => {
     if (!token) return;
     runSync();
     const sub = AppState.addEventListener("change", (state) => {
@@ -32,17 +41,14 @@ export default function RootLayout() {
     return () => sub.remove();
   }, [token]);
 
-  if (!ready) return <View style={{ flex: 1, backgroundColor: "#1B211A" }} />;
+  if (!ready) return <View style={{ flex: 1, backgroundColor: "#0C1410" }} />;
 
   return (
     <>
       <StatusBar style={isDark ? "light" : "dark"} />
       <Stack screenOptions={{ headerShown: false }}>
-        {token ? (
-          <Stack.Screen name="(app)" />
-        ) : (
-          <Stack.Screen name="(auth)" />
-        )}
+        <Stack.Screen name="(app)" />
+        <Stack.Screen name="(auth)" />
       </Stack>
     </>
   );

@@ -122,6 +122,17 @@ export default function SettingsScreen() {
         ))}
       </Section>
 
+      {/* Analytics */}
+      <Section title={t.reports.title}>
+        <Row
+          iconName="bar-chart"
+          label={t.reports.title}
+          sub={t.reports.totalRevenue}
+          right={<Ionicons name="chevron-forward" size={18} color={c.textMuted} />}
+          onPress={() => router.push("/(app)/reports")}
+        />
+      </Section>
+
       {/* Subscription */}
       <Section title={t.settings.subscription}>
         <Row

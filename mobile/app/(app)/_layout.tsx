@@ -42,14 +42,6 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name="products"
-        options={{
-          title: t.nav.products,
-          tabBarIcon: ({ color, size }) => <Ionicons name="cube" size={size} color={color} />,
-          tabBarBadge: lowStockCount > 0 ? lowStockCount : undefined,
-        }}
-      />
-      <Tabs.Screen
         name="sales"
         options={{
           title: t.nav.sales,
@@ -57,12 +49,16 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name="reports"
+        name="products"
         options={{
-          title: t.nav.reports,
-          tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart" size={size} color={color} />,
+          title: t.nav.products,
+          tabBarIcon: ({ color, size }) => <Ionicons name="cube" size={size} color={color} />,
+          tabBarBadge: lowStockCount > 0 ? lowStockCount : undefined,
         }}
       />
+      <Tabs.Screen name="reports"    options={{ href: null }} />
+      <Tabs.Screen name="customers"  options={{ href: null }} />
+      <Tabs.Screen name="suppliers"  options={{ href: null }} />
       <Tabs.Screen
         name="settings"
         options={{
