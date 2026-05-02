@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, Modal } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, Modal, Share } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { database, salesCollection } from "@/db";
 import { Product } from "@/db/models/Product";
@@ -19,27 +17,23 @@ interface SaleResult {
 }
 
 async function shareReceipt(result: SaleResult) {
-  try {
-    const date = new Date().toLocaleString("uz");
-    const text = [
-      "================================",
-      "        SAVDO CHEKI",
-      "================================",
-      `Sana: ${date}`,
-      "--------------------------------",
-      `Tovar:  ${result.name}`,
-      `Miqdor: ${result.qty} ta`,
-      `Narx:   ${(result.totalAmount / result.qty).toLocaleString()} so'm`,
-      "--------------------------------",
-      `JAMI:   ${result.totalAmount.toLocaleString()} so'm`,
-      "================================",
-      "      Savdo App orqali",
-      "================================",
-    ].join("\n");
+  const date = new Date().toLocaleString("uz-UZ");
+  const unitPrice = result.qty > 0 ? Math.round(result.totalAmount / result.qty) : 0;
+  const text = [
+    "🧾 SAVDO CHEKI",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    `📅 ${date}`,
+    "━━━━━━━━━━━━━━━━━━━━━",
+    `📦 ${result.name}`,
+    `   ${result.qty} ta × ${unitPrice.toLocaleString()} so'm`,
+    "━━━━━━━━━━━━━━━━━━━━━",
+    `💰 JAMI: ${result.totalAmount.toLocaleString()} so'm`,
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "Savdo ilovasi orqali yozildi",
+  ].join("\n");
 
-    const uri = FileSystem.cacheDirectory + `chek_${Date.now()}.txt`;
-    await FileSystem.writeAsStringAsync(uri, text, { encoding: FileSystem.EncodingType.UTF8 });
-    await Sharing.shareAsync(uri, { mimeType: "text/plain", dialogTitle: "Chekni ulashish" });
+  try {
+    await Share.share({ message: text, title: "Savdo cheki" });
   } catch {}
 }
 
@@ -62,12 +56,8 @@ export default function AddSaleScreen() {
   const totalAmount = selected ? selected.sellPrice * qtyNum : 0;
   const totalProfit = selected ? (selected.sellPrice - selected.buyPrice) * qtyNum : 0;
 
-  async function handleSale() {
-    if (!selected || qtyNum <= 0) return;
-    if (qtyNum > selected.stockQty) {
-      Alert.alert(t.common.error, `${t.sales.stock} ${selected.stockQty} ${selected.unit}`);
-      return;
-    }
+  async function doSale() {
+    if (!selected) return;
     setSaving(true);
     try {
       await database.write(async () => {
@@ -93,6 +83,22 @@ export default function AddSaleScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleSale() {
+    if (!selected || qtyNum <= 0) return;
+    if (qtyNum > selected.stockQty) {
+      Alert.alert(
+        "⚠️ Stok yetarli emas",
+        `Stokda ${selected.stockQty} ${selected.unit} bor, siz ${qtyNum} ta yozmoqdasiz.\n\nBaribir davom ettirasizmi?`,
+        [
+          { text: "Bekor qilish", style: "cancel" },
+          { text: "Ha, yozish", onPress: doSale },
+        ]
+      );
+      return;
+    }
+    doSale();
   }
 
   function handleBarcodeScanned(barcode: string) {
@@ -274,7 +280,7 @@ export default function AddSaleScreen() {
                   <Ionicons name="remove" size={28} color={c.primaryDark} />
                 </TouchableOpacity>
                 <TextInput
-                  style={{ flex: 1, backgroundColor: c.bgCard, borderRadius: 14, height: 64, fontSize: 32, textAlign: "center", fontWeight: "800", color: c.text, borderWidth: 1, borderColor: c.border }}
+                  style={{ flex: 1, backgroundColor: c.bgCard, borderRadius: 14, height: 64, fontSize: 32, textAlign: "center", fontWeight: "800", color: qtyNum > selected.stockQty ? c.danger : c.text, borderWidth: 2, borderColor: qtyNum > selected.stockQty ? c.danger : c.border }}
                   keyboardType="numeric"
                   value={qty}
                   onChangeText={setQty}
@@ -284,6 +290,14 @@ export default function AddSaleScreen() {
                   <Ionicons name="add" size={28} color="#fff" />
                 </TouchableOpacity>
               </View>
+              {qtyNum > selected.stockQty && (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8, backgroundColor: c.danger + "15", borderRadius: 10, padding: 10 }}>
+                  <Ionicons name="warning" size={16} color={c.danger} />
+                  <Text style={{ color: c.danger, fontWeight: "700", fontSize: 13 }}>
+                    Stokda {selected.stockQty} {selected.unit} bor. {qtyNum - selected.stockQty} ta oshiqcha!
+                  </Text>
+                </View>
+              )}
             </View>
 
             <View style={{ backgroundColor: c.bgMuted, borderRadius: 16, padding: 16, gap: 8 }}>

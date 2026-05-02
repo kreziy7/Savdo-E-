@@ -3,10 +3,25 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from "reac
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { database } from "@/db";
+import { salesCollection } from "@/db";
 import { useProduct } from "@/hooks/useProducts";
 import { useT } from "@/hooks/useT";
 import { useTheme } from "@/hooks/useTheme";
 import { useRoleStore } from "@/store/roleStore";
+import { Q } from "@nozbe/watermelondb";
+import { Sale } from "@/db/models/Sale";
+
+function StatCard({ icon, label, value, color, c }: {
+  icon: any; label: string; value: string; color: string; c: any;
+}) {
+  return (
+    <View style={{ flex: 1, backgroundColor: c.bgCard, borderRadius: 14, padding: 12, alignItems: "center", borderWidth: 1, borderColor: c.border }}>
+      <Ionicons name={icon} size={18} color={color} />
+      <Text style={{ color: c.textMuted, fontSize: 10, fontWeight: "600", marginTop: 4, textAlign: "center" }}>{label}</Text>
+      <Text style={{ color, fontSize: 15, fontWeight: "800", marginTop: 2, textAlign: "center" }}>{value}</Text>
+    </View>
+  );
+}
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -20,6 +35,7 @@ export default function ProductDetailScreen() {
   const [sellPrice, setSellPrice] = useState("");
   const [stock, setStock] = useState("");
   const [saving, setSaving] = useState(false);
+  const [sales, setSales] = useState<Sale[]>([]);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -32,6 +48,15 @@ export default function ProductDetailScreen() {
     }
   }, [product]);
 
+  useEffect(() => {
+    if (!id) return;
+    const sub = salesCollection
+      .query(Q.where("product_id", id))
+      .observe()
+      .subscribe(setSales);
+    return () => sub.unsubscribe();
+  }, [id]);
+
   if (!product || !initialized.current) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: c.bg }}>
@@ -40,6 +65,11 @@ export default function ProductDetailScreen() {
       </View>
     );
   }
+
+  const totalSoldQty = sales.reduce((sum, s) => sum + s.qty, 0);
+  const totalRevenue = sales.reduce((sum, s) => sum + s.sellPrice * s.qty, 0);
+  const totalProfit = sales.reduce((sum, s) => sum + s.profit, 0);
+  const lastSoldAt = sales.length > 0 ? Math.max(...sales.map((s) => s.soldAt)) : null;
 
   async function handleUpdate() {
     if (!product) return;
@@ -66,26 +96,34 @@ export default function ProductDetailScreen() {
     }
   }
 
-  function handleArchive() {
-    Alert.alert(t.products.delete, t.products.confirmDelete, [
-      { text: t.products.cancel, style: "cancel" },
-      {
-        text: t.products.delete,
-        style: "destructive",
-        onPress: async () => {
-          await database.write(async () => {
-            await product.update((p) => {
-              p.archivedAt = Date.now();
-              p.isSynced = false;
-            });
-          });
-          router.back();
+  function handleDelete() {
+    Alert.alert(
+      t.products.delete,
+      "Bu tovarni butunlay o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+      [
+        { text: t.products.cancel, style: "cancel" },
+        {
+          text: t.products.delete,
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await database.write(async () => {
+                await product.destroyPermanently();
+              });
+              router.back();
+            } catch {
+              Alert.alert(t.common.error, "O'chirishda xato yuz berdi");
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   }
 
   const profit = Number(sellPrice) - Number(buyPrice);
+  const stockNum = Number(stock);
+  const stockColor = stockNum === 0 ? c.danger : stockNum <= 5 ? c.warn : c.primary;
+  const stockLabel = stockNum === 0 ? "Tugadi" : stockNum <= 5 ? "Kam qoldi" : "Yetarli";
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: c.bg }} keyboardShouldPersistTaps="handled">
@@ -96,13 +134,40 @@ export default function ProductDetailScreen() {
           <Text style={{ color: c.primary, fontWeight: "600" }}>{t.products.cancel}</Text>
         </TouchableOpacity>
         <Text style={{ color: c.text, fontSize: 18, fontWeight: "800" }}>{t.products.update}</Text>
-        <TouchableOpacity onPress={handleArchive} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        <TouchableOpacity onPress={handleDelete} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
           <Ionicons name="trash" size={16} color={c.danger} />
           <Text style={{ color: c.danger, fontSize: 13, fontWeight: "600" }}>{t.products.delete}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={{ paddingHorizontal: 16, gap: 14, paddingBottom: 40 }}>
+
+        {/* Stats row */}
+        {sales.length > 0 && (
+          <View style={{ gap: 8 }}>
+            <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "700", letterSpacing: 0.5 }}>SOTUVLAR STATISTIKASI</Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <StatCard icon="cube" label="Jami sotilgan" value={`${totalSoldQty} ta`} color={c.primary} c={c} />
+              <StatCard icon="cash" label="Jami tushum" value={`${totalRevenue.toLocaleString()}`} color={c.accent} c={c} />
+              <StatCard icon="trending-up" label="Jami foyda" value={`${totalProfit.toLocaleString()}`} color={totalProfit >= 0 ? c.primaryDark : c.danger} c={c} />
+            </View>
+            {lastSoldAt && (
+              <Text style={{ color: c.textMuted, fontSize: 12, textAlign: "right" }}>
+                Oxirgi sotuv: {new Date(lastSoldAt).toLocaleDateString("uz-UZ")}
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* Stock status badge */}
+        <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: c.bgCard, borderRadius: 14, padding: 14, borderWidth: 1.5, borderColor: stockColor + "44", gap: 10 }}>
+          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: stockColor }} />
+          <Text style={{ color: c.text, fontWeight: "700", fontSize: 14, flex: 1 }}>Stok holati</Text>
+          <Text style={{ color: stockColor, fontWeight: "800", fontSize: 14 }}>{stockLabel}</Text>
+          <Text style={{ color: stockColor, fontWeight: "800", fontSize: 14 }}>({product.stockQty} {product.unit})</Text>
+        </View>
+
+        {/* Edit fields */}
         {[
           { label: t.products.name,      value: name,      setter: setName,      numeric: false },
           { label: t.products.buyPrice,  value: buyPrice,  setter: setBuyPrice,  numeric: true },
@@ -166,6 +231,15 @@ export default function ProductDetailScreen() {
               <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>{t.products.update}</Text>
             </>
           )}
+        </TouchableOpacity>
+
+        {/* Delete button at bottom */}
+        <TouchableOpacity
+          onPress={handleDelete}
+          style={{ borderRadius: 16, height: 50, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, borderWidth: 1.5, borderColor: c.danger + "60", backgroundColor: c.danger + "10" }}
+        >
+          <Ionicons name="trash-outline" size={18} color={c.danger} />
+          <Text style={{ color: c.danger, fontWeight: "700", fontSize: 15 }}>{t.products.delete}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

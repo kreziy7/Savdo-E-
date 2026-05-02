@@ -168,7 +168,7 @@
 
 ---
 
-## ✅ BAJARILGAN
+## ✅ BAJARILGAN (2026-05-02 sessiya)
 
 - [x] Dark/Light mode color redesign (yangi rang palitrasi)
 - [x] Footer tablar kamaytirish (5 → 4, reports/customers/suppliers hidden)
@@ -180,6 +180,18 @@
 - [x] Web fayllarni main branchdan pull qilish (228 fayl)
 - [x] i18n: uz/ru/en tillarida email auth stringlar qo'shildi
 - [x] Settings ekranida Reports havolasi qo'shildi
+- [x] Mahsulot o'chirish — `destroyPermanently()` bilan haqiqiy o'chirish, tasdiqlash dialog
+- [x] Mahsulot detail — sotuvlar statistikasi (jami sotilgan, tushum, foyda, oxirgi sana)
+- [x] Mahsulot detail — stok holati badge (Tugadi/Kam qoldi/Yetarli rangli)
+- [x] Mahsulot detail — pastda qizil "O'chirish" tugma qo'shildi
+- [x] Mahsulotlar ro'yxati — rangli stok indikator (🔴0 ta, 🟡1-5 ta, 🟢6+ ta)
+- [x] Mahsulotlar ro'yxati — ⋯ tugma + long-press → Edit/Delete menu
+- [x] CSV export tuzatildi — BOM, escape, UTI, null cacheDirectory check
+- [x] JSON export qo'shildi — Reports ekranida format tanlash dialog
+- [x] Chek ulashish tuzatildi — `Share.share()` API (fayl yo'q, universal)
+- [x] Stok overflow — vizual qizil border + ogohlantirish satri + tasdiqlash dialog
+- [x] Subscription tariflari UI qayta dizayn — theme colors, top color bar, TAVSIYA badge
+- [x] Xodimlar bo'limi Settings da comment out qilindi
 
 ---
 

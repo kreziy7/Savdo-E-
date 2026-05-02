@@ -11,21 +11,53 @@ type Period = "today" | "week" | "month";
 
 const MEDALS = ["trophy", "medal", "ribbon", "star", "star-half"] as const;
 
+function csvEscape(val: any): string {
+  const str = String(val ?? "");
+  return str.includes(";") || str.includes('"') || str.includes("\n")
+    ? `"${str.replace(/"/g, '""')}"`
+    : str;
+}
+
 async function exportCSV(period: string, sales: any[], errorTitle: string, errorMsg: string) {
   try {
-    const header = "Product;Qty;Amount;Profit;Date";
-    const rows = sales.map((s) => [
-      s.productName,
-      s.qty,
-      s.totalAmount,
-      s.profit,
-      new Date(s.soldAt).toLocaleString(),
-    ].join(";"));
-    const csv = [header, ...rows].join("\n");
-    const uri = FileSystem.cacheDirectory + `report_${period}_${Date.now()}.csv`;
+    const dir = FileSystem.cacheDirectory;
+    if (!dir) throw new Error("No cache dir");
+    const header = ["Mahsulot", "Miqdor", "Tushum", "Foyda", "Sana"].map(csvEscape).join(";");
+    const rows = sales.map((s) =>
+      [
+        s.productName,
+        s.qty,
+        s.sellPrice * s.qty,
+        s.profit,
+        new Date(s.soldAt).toISOString().slice(0, 19).replace("T", " "),
+      ].map(csvEscape).join(";")
+    );
+    const csv = "﻿" + [header, ...rows].join("\n"); // BOM for Excel
+    const uri = dir + `savdo_report_${period}_${Date.now()}.csv`;
     await FileSystem.writeAsStringAsync(uri, csv, { encoding: FileSystem.EncodingType.UTF8 });
-    await Sharing.shareAsync(uri, { mimeType: "text/csv" });
-  } catch (e) {
+    await Sharing.shareAsync(uri, { mimeType: "text/csv", UTI: "public.comma-separated-values-text" });
+  } catch {
+    Alert.alert(errorTitle, errorMsg);
+  }
+}
+
+async function exportJSON(period: string, sales: any[], errorTitle: string, errorMsg: string) {
+  try {
+    const dir = FileSystem.cacheDirectory;
+    if (!dir) throw new Error("No cache dir");
+    const data = sales.map((s) => ({
+      mahsulot: s.productName,
+      miqdor: s.qty,
+      narx: s.sellPrice,
+      tushum: s.sellPrice * s.qty,
+      foyda: s.profit,
+      sana: new Date(s.soldAt).toISOString(),
+    }));
+    const json = JSON.stringify(data, null, 2);
+    const uri = dir + `savdo_report_${period}_${Date.now()}.json`;
+    await FileSystem.writeAsStringAsync(uri, json, { encoding: FileSystem.EncodingType.UTF8 });
+    await Sharing.shareAsync(uri, { mimeType: "application/json" });
+  } catch {
     Alert.alert(errorTitle, errorMsg);
   }
 }
@@ -65,11 +97,17 @@ export default function ReportsScreen() {
           <Text style={{ color: c.text, fontSize: 28, fontWeight: "800" }}>{t.reports.title}</Text>
           {sales.length > 0 && (
             <TouchableOpacity
-              onPress={() => exportCSV(period, sales, t.common.error, t.common.exportError)}
+              onPress={() =>
+                Alert.alert("Eksport", "Formalni tanlang", [
+                  { text: "CSV (Excel)", onPress: () => exportCSV(period, sales, t.common.error, t.common.exportError) },
+                  { text: "JSON", onPress: () => exportJSON(period, sales, t.common.error, t.common.exportError) },
+                  { text: t.products.cancel, style: "cancel" },
+                ])
+              }
               style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: c.bgMuted, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: c.border }}
             >
               <Ionicons name="download" size={16} color={c.primary} />
-              <Text style={{ color: c.primary, fontWeight: "700", fontSize: 13 }}>CSV</Text>
+              <Text style={{ color: c.primary, fontWeight: "700", fontSize: 13 }}>Eksport</Text>
             </TouchableOpacity>
           )}
         </View>
