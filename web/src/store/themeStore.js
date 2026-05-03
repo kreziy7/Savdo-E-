@@ -4,18 +4,24 @@ import { persist } from 'zustand/middleware';
 const useThemeStore = create(
   persist(
     (set, get) => ({
-      theme: 'light',
+      isDark: true,
       toggleTheme: () => {
-        const next = get().theme === 'light' ? 'dark' : 'light';
-        document.documentElement.classList.toggle('dark', next === 'dark');
-        set({ theme: next });
+        const next = !get().isDark;
+        document.documentElement.classList.toggle('dark', next);
+        set({ isDark: next });
       },
       applyTheme: () => {
-        const t = get().theme;
-        document.documentElement.classList.toggle('dark', t === 'dark');
+        document.documentElement.classList.toggle('dark', get().isDark);
       },
     }),
-    { name: 'savdo-theme' }
+    {
+      name: 'savdo-theme',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          document.documentElement.classList.toggle('dark', state.isDark ?? true);
+        }
+      },
+    }
   )
 );
 

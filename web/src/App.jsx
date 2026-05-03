@@ -12,6 +12,10 @@ import PosNewSale from './pages/pos/PosNewSale';
 import PosProducts from './pages/pos/PosProducts';
 import PosReports from './pages/pos/PosReports';
 
+import SiteLayout from './components/site/SiteLayout';
+import FeaturesPage from './pages/site/FeaturesPage';
+import PricingPage from './pages/site/PricingPage';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
@@ -29,6 +33,12 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminProducts from './pages/admin/AdminProducts';
 
 import useAuthStore from './store/authStore';
+
+function LandingOrDashboard() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  if (accessToken) return <Navigate to="/dashboard" replace />;
+  return <Landing />;
+}
 
 function AdminRoute({ children }) {
   const user = useAuthStore((s) => s.user);
@@ -65,6 +75,15 @@ export default function App() {
       />
 
       <Routes>
+        {/* Bosh sahifa — bir sahifali landing */}
+        <Route path="/" element={<LandingOrDashboard />} />
+
+        {/* Qo'shimcha sahifalar — SiteLayout bilan */}
+        <Route element={<SiteLayout />}>
+          <Route path="/imkoniyatlar" element={<FeaturesPage />} />
+          <Route path="/narxlar" element={<PricingPage />} />
+        </Route>
+
         {/* Public routes */}
         <Route path="/login" element={
           <GuestRoute><Login /></GuestRoute>
@@ -81,7 +100,7 @@ export default function App() {
         <Route element={
           <ProtectedRoute><AppLayout /></ProtectedRoute>
         }>
-          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="sales" element={<Sales />} />
           <Route path="reports" element={<Reports />} />

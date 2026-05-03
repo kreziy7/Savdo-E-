@@ -8,7 +8,8 @@ import useThemeStore from '../../store/themeStore';
 export default function Header() {
   const { user, logout, isAdmin } = useAuthStore();
   const itemCount = useCartStore((s) => s.itemCount());
-  const { theme, toggleTheme } = useThemeStore();
+  const isDark = useThemeStore((s) => s.isDark);
+  const toggleTheme = useThemeStore((s) => s.toggleTheme);
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -41,7 +42,7 @@ export default function Header() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
 
           {user && (

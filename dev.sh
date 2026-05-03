@@ -44,12 +44,18 @@ install_if_needed "$ROOT/backend"   "Backend"
 install_if_needed "$ROOT/web"       "Web"
 install_if_needed "$ROOT/web/admin" "Admin"
 
-# ── Portlarni tozalash ────────────────────────────────────────────────────────
-for PORT in 5000 5173 5174; do
+# ── Portlarni tozalash (faqat o'z processlarimizni to'xtatamiz) ──────────────
+for PORT in 3001 5173 5174; do
   PID=$(lsof -ti:$PORT 2>/dev/null || true)
   if [ -n "$PID" ]; then
-    warn "Port $PORT band — tozalanmoqda (PID $PID)..."
-    kill -9 $PID 2>/dev/null || true
+    # AirPlay yoki system processlarni o'ldirmaymiz
+    PNAME=$(ps -p $PID -o comm= 2>/dev/null || true)
+    if echo "$PNAME" | grep -qiE "node|vite"; then
+      warn "Port $PORT band ($PNAME PID $PID) — tozalanmoqda..."
+      kill -9 $PID 2>/dev/null || true
+    else
+      warn "Port $PORT ni '$PNAME' ishlatmoqda — o'tkazib yuborildi"
+    fi
   fi
 done
 
@@ -106,17 +112,21 @@ fi
 
 if [ "$MONGO_READY" = false ]; then
   echo ""
-  echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo -e "${RED}  MongoDB topilmadi!${NC}"
-  echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${YELLOW}  [WARN] MongoDB topilmadi — backend ishlamaydi!${NC}"
+  echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""
-  echo "  Ubuntu/Debian da o'rnatish:"
-  echo "  sudo apt-get install -y mongodb-org"
-  echo "  sudo systemctl start mongod"
+  echo "  macOS da o'rnatish:"
+  echo "  brew tap mongodb/brew && brew install mongodb-community"
+  echo "  brew services start mongodb-community"
   echo ""
-  echo "  Yoki Docker o'rnating: https://docs.docker.com/get-docker/"
+  echo "  Yoki Docker: docker run -d -p 27017:27017 mongo:7"
   echo ""
-  exit 1
+  echo "  Yoki backend/.env da Atlas URI ni o'rnating:"
+  echo "  MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/savdo_db"
+  echo ""
+  echo -e "${YELLOW}  Web va Admin shunga qaramay ishga tushirilmoqda...${NC}"
+  echo ""
 fi
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
@@ -136,15 +146,14 @@ cleanup() {
 }
 trap cleanup SIGINT SIGTERM
 
-# ── Backend (port 5000) ───────────────────────────────────────────────────────
-log "Backend ishga tushirilmoqda (port 5000)..."
-(cd "$ROOT/backend" && npx nodemon src/server.js 2>&1 | sed 's/^/[BACKEND] /') &
+# ── Backend (port 3001) ───────────────────────────────────────────────────────
+log "Backend ishga tushirilmoqda (port 3001)..."
+(cd "$ROOT/backend" && node --watch src/server.js 2>&1 | sed 's/^/[BACKEND] /') &
 PIDS+=($!)
 
-# Backend tayyor bo'lishini kut
-for i in $(seq 1 20); do
-  if nc -z localhost 5000 2>/dev/null; then
-    log "Backend tayyor ✓"
+for i in $(seq 1 15); do
+  if nc -z localhost 3001 2>/dev/null; then
+    log "Backend tayyor ✓ (MongoDB ${MONGO_READY})"
     break
   fi
   sleep 1
@@ -152,17 +161,17 @@ done
 
 # ── Web (port 5173) ───────────────────────────────────────────────────────────
 log "Web ishga tushirilmoqda (port 5173)..."
-(cd "$ROOT/web" && npm run dev 2>&1 | sed 's/^/[WEB] /') &
+(cd "$ROOT/web" && npx vite 2>&1 | sed 's/^/[WEB] /') &
 PIDS+=($!)
 
 # ── Admin (port 5174) ─────────────────────────────────────────────────────────
 log "Admin ishga tushirilmoqda (port 5174)..."
-(cd "$ROOT/web/admin" && npm run dev 2>&1 | sed 's/^/[ADMIN] /') &
+(cd "$ROOT/web/admin" && npx vite 2>&1 | sed 's/^/[ADMIN] /') &
 PIDS+=($!)
 
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}  Backend  →  http://localhost:5000${NC}"
+echo -e "${GREEN}  Backend  →  http://localhost:3001${NC}"
 echo -e "${GREEN}  Web      →  http://localhost:5173${NC}"
 echo -e "${GREEN}  Admin    →  http://localhost:5174${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

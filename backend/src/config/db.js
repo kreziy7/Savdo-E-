@@ -27,31 +27,42 @@ const cleanLegacyIndexes = async () => {
 };
 
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-    });
+  let delay = 3000;
+  let attempt = 0;
 
-    logger.info(`MongoDB connected: ${conn.connection.host}`);
+  const tryConnect = async () => {
+    attempt++;
+    try {
+      const conn = await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+      });
 
-    await cleanLegacyIndexes();
+      logger.info(`MongoDB connected: ${conn.connection.host}`);
+      await cleanLegacyIndexes();
 
-    mongoose.connection.on('error', (err) => {
-      logger.error(`MongoDB connection error: ${err}`);
-    });
+      mongoose.connection.on('error', (err) => {
+        logger.error(`MongoDB connection error: ${err}`);
+      });
 
-    mongoose.connection.on('disconnected', () => {
-      logger.warn('MongoDB disconnected. Attempting to reconnect...');
-    });
+      mongoose.connection.on('disconnected', () => {
+        logger.warn('MongoDB disconnected. Reconnecting...');
+        setTimeout(tryConnect, 5000);
+      });
 
-    mongoose.connection.on('reconnected', () => {
-      logger.info('MongoDB reconnected');
-    });
-  } catch (error) {
-    logger.error(`MongoDB connection failed: ${error.message}`);
-    process.exit(1);
-  }
+      mongoose.connection.on('reconnected', () => {
+        logger.info('MongoDB reconnected');
+      });
+    } catch (error) {
+      logger.warn(`MongoDB ulanmadi (${attempt}-urinish): ${error.message}`);
+      logger.warn(`${delay / 1000}s dan keyin qayta uriniladi... (MongoDB: ${process.env.MONGO_URI})`);
+      await new Promise((r) => setTimeout(r, delay));
+      delay = Math.min(delay * 1.5, 30000);
+      return tryConnect();
+    }
+  };
+
+  await tryConnect();
 };
 
 module.exports = connectDB;

@@ -1,168 +1,276 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Home, Package, ShoppingCart, BarChart2, Settings, User, ShieldCheck, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard, Package, ShoppingCart, BarChart2,
+  Settings, User, ShieldCheck, LogOut, Menu, TrendingUp,
+  Bell, ChevronRight, Sun, Moon, ArrowLeft,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import useThemeStore from '../../store/themeStore';
 import useAuthStore from '../../store/authStore';
 
-function NavItem({ item, mobile = false }) {
-  const Icon = item.icon;
+const LANGS = [
+  { code: 'uz', label: "O'zb" },
+  { code: 'ru', label: 'Рус' },
+  { code: 'en', label: 'Eng' },
+];
 
-  if (mobile) {
-    return (
-      <NavLink
-        to={item.to}
-        end={item.to === '/'}
-        className={({ isActive }) =>
-          `flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all min-w-[52px] ${
-            isActive ? 'text-green-600' : 'text-slate-400 hover:text-green-600'
-          }`
-        }
-      >
-        {({ isActive }) => (
-          <>
-            <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-green-50' : ''}`}>
-              <Icon size={21} strokeWidth={isActive ? 2.5 : 2} />
-            </div>
-            <span className="text-[10px] font-semibold leading-tight">{item.label}</span>
-          </>
-        )}
-      </NavLink>
-    );
-  }
+const NAV = [
+  { to: '/dashboard', icon: LayoutDashboard, labelKey: 'dashboard',  desc: 'Dashboard' },
+  { to: '/products',  icon: Package,         labelKey: 'products',   desc: 'Mahsulotlar' },
+  { to: '/sales',     icon: ShoppingCart,    labelKey: 'sales',      desc: 'Sotuvlar' },
+  { to: '/reports',   icon: BarChart2,       labelKey: 'reports',    desc: 'Hisobotlar' },
+  { to: '/settings',  icon: Settings,        labelKey: 'settings',   desc: 'Sozlamalar' },
+  { to: '/profile',   icon: User,            labelKey: 'profile',    desc: 'Profil' },
+];
+
+function Sidebar({ open, onClose, isDark }) {
+  const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
+  const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(user?.role);
+
+  const handleLogout = async () => { await logout(); navigate('/login'); };
 
   return (
-    <NavLink
-      to={item.to}
-      end={item.to === '/'}
-      className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-          isActive
-            ? 'bg-green-500 text-white shadow-sm'
-            : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
-        }`
-      }
-    >
-      <Icon size={18} strokeWidth={2} />
-      <span>{item.label}</span>
-    </NavLink>
+    <aside style={{
+      width: 230, height: '100%',
+      background: '#0D1F18',
+      display: 'flex', flexDirection: 'column',
+      borderRight: '1px solid rgba(255,255,255,0.06)',
+      flexShrink: 0,
+    }}>
+
+      {/* Logo */}
+      <div style={{
+        height: 64, display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', padding: '0 14px 0 18px',
+        borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0,
+      }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 10,
+            background: 'linear-gradient(135deg,#0A5C45,#12A87D)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(10,92,69,0.4)', flexShrink: 0,
+          }}>
+            <TrendingUp size={16} color="white" />
+          </div>
+          <span style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 17, color: '#fff', letterSpacing: 1 }}>
+            SAVDO
+          </span>
+        </Link>
+        <button onClick={onClose} className="md:hidden"
+          style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.45)' }}>
+          ✕
+        </button>
+      </div>
+
+      {/* Nav */}
+      <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
+        {NAV.map(({ to, icon: Icon, labelKey }) => (
+          <NavLink key={to} to={to} onClick={onClose}
+            style={({ isActive }) => ({
+              display: 'flex', alignItems: 'center', gap: 11,
+              padding: '10px 12px', borderRadius: 10,
+              textDecoration: 'none', marginBottom: 2,
+              background: isActive ? 'linear-gradient(135deg,rgba(10,92,69,0.7),rgba(18,168,125,0.3))' : 'transparent',
+              color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
+              fontFamily: 'Syne,sans-serif', fontSize: 14,
+              fontWeight: isActive ? 600 : 500,
+              transition: 'all 0.15s',
+              position: 'relative',
+            })}>
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, background: '#12A87D', borderRadius: '0 3px 3px 0' }} />
+                )}
+                <Icon size={17} />
+                <span>{t(labelKey)}</span>
+              </>
+            )}
+          </NavLink>
+        ))}
+
+        {isAdmin && (
+          <>
+            <div style={{ padding: '14px 12px 4px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)' }}>
+              Admin
+            </div>
+            <NavLink to="/admin" onClick={onClose}
+              style={({ isActive }) => ({
+                display: 'flex', alignItems: 'center', gap: 11,
+                padding: '10px 12px', borderRadius: 10,
+                textDecoration: 'none', marginBottom: 2,
+                background: isActive ? 'rgba(201,147,58,0.18)' : 'transparent',
+                color: isActive ? '#C9933A' : 'rgba(201,147,58,0.6)',
+                fontFamily: 'Syne,sans-serif', fontSize: 14, fontWeight: 500,
+                transition: 'all 0.15s',
+              })}>
+              <ShieldCheck size={17} />
+              <span>Admin Panel</span>
+            </NavLink>
+          </>
+        )}
+      </nav>
+
+      {/* Bosh sahifa linki */}
+      <div style={{ padding: '0 8px', marginBottom: 4 }}>
+        <Link to="/landing" style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '9px 12px', borderRadius: 10, textDecoration: 'none',
+          color: 'rgba(255,255,255,0.3)', fontSize: 13,
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; }}>
+          <ArrowLeft size={14} />
+          <span style={{ fontFamily: 'Syne,sans-serif', fontWeight: 500 }}>Bosh sahifa</span>
+        </Link>
+      </div>
+
+      {/* User + logout */}
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '10px 8px', flexShrink: 0 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 12px', borderRadius: 10, marginBottom: 4,
+          background: 'rgba(255,255,255,0.04)',
+        }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'linear-gradient(135deg,#0A5C45,#12A87D)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 13, flexShrink: 0,
+          }}>
+            {user?.name?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <div style={{ overflow: 'hidden', flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.name || 'Foydalanuvchi'}
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{user?.role}</div>
+          </div>
+        </div>
+        <button onClick={handleLogout}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+            padding: '9px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
+            background: 'transparent', color: 'rgba(255,255,255,0.4)',
+            fontFamily: 'Syne,sans-serif', fontSize: 14, fontWeight: 500,
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}>
+          <LogOut size={17} />
+          <span>Chiqish</span>
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function TopBar({ onMenuOpen, isDark, toggle }) {
+  const { pathname } = useLocation();
+  const { i18n, t } = useTranslation();
+  const currentLang = i18n.language?.slice(0, 2) || 'uz';
+  const current = NAV.find(n => pathname.startsWith(n.to));
+
+  const bg    = isDark ? '#0D2418' : '#ffffff';
+  const bdr   = isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #E8F4EF';
+  const text  = isDark ? '#e0f2ec' : '#0D1F18';
+  const muted = isDark ? 'rgba(255,255,255,0.4)' : '#9BB5AA';
+  const btnBg = isDark ? 'rgba(255,255,255,0.06)' : '#F5FAF8';
+  const btnBd = isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #D8EAE4';
+
+  return (
+    <header style={{
+      height: 64, background: bg, borderBottom: bdr,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 20px', flexShrink: 0,
+      position: 'sticky', top: 0, zIndex: 50,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={onMenuOpen} className="md:hidden"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: muted, padding: 6, borderRadius: 8, display: 'flex' }}>
+          <Menu size={22} />
+        </button>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: muted, marginBottom: 1 }}>
+            <span>SAVDO</span>
+            <ChevronRight size={10} />
+            <span style={{ color: '#12A87D', fontWeight: 600 }}>
+              {current ? t(current.labelKey) : 'Dashboard'}
+            </span>
+          </div>
+          <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, color: text, margin: 0, lineHeight: 1 }}>
+            {current?.desc || 'Dashboard'}
+          </h1>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {/* Til */}
+        <div style={{ display: 'flex', borderRadius: 10, padding: 3, gap: 2, background: isDark ? 'rgba(255,255,255,0.06)' : '#F0FAF7', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #D8EAE4' }}>
+          {LANGS.map(({ code, label }) => (
+            <button key={code} onClick={() => i18n.changeLanguage(code)} style={{
+              padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer',
+              fontSize: 11, fontWeight: 700, transition: 'all 0.15s',
+              background: currentLang === code ? '#0A5C45' : 'transparent',
+              color: currentLang === code ? '#fff' : (isDark ? 'rgba(255,255,255,0.45)' : '#4A6358'),
+            }}>{label}</button>
+          ))}
+        </div>
+
+        {/* Tema */}
+        <button onClick={toggle} title={isDark ? "Yorug' rejim" : "Qorong'u rejim"}
+          style={{ width: 38, height: 38, borderRadius: 10, border: btnBd, cursor: 'pointer', background: btnBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isDark ? '#e0f2ec' : '#4A6358' }}>
+          {isDark ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+
+        {/* Bell */}
+        <button style={{ width: 38, height: 38, borderRadius: 10, border: 'none', cursor: 'pointer', background: btnBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isDark ? '#e0f2ec' : '#4A6358', position: 'relative' }}>
+          <Bell size={16} />
+          <span style={{ position: 'absolute', top: 9, right: 9, width: 7, height: 7, borderRadius: '50%', background: '#12A87D', border: `2px solid ${bg}` }} />
+        </button>
+      </div>
+    </header>
   );
 }
 
 export default function AppLayout() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
-
-  const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(user?.role);
-
-  const navItems = [
-    { to: '/',         label: t('dashboard'), icon: Home },
-    { to: '/products', label: t('products'),  icon: Package },
-    { to: '/sales',    label: t('sales'),     icon: ShoppingCart },
-    { to: '/reports',  label: t('reports'),   icon: BarChart2 },
-    { to: '/settings', label: t('settings'),  icon: Settings },
-    { to: '/profile',  label: t('profile'),   icon: User },
-  ];
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const isDark = useThemeStore((s) => s.isDark);
+  const toggle = useThemeStore((s) => s.toggleTheme);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
+    <div style={{ display: 'flex', height: '100vh', background: isDark ? '#0a1f12' : '#F2F7F5', overflow: 'hidden' }}>
 
-      {/* ── Desktop Sidebar ──────────────────────── */}
-      <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-white border-r border-[#E2E8F0] fixed left-0 top-0 bottom-0 z-30">
-        {/* Logo */}
-        <div className="px-5 py-6 border-b border-[#E2E8F0]">
-          <span className="text-2xl font-extrabold text-green-500 tracking-tight">SAVDO</span>
-          <p className="text-[11px] text-slate-400 font-medium mt-0.5">Business Manager</p>
-        </div>
+      {/* Desktop sidebar */}
+      <div className="hidden md:block h-full">
+        <Sidebar open={true} onClose={() => {}} isDark={isDark} />
+      </div>
 
-        {/* User info */}
-        <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm flex-shrink-0">
-            {user?.name?.[0]?.toUpperCase() || 'U'}
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-700 truncate">{user?.name}</p>
-            <p className="text-[10px] text-slate-400 truncate">{user?.role}</p>
+      {/* Mobile sidebar overlay */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} onClick={() => setMobileOpen(false)} />
+          <div style={{ position: 'relative', zIndex: 10 }}>
+            <Sidebar open={true} onClose={() => setMobileOpen(false)} isDark={isDark} />
           </div>
         </div>
+      )}
 
-        {/* Nav links */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <NavItem key={item.to} item={item} />
-          ))}
-
-          {/* Admin section */}
-          {isAdmin && (
-            <>
-              <div className="mt-4 mb-1 px-3">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Admin</p>
-              </div>
-              <NavLink
-                to="/admin"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    isActive
-                      ? 'bg-indigo-500 text-white shadow-sm'
-                      : 'text-indigo-500 hover:bg-indigo-50'
-                  }`
-                }
-              >
-                <ShieldCheck size={18} strokeWidth={2} />
-                <span>Admin Panel</span>
-              </NavLink>
-            </>
-          )}
-        </nav>
-
-        {/* Logout */}
-        <div className="px-3 py-3 border-t border-[#E2E8F0]">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all"
-          >
-            <LogOut size={18} strokeWidth={2} />
-            <span>Chiqish</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* ── Main content ─────────────────────────── */}
-      <main className="flex-1 md:ml-[220px] pb-20 md:pb-0">
-        <Outlet />
-      </main>
-
-      {/* ── Mobile Bottom Tab Bar ────────────────── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2E8F0] z-30 flex items-center justify-around px-1 py-1 safe-area-pb">
-        {navItems.slice(0, 5).map((item) => (
-          <NavItem key={item.to} item={item} mobile />
-        ))}
-        {isAdmin && (
-          <NavLink
-            to="/admin"
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all min-w-[52px] ${
-                isActive ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-indigo-50' : ''}`}>
-                  <ShieldCheck size={21} strokeWidth={isActive ? 2.5 : 2} />
-                </div>
-                <span className="text-[10px] font-semibold leading-tight">Admin</span>
-              </>
-            )}
-          </NavLink>
-        )}
-      </nav>
-
+      {/* Content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+        <TopBar onMenuOpen={() => setMobileOpen(true)} isDark={isDark} toggle={toggle} />
+        <main style={{ flex: 1, overflowY: 'auto', padding: '24px 20px 40px' }}>
+          <div style={{ maxWidth: 960, margin: '0 auto' }}>
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

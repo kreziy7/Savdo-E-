@@ -71,7 +71,9 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -80,8 +82,9 @@ api.interceptors.response.use(
 
     const status = error.response?.status;
     const message = error.response?.data?.message || 'Something went wrong';
-    // 401 handled by refresh logic; 422 handled by the caller (shows field errors)
-    if (status !== 401 && status !== 422) {
+    const isAuthEndpoint = error.config?.url?.includes('/auth/');
+    // 401 handled by refresh logic; 422 and auth endpoints handled by callers
+    if (status !== 401 && status !== 422 && !isAuthEndpoint) {
       toast.error(message);
     }
 

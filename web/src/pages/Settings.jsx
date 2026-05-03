@@ -54,18 +54,18 @@ export default function Settings() {
   const role = roleMap[user?.role] || roleMap.USER;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0a1f12]">
       {/* Header */}
-      <div className="bg-white border-b border-[#E2E8F0] px-5 py-4 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-[#0F172A]">{t('settings')}</h1>
+      <div className="bg-white dark:bg-[#112920] border-b border-[#E2E8F0] dark:border-white/[0.07] px-5 py-4 sticky top-0 z-10">
+        <h1 className="text-lg font-bold text-[#0F172A] dark:text-[#e0f2ec]">{t('settings')}</h1>
       </div>
 
       <div className="px-4 sm:px-6 py-5 max-w-3xl mx-auto flex flex-col gap-4">
 
         {/* ── Profile ───────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#E2E8F0]">
-            <p className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">
+        <div className="bg-white dark:bg-[#112920] rounded-2xl border border-[#E2E8F0] dark:border-white/[0.07] overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#E2E8F0] dark:border-white/[0.07]">
+            <p className="text-xs font-semibold text-[#94A3B8] dark:text-[rgba(224,242,236,0.35)] uppercase tracking-wider">
               {t('profile')}
             </p>
           </div>
@@ -78,8 +78,8 @@ export default function Settings() {
             </div>
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="text-base font-bold text-[#0F172A] truncate">{user?.name || '—'}</p>
-              <p className="text-sm text-[#64748B] truncate mt-0.5">{user?.email || '—'}</p>
+              <p className="text-base font-bold text-[#0F172A] dark:text-[#e0f2ec] truncate">{user?.name || '—'}</p>
+              <p className="text-sm text-[#64748B] dark:text-[rgba(224,242,236,0.6)] truncate mt-0.5">{user?.email || '—'}</p>
               {user?.role && (
                 <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-lg text-xs font-bold ${role.cls}`}>
                   {role.label}
@@ -90,9 +90,9 @@ export default function Settings() {
         </div>
 
         {/* ── Language ──────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#E2E8F0]">
-            <p className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">
+        <div className="bg-white dark:bg-[#112920] rounded-2xl border border-[#E2E8F0] dark:border-white/[0.07] overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#E2E8F0] dark:border-white/[0.07]">
+            <p className="text-xs font-semibold text-[#94A3B8] dark:text-[rgba(224,242,236,0.35)] uppercase tracking-wider">
               {t('language')}
             </p>
           </div>
@@ -105,14 +105,14 @@ export default function Settings() {
                   onClick={() => i18n.changeLanguage(lang.code)}
                   className={`flex items-center justify-between w-full px-4 py-3.5 rounded-xl border transition-all ${
                     isActive
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-[#E2E8F0] bg-white hover:bg-slate-50'
+                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                      : 'border-[#E2E8F0] dark:border-white/[0.07] bg-white dark:bg-[#112920] hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl leading-none">{lang.flag}</span>
                     <div className="text-left">
-                      <p className={`text-sm font-bold leading-tight ${isActive ? 'text-green-700' : 'text-[#0F172A]'}`}>
+                      <p className={`text-sm font-bold leading-tight ${isActive ? 'text-green-700' : 'text-[#0F172A] dark:text-[#e0f2ec]'}`}>
                         {lang.native}
                       </p>
                     </div>
@@ -122,7 +122,7 @@ export default function Settings() {
                       <Check size={13} className="text-white" strokeWidth={3} />
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full border-2 border-[#E2E8F0] flex-shrink-0" />
+                    <div className="w-6 h-6 rounded-full border-2 border-[#E2E8F0] dark:border-white/[0.07] flex-shrink-0" />
                   )}
                 </button>
               );
@@ -131,20 +131,20 @@ export default function Settings() {
         </div>
 
         {/* ── About ─────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#E2E8F0]">
-            <p className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">
+        <div className="bg-white dark:bg-[#112920] rounded-2xl border border-[#E2E8F0] dark:border-white/[0.07] overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#E2E8F0] dark:border-white/[0.07]">
+            <p className="text-xs font-semibold text-[#94A3B8] dark:text-[rgba(224,242,236,0.35)] uppercase tracking-wider">
               {t('about')}
             </p>
           </div>
-          <div className="divide-y divide-[#E2E8F0]">
+          <div className="divide-y divide-[#E2E8F0] dark:divide-white/[0.07]">
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm font-medium text-[#0F172A]">{t('app_name')}</span>
+              <span className="text-sm font-medium text-[#0F172A] dark:text-[#e0f2ec]">{t('app_name')}</span>
               <span className="text-sm font-extrabold text-green-600 tracking-tight">SAVDO</span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm font-medium text-[#0F172A]">{t('version')}</span>
-              <span className="text-sm font-medium text-[#64748B]">1.0.0</span>
+              <span className="text-sm font-medium text-[#0F172A] dark:text-[#e0f2ec]">{t('version')}</span>
+              <span className="text-sm font-medium text-[#64748B] dark:text-[rgba(224,242,236,0.6)]">1.0.0</span>
             </div>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function Settings() {
         {/* ── Logout ────────────────────────────────── */}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-3 h-14 bg-white border border-red-200 rounded-2xl text-red-500 font-bold text-base hover:bg-red-50 hover:border-red-300 active:scale-[0.98] transition-all"
+          className="w-full flex items-center justify-center gap-3 h-14 bg-white dark:bg-[#112920] border border-red-200 rounded-2xl text-red-500 font-bold text-base hover:bg-red-50 hover:border-red-300 active:scale-[0.98] transition-all"
         >
           <LogOut size={20} />
           {t('logout')}

@@ -1,51 +1,40 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, TrendingUp, DollarSign, AlertTriangle, PlusCircle, LogOut, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ShoppingCart, TrendingUp, DollarSign, AlertTriangle, PlusCircle, AlertCircle, Package } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import * as reportsApi from '../api/reports.api';
 import * as salesApi from '../api/sales.api';
 import useAuthStore from '../store/authStore';
+import useThemeStore from '../store/themeStore';
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation();
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
-  const navigate = useNavigate();
+  const isDark = useThemeStore((s) => s.isDark);
+
+  const card = isDark ? 'rgba(17,41,32,0.9)' : '#ffffff';
+  const bd   = isDark ? 'rgba(255,255,255,0.07)' : '#E8F4EF';
+  const tx1  = isDark ? '#e0f2ec' : '#0D1F18';
+  const tx2  = isDark ? 'rgba(224,242,236,0.55)' : '#4A6358';
+  const tx3  = isDark ? 'rgba(224,242,236,0.35)' : '#9BB5AA';
+
+  const locale = i18n.language.startsWith('uz') ? 'uz-UZ'
+    : i18n.language.startsWith('ru') ? 'ru-RU' : 'en-US';
 
   function fmt(n) {
-    return Number(n || 0).toLocaleString(i18n.language.startsWith('uz') ? 'uz-UZ' : i18n.language.startsWith('ru') ? 'ru-RU' : 'en-US') + " " + t('currency');
+    return Number(n || 0).toLocaleString(locale) + ' ' + t('currency');
   }
 
-  function StatCard({ label, value, icon: Icon, color }) {
-    const colorMap = {
-      blue: 'bg-blue-50 text-blue-600',
-      green: 'bg-green-50 text-green-600',
-      amber: 'bg-amber-50 text-amber-600',
-    };
-    return (
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[#64748B]">{label}</span>
-          <div className={`p-2 rounded-xl ${colorMap[color] || colorMap.green}`}>
-            <Icon size={18} />
-          </div>
-        </div>
-        <p className="text-2xl font-extrabold text-[#0F172A] leading-tight">{value}</p>
-      </div>
-    );
-  }
+  const todayStr  = new Date().toISOString().split('T')[0];
+  const todayDate = new Date().toLocaleDateString(locale, {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  });
 
-  function SkeletonCard() {
-    return (
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 flex flex-col gap-3 animate-pulse">
-        <div className="flex justify-between">
-          <div className="h-4 w-28 bg-slate-200 rounded" />
-          <div className="h-8 w-8 bg-slate-200 rounded-xl" />
-        </div>
-        <div className="h-8 w-36 bg-slate-200 rounded" />
-      </div>
-    );
-  }
+  const accents = {
+    green: { bg: 'rgba(18,168,125,0.12)', icon: '#12A87D', glow: 'rgba(18,168,125,0.2)' },
+    gold:  { bg: 'rgba(201,147,58,0.12)', icon: '#C9933A', glow: 'rgba(201,147,58,0.2)' },
+    blue:  { bg: 'rgba(99,102,241,0.12)', icon: '#818cf8', glow: 'rgba(99,102,241,0.15)' },
+  };
 
   const { data: summaryData, isLoading: summaryLoading, isError: summaryError, refetch: refetchSummary } = useQuery({
     queryKey: ['reports-summary'],
@@ -53,172 +42,192 @@ export default function Dashboard() {
     refetchInterval: 30000,
   });
 
-  const todayStr = new Date().toISOString().split('T')[0];
   const { data: salesData, isLoading: salesLoading, isError: salesError, refetch: refetchSales } = useQuery({
     queryKey: ['sales-today', todayStr],
     queryFn: () => salesApi.getSales({ date: todayStr }),
     refetchInterval: 30000,
   });
 
-  const summary = summaryData?.data?.data || {};
+  const summary    = summaryData?.data?.data || {};
   const todayStats = summary.today || {};
-  const lowStock = summary.lowStock || [];
+  const lowStock   = summary.lowStock || [];
+  const recentSales = (salesData?.data?.data?.sales || []).slice(0, 5);
 
-  const allSales = salesData?.data?.data?.sales || [];
-  const recentSales = Array.isArray(allSales) ? allSales.slice(0, 5) : [];
-
-  const locale = i18n.language.startsWith('uz') ? 'uz-UZ' : i18n.language.startsWith('ru') ? 'ru-RU' : 'en-US';
-  const todayDate = new Date().toLocaleDateString(locale, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  const cardStyle = { background: card, border: `1px solid ${bd}`, borderRadius: 20 };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
       {/* Header */}
-      <header className="bg-white border-b border-[#E2E8F0] px-5 py-4 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-extrabold text-green-500">SAVDO</span>
-          <span className="hidden sm:block text-sm text-[#64748B]">{todayDate}</span>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, paddingTop: 4 }}>
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: tx3, marginBottom: 4 }}>
+            {todayDate}
+          </p>
+          <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 26, color: tx1, margin: 0, lineHeight: 1.2 }}>
+            Salom, {user?.name?.split(' ')[0]} 👋
+          </h1>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-[#0F172A]">{user?.name}</span>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-600 font-medium transition px-2 py-1 rounded-lg hover:bg-red-50"
-          >
-            <LogOut size={16} />
-            <span className="hidden sm:inline">{t('logout')}</span>
-          </button>
-        </div>
-      </header>
-
-      <div className="px-4 sm:px-6 py-6 max-w-3xl mx-auto flex flex-col gap-6">
-        {/* Today's date mobile */}
-        <p className="sm:hidden text-sm text-[#64748B] capitalize">{todayDate}</p>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {summaryLoading ? (
-            [1, 2, 3].map((i) => <SkeletonCard key={i} />)
-          ) : summaryError ? (
-            <div className="col-span-3 bg-white rounded-2xl border border-red-100 p-5 flex flex-col items-center gap-2 text-center">
-              <AlertCircle size={28} className="text-red-400" />
-              <p className="text-sm font-semibold text-red-500">{t('error_loading')}</p>
-              <button onClick={() => refetchSummary()} className="text-sm text-green-600 font-semibold hover:underline">{t('retry')}</button>
-            </div>
-          ) : (
-            <>
-              <StatCard label={t('today_sales')} value={todayStats.salesCount ?? 0} icon={ShoppingCart} color="blue" />
-              <StatCard label={t('today_revenue')} value={fmt(todayStats.totalRevenue)} icon={DollarSign} color="amber" />
-              <StatCard label={t('today_profit')} value={fmt(todayStats.totalProfit)} icon={TrendingUp} color="green" />
-            </>
-          )}
-        </div>
-
-        {/* Big action button */}
-        <Link
-          to="/sales"
-          className="flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white text-xl font-bold rounded-2xl transition-all shadow-md"
-          style={{ minHeight: '68px' }}
-        >
-          <PlusCircle size={26} />
+        <Link to="/sales"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '10px 20px', borderRadius: 14,
+            background: 'linear-gradient(135deg,#0A5C45,#0E7A5C)',
+            color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 700,
+            boxShadow: '0 6px 20px rgba(10,92,69,0.35)',
+            flexShrink: 0, whiteSpace: 'nowrap',
+          }}>
+          <PlusCircle size={15} />
           {t('new_sale')}
         </Link>
+      </div>
 
-        {/* Low stock warning */}
-        {!summaryLoading && lowStock.length > 0 && (
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-[#E2E8F0] bg-red-50">
-              <AlertTriangle size={18} className="text-red-500" />
-              <h3 className="font-bold text-[#0F172A]">{t('low_stock')}</h3>
+      {/* Stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+        {summaryLoading ? [0,1,2].map(i => (
+          <div key={i} style={{ ...cardStyle, padding: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ height: 12, width: 90, borderRadius: 6, background: isDark ? 'rgba(255,255,255,0.08)' : '#E8F4EF' }} />
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.06)' : '#F0FAF7' }} />
             </div>
-            <div className="divide-y divide-[#E2E8F0]">
-              {lowStock.map((p) => (
-                <div key={p._id} className="flex items-center justify-between px-5 py-3">
-                  <span className="text-sm font-medium text-[#0F172A]">{p.name}</span>
-                  <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${p.stock === 0
-                      ? 'bg-red-100 text-red-600'
-                      : 'bg-amber-100 text-amber-700'
-                    }`}>
-                    {p.stock} {t(`unit_${p.unit || 'pcs'}`)}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <div style={{ height: 28, width: 120, borderRadius: 6, background: isDark ? 'rgba(255,255,255,0.08)' : '#E8F4EF' }} />
           </div>
-        )}
+        )) : summaryError ? (
+          <div style={{ gridColumn: 'span 3', ...cardStyle, padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <AlertCircle size={28} color="#f87171" />
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#f87171', margin: 0 }}>{t('error_loading')}</p>
+            <button onClick={() => refetchSummary()} style={{ fontSize: 13, fontWeight: 600, color: '#12A87D', background: 'none', border: 'none', cursor: 'pointer' }}>{t('retry')}</button>
+          </div>
+        ) : [
+          { label: t('today_sales'),   value: todayStats.salesCount ?? 0, Icon: ShoppingCart, a: 'blue' },
+          { label: t('today_revenue'), value: fmt(todayStats.totalRevenue), Icon: DollarSign, a: 'gold' },
+          { label: t('today_profit'),  value: fmt(todayStats.totalProfit),  Icon: TrendingUp,  a: 'green' },
+        ].map(({ label, value, Icon, a }) => {
+          const c = accents[a];
+          return (
+            <div key={label} style={{ ...cardStyle, padding: 20, transition: 'transform 0.2s', cursor: 'default' }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: tx3 }}>
+                  {label}
+                </span>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: c.bg, boxShadow: `0 0 14px ${c.glow}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={16} color={c.icon} />
+                </div>
+              </div>
+              <p style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 22, color: tx1, margin: 0 }}>{value}</p>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Recent sales */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0]">
-            <h3 className="font-bold text-[#0F172A]">{t('recent_sales')}</h3>
-            <Link to="/sales" className="text-sm text-green-600 font-semibold hover:underline">
-              {t('view_all')}
+      {/* Low stock */}
+      {!summaryLoading && lowStock.length > 0 && (
+        <div style={{ ...cardStyle, overflow: 'hidden', border: `1px solid ${isDark ? 'rgba(201,147,58,0.2)' : '#FBBF24'}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', borderBottom: `1px solid ${bd}`, background: 'rgba(201,147,58,0.07)' }}>
+            <AlertTriangle size={16} color="#C9933A" />
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#C9933A' }}>{t('low_stock')}</span>
+          </div>
+          {lowStock.map((p, i) => (
+            <div key={p._id} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 20px',
+              borderBottom: i < lowStock.length - 1 ? `1px solid ${bd}` : 'none',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: isDark ? 'rgba(255,255,255,0.05)' : '#F0FAF7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Package size={13} color={tx3} />
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 500, color: tx1 }}>{p.name}</span>
+              </div>
+              <span style={{
+                fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 8,
+                background: p.stock === 0 ? 'rgba(239,68,68,0.1)' : 'rgba(201,147,58,0.1)',
+                color: p.stock === 0 ? '#f87171' : '#C9933A',
+              }}>
+                {p.stock} {t(`unit_${p.unit || 'pcs'}`)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Recent sales */}
+      <div style={{ ...cardStyle, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: `1px solid ${bd}` }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: tx1 }}>{t('recent_sales')}</span>
+          <Link to="/sales" style={{ fontSize: 12, fontWeight: 600, color: '#12A87D', textDecoration: 'none' }}
+            onMouseEnter={e => e.target.style.color = '#C9933A'}
+            onMouseLeave={e => e.target.style.color = '#12A87D'}>
+            {t('view_all')} →
+          </Link>
+        </div>
+
+        {salesLoading ? [0,1,2].map(i => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: `1px solid ${bd}` }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ height: 13, width: 120, borderRadius: 4, background: isDark ? 'rgba(255,255,255,0.08)' : '#E8F4EF' }} />
+              <div style={{ height: 10, width: 80, borderRadius: 4, background: isDark ? 'rgba(255,255,255,0.05)' : '#F0FAF7' }} />
+            </div>
+            <div style={{ height: 14, width: 80, borderRadius: 4, background: isDark ? 'rgba(255,255,255,0.08)' : '#E8F4EF' }} />
+          </div>
+        )) : salesError ? (
+          <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+            <AlertCircle size={26} color="#f87171" style={{ margin: '0 auto 8px' }} />
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#f87171', margin: '0 0 8px' }}>{t('error_loading')}</p>
+            <button onClick={() => refetchSales()} style={{ fontSize: 13, fontWeight: 600, color: '#12A87D', background: 'none', border: 'none', cursor: 'pointer' }}>{t('retry')}</button>
+          </div>
+        ) : recentSales.length === 0 ? (
+          <div style={{ padding: '48px 20px', textAlign: 'center' }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, background: isDark ? 'rgba(255,255,255,0.04)' : '#F0FAF7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <ShoppingCart size={22} color={tx3} />
+            </div>
+            <p style={{ fontSize: 13, color: tx3, margin: '0 0 14px' }}>{t('no_sales_today')}</p>
+            <Link to="/sales" style={{
+              display: 'inline-block', padding: '8px 18px', borderRadius: 10,
+              background: isDark ? 'rgba(10,92,69,0.2)' : '#F0FAF7',
+              color: '#12A87D', textDecoration: 'none', fontSize: 12, fontWeight: 700,
+              border: `1px solid ${isDark ? 'rgba(10,92,69,0.3)' : '#D8EAE4'}`,
+            }}>
+              + {t('new_sale')}
             </Link>
           </div>
-
-          {salesLoading ? (
-            <div className="divide-y divide-[#E2E8F0]">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between px-5 py-4 animate-pulse">
-                  <div className="flex flex-col gap-2">
-                    <div className="h-4 w-32 bg-slate-200 rounded" />
-                    <div className="h-3 w-20 bg-slate-100 rounded" />
-                  </div>
-                  <div className="h-5 w-20 bg-slate-200 rounded" />
+        ) : recentSales.map((sale, i) => {
+          const timeStr = new Date(sale.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+          return (
+            <div key={sale._id} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '13px 20px',
+              borderBottom: i < recentSales.length - 1 ? `1px solid ${bd}` : 'none',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.02)' : '#F8FCF9'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(18,168,125,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <ShoppingCart size={14} color="#12A87D" />
                 </div>
-              ))}
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: tx1, margin: '0 0 2px' }}>
+                    {sale.productName || 'Mahsulot'}
+                  </p>
+                  <p style={{ fontSize: 11, color: tx3, margin: 0 }}>
+                    {sale.quantity} {t(`unit_${sale.unit || 'pcs'}`)} · {timeStr}
+                  </p>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#12A87D', margin: '0 0 2px' }}>
+                  +{Number(sale.profit || 0).toLocaleString(locale)} {t('currency')}
+                </p>
+                <p style={{ fontSize: 11, color: tx3, margin: 0 }}>
+                  {Number(sale.totalRevenue || 0).toLocaleString(locale)} {t('currency')}
+                </p>
+              </div>
             </div>
-          ) : salesError ? (
-            <div className="px-5 py-10 text-center">
-              <AlertCircle size={32} className="mx-auto mb-2 text-red-400" />
-              <p className="text-sm font-semibold text-red-500">{t('error_loading')}</p>
-              <button onClick={() => refetchSales()} className="mt-2 text-sm text-green-600 font-semibold hover:underline">{t('retry')}</button>
-            </div>
-          ) : recentSales.length === 0 ? (
-            <div className="px-5 py-10 text-center text-[#64748B]">
-              <ShoppingCart size={32} className="mx-auto mb-2 opacity-40" />
-              <p className="text-sm">{t('no_sales_today')}</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#E2E8F0]">
-              {recentSales.map((sale) => {
-                const timeStr = new Date(sale.createdAt).toLocaleTimeString(locale, {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                });
-                return (
-                  <div key={sale._id} className="flex items-center justify-between px-5 py-4">
-                    <div>
-                      <p className="text-sm font-semibold text-[#0F172A]">
-                        {sale.productName || 'Mahsulot'}
-                      </p>
-                      <p className="text-xs text-[#64748B] mt-0.5">
-                        {sale.quantity} {t(`unit_${sale.unit || 'pcs'}`)} · {timeStr}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-green-600">
-                        +{Number(sale.profit || 0).toLocaleString(locale)} {t('currency')}
-                      </p>
-                      <p className="text-xs text-[#64748B]">
-                        {Number(sale.totalRevenue || 0).toLocaleString(locale)} {t('currency')}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+          );
+        })}
       </div>
     </div>
   );

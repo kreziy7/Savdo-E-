@@ -63,8 +63,11 @@ const useAuthStore = create(
           return user;
         } catch (err) {
           set({ isLoading: false });
-          const message = err.response?.data?.message || 'Google orqali kirish muvaffaqiyatsiz';
-          toast.error(message);
+          const serverMsg = err.response?.data?.message;
+          const message = serverMsg === 'Google token yaroqsiz'
+            ? 'Google orqali kirish muvaffaqiyatsiz. Google Cloud Console da localhost:5173 ni authorized origins ga qo\'shing.'
+            : serverMsg || 'Google orqali kirish muvaffaqiyatsiz';
+          toast.error(message, { duration: 6000 });
           throw err;
         }
       },

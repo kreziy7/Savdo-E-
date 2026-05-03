@@ -140,7 +140,14 @@ const resources = {
             "role_super_admin": "Super Admin",
             "total_profit": "Jami foyda",
             "error_loading": "Ma'lumot yuklanmadi",
-            "retry": "Qayta urinish"
+            "retry": "Qayta urinish",
+            "forgot_password": "Parolni unutdingizmi?",
+            "statsBar": { "s1": "O'zbekistondagi savdogarlar", "s2": "Birinchi sotuvgacha", "s3": "Brauzerda ishlaydi", "s4": "Asosiy versiya bepul" },
+            "how": { "tag": "Qanday ishlaydi", "title": "3 daqiqada boshlang", "desc": "O'qitish kerak emas.", "s1_title": "Ro'yxatdan o'ting", "s1_desc": "1 daqiqada hisob yarating.", "s2_title": "Tovarlarni kiriting", "s2_desc": "Nomi, narxi, miqdori, kategoriyasi.", "s3_title": "Sotuvni yozing", "s3_desc": "Tovarni tanlang — foyda o'zi hisoblanadi.", "s4_title": "Hisobotni ko'ring", "s4_desc": "Kunlik va oylik hisobot.", "cta": "Hoziroq boshlash" },
+            "faqL": { "tag": "Ko'p so'raladigan savollar", "title": "FAQ", "q1": "SAVDO bepulmi?", "a1": "Ha, asosiy versiya abadiy bepul. 30 tagacha tovar, cheksiz sotuv yozish va kunlik hisobotlar bepul.", "q2": "Internet bo'lmasa ishlaydi?", "a2": "Brauzer keshi orqali asosiy funksiyalar ishlaydi.", "q3": "Nechta qurilmada ishlata olaman?", "a3": "Bepul: 1, PRO: 5, BIZNES: cheksiz.", "q4": "Ma'lumotlarim xavfsizmi?", "a4": "Ha. SSL shifrlangan. Kuniga 3 marta zaxira nusxa.", "q5": "Payme bilan to'la olamanmi?", "a5": "Ha, Payme, Click va Uzum orqali to'lov qabul qilinadi.", "q6": "Excel dan import qila olamanmi?", "a6": "Ha, PRO va BIZNES tarifda Excel importi mavjud." },
+            "integ": { "tag": "Integratsiyalar", "title": "Sevimli dasturlar bilan ishlaydi", "desc": "SAVDO O'zbekiston xizmatlari bilan bevosita ulangan.", "popular": "Eng mashhur", "connected": "Ulangan", "coming": "Boshqa integratsiyalar yo'lda", "telegram_desc": "Har kuni sotuv xulosasi Telegram ga avtomatik yuboriladi", "excel_desc": "Tovarlar va hisobotlarni Excel formatda yuklab oling", "pdf_desc": "PDF hisobotlarni bir zumda yarating", "payme_desc": "Payme orqali PRO tarifga o'ting", "click_desc": "Click to'lov tizimi", "uzum_desc": "Uzum Bank orqali to'lov" },
+            "compare": { "tag": "Taqqoslash", "title": "Nima uchun SAVDO?", "desc": "Daftar va Excel bilan solishtiring.", "feature_col": "Imkoniyat", "your_choice": "Sizning tanlovi", "footer_text": "SAVDO — savdoni aqlli boshqarish uchun platforma.", "cta": "Bepul boshlash", "r1": "Sozlash vaqti", "r2": "Foyda avtomatik hisob", "r3": "Hisobotlar", "r4": "Ombor qoldig'i", "r5": "Telegram xabar", "r6": "Ko'p foydalanuvchi", "r7": "Mobil qurilma", "r8": "Excel eksport", "r9": "Narx", "s_r1": "3 daqiqa", "s_r3": "Kunlik / oylik", "s_r6": "PRO tarifda", "s_r9": "Bepul / 29 900 so'm", "d_r1": "0 (daftar)", "d_r9": "Daftar narxi", "e_r1": "1–2 soat", "e_r2": "Qo'lda", "e_r3": "Qo'lda", "e_r4": "Qo'lda", "e_r6": "Murakkab", "e_r7": "Cheklangan", "e_r8": "O'zi", "e_r9": "Litsenziya" },
+            "reviews": { "tag": "Mijozlar fikri", "title": "Ular allaqachon foydalanmoqda" }
         }
     },
     ru: {
@@ -431,6 +438,11 @@ i18n
     .init({
         resources,
         fallbackLng: 'uz',
+        detection: {
+            order: ['localStorage'],
+            lookupLocalStorage: 'savdo-lng',
+            caches: ['localStorage'],
+        },
         interpolation: {
             escapeValue: false
         }
