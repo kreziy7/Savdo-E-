@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/store/authStore";
 import { useLangStore } from "@/store/langStore";
 import { useThemeStore } from "@/store/themeStore";
-import { useRoleStore } from "@/store/roleStore";
 import { useTheme } from "@/hooks/useTheme";
 import { useT } from "@/hooks/useT";
 import { Lang } from "@/i18n";
@@ -60,7 +59,6 @@ export default function SettingsScreen() {
   const clearToken = useAuthStore((s) => s.clearToken);
   const { lang, setLang } = useLangStore();
   const { isDark, toggleTheme } = useThemeStore();
-  const { role, setRole } = useRoleStore();
   const { c } = useTheme();
   const t = useT();
 
@@ -129,7 +127,7 @@ export default function SettingsScreen() {
           label={t.reports.title}
           sub={t.reports.totalRevenue}
           right={<Ionicons name="chevron-forward" size={18} color={c.textMuted} />}
-          onPress={() => router.push("/(app)/reports")}
+          onPress={() => router.push("/reports")}
         />
       </Section>
 
@@ -140,26 +138,9 @@ export default function SettingsScreen() {
           label={t.settings.subscription}
           sub={`${t.subscription.free} — ${t.subscription.active}`}
           right={<Ionicons name="chevron-forward" size={18} color={c.textMuted} />}
-          onPress={() => router.push("/(app)/settings/subscription")}
+          onPress={() => router.push("/settings/subscription")}
         />
       </Section>
-
-      {/* Employees — vaqtincha yashirilgan, PIN flow + backend tayyor bo'lganda ochish */}
-      {/* <Section title={t.employees.title}>
-        <Row
-          iconName="people"
-          label={t.employees.title}
-          sub={t.employees.currentRole + ": " + (role === "admin" ? t.employees.admin : t.employees.cashier)}
-          right={<Ionicons name="chevron-forward" size={18} color={c.textMuted} />}
-          onPress={() => router.push("/(app)/settings/employees")}
-        />
-        <View style={{ height: 1, backgroundColor: c.border, marginLeft: 66 }} />
-        <Row
-          iconName={role === "admin" ? "person" : "shield-checkmark"}
-          label={role === "admin" ? t.employees.switchToCashier : t.employees.switchToAdmin}
-          onPress={() => setRole(role === "admin" ? "cashier" : "admin")}
-        />
-      </Section> */}
 
       {/* Account */}
       <Section title={t.settings.account}>

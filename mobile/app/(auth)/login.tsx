@@ -75,7 +75,7 @@ export default function LoginScreen() {
 
   const isPhoneValid = phone.length >= 9;
   const isSignInValid = email.includes("@") && password.length >= 1;
-  const isRegisterValid = name.trim().length >= 2 && email.includes("@") && password.length >= 4 && confirmPwd === password;
+  const isRegisterValid = name.trim().length >= 2 && email.includes("@") && password.length >= 8 && confirmPwd === password;
 
   async function handlePhoneNext() {
     if (!isPhoneValid) return;
@@ -87,7 +87,7 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
-    router.push({ pathname: "/(auth)/verify", params: { phone } });
+    router.push({ pathname: "/verify", params: { phone } });
   }
 
   async function handleSignIn() {
@@ -98,7 +98,7 @@ export default function LoginScreen() {
         await setToken("demo-token", "demo-refresh");
         return;
       }
-      const res = await api.post("/auth/login/email", { email: email.toLowerCase(), password });
+      const res = await api.post("/auth/login", { email: email.toLowerCase(), password });
       await saveEmailCredentials(email.toLowerCase(), password, res.data.accessToken, res.data.refreshToken);
     } catch (e: any) {
       if (!e?.response) {
@@ -123,19 +123,19 @@ export default function LoginScreen() {
     try {
       if (password === "demo") {
         // demo mode — skip OTP, go straight to verify-email with demo hint
-        router.push({ pathname: "/(auth)/verify-email", params: { email: email || "demo@savdo.uz" } });
+        router.push({ pathname: "/verify-email", params: { email: email || "demo@savdo.uz" } });
         return;
       }
-      await api.post("/auth/register/email", {
+      await api.post("/auth/register", {
         name: name.trim(),
         email: email.toLowerCase(),
         password,
       });
-      router.push({ pathname: "/(auth)/verify-email", params: { email: email.toLowerCase() } });
+      router.push({ pathname: "/verify-email", params: { email: email.toLowerCase() } });
     } catch (e: any) {
       if (!e?.response) {
         // no internet — go to verify-email in demo mode
-        router.push({ pathname: "/(auth)/verify-email", params: { email: email.toLowerCase() } });
+        router.push({ pathname: "/verify-email", params: { email: email.toLowerCase() } });
       } else if (e?.response?.status === 409) {
         Alert.alert(t.common.error, t.auth.emailExists);
       } else {
@@ -265,7 +265,12 @@ export default function LoginScreen() {
               <Field icon="lock-closed-outline" placeholder={t.auth.passwordPlaceholder} value={password} onChangeText={setPassword} secure showSecure={showPass} onToggleSecure={() => setShowPass(!showPass)} c={c} />
 
               {emailMode === "register" && (
-                <Field icon="shield-checkmark-outline" placeholder={t.auth.confirmPasswordPlaceholder} value={confirmPwd} onChangeText={setConfirmPwd} secure showSecure={showConfirm} onToggleSecure={() => setShowConfirm(!showConfirm)} c={c} />
+                <>
+                  <Field icon="shield-checkmark-outline" placeholder={t.auth.confirmPasswordPlaceholder} value={confirmPwd} onChangeText={setConfirmPwd} secure showSecure={showConfirm} onToggleSecure={() => setShowConfirm(!showConfirm)} c={c} />
+                  {password.length > 0 && password.length < 8 && (
+                    <Text style={{ color: c.warn, fontSize: 12, marginTop: -6, marginBottom: 4 }}>Parol kamida 8 ta belgi bo'lishi kerak</Text>
+                  )}
+                </>
               )}
 
               {/* Submit button */}

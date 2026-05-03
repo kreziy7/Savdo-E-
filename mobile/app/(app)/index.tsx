@@ -60,14 +60,14 @@ export default function HomeScreen() {
         <Text style={{ color: c.text, fontSize: 16, fontWeight: "800", marginBottom: 12 }}>{t.home.quickActions}</Text>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <TouchableOpacity
-            onPress={() => router.push("/(app)/sales/add")}
+            onPress={() => router.push("/sales/add")}
             style={{ flex: 1, backgroundColor: c.primary, borderRadius: 18, padding: 18, alignItems: "center" }}
           >
             <Ionicons name="cart" size={30} color="#fff" />
             <Text style={{ color: "#fff", fontWeight: "700", marginTop: 8, fontSize: 13 }}>{t.home.addSale}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => router.push("/(app)/products/add")}
+            onPress={() => router.push("/products/add")}
             style={{ flex: 1, backgroundColor: c.bgCard, borderRadius: 18, padding: 18, alignItems: "center", borderWidth: 1.5, borderColor: c.border }}
           >
             <Ionicons name="cube" size={30} color={c.primary} />
@@ -81,7 +81,7 @@ export default function HomeScreen() {
         <Text style={{ color: c.text, fontSize: 16, fontWeight: "800", marginBottom: 12 }}>{t.home.businessTools}</Text>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <TouchableOpacity
-            onPress={() => router.push("/(app)/suppliers")}
+            onPress={() => router.push("/suppliers")}
             style={{ flex: 1, backgroundColor: c.bgCard, borderRadius: 18, padding: 16, alignItems: "center", borderWidth: 1, borderColor: c.border }}
           >
             <View style={{ width: 48, height: 48, backgroundColor: "#FEF3C7", borderRadius: 14, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
@@ -90,7 +90,7 @@ export default function HomeScreen() {
             <Text style={{ color: c.text, fontWeight: "700", fontSize: 13, textAlign: "center" }}>{t.suppliers.title}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => router.push("/(app)/customers")}
+            onPress={() => router.push("/customers")}
             style={{ flex: 1, backgroundColor: c.bgCard, borderRadius: 18, padding: 16, alignItems: "center", borderWidth: 1, borderColor: c.border }}
           >
             <View style={{ width: 48, height: 48, backgroundColor: "#FEE2E2", borderRadius: 14, alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
@@ -105,7 +105,7 @@ export default function HomeScreen() {
       <View style={{ paddingHorizontal: 20, marginTop: 28, marginBottom: 32 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <Text style={{ color: c.text, fontSize: 16, fontWeight: "800" }}>{t.home.recentSales}</Text>
-          <TouchableOpacity onPress={() => router.push("/(app)/sales")} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <TouchableOpacity onPress={() => router.push("/sales")} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Text style={{ color: c.primary, fontSize: 13, fontWeight: "600" }}>{t.home.allSales}</Text>
             <Ionicons name="chevron-forward" size={14} color={c.primary} />
           </TouchableOpacity>
