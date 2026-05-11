@@ -30,6 +30,15 @@ const connectDB = async () => {
   let delay = 3000;
   let attempt = 0;
 
+  // USE_MEMORY_DB=true (dev only) → in-process MongoDB via mongodb-memory-server.
+  // Real mongod o'rnatish kerakmas. Production'da hech qachon ishlatma.
+  if (process.env.USE_MEMORY_DB === 'true' && process.env.NODE_ENV !== 'production') {
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    const mem = await MongoMemoryServer.create();
+    process.env.MONGO_URI = mem.getUri('savdo_db');
+    logger.info(`MongoMemoryServer ishga tushdi: ${process.env.MONGO_URI}`);
+  }
+
   const tryConnect = async () => {
     attempt++;
     try {
@@ -40,6 +49,25 @@ const connectDB = async () => {
 
       logger.info(`MongoDB connected: ${conn.connection.host}`);
       await cleanLegacyIndexes();
+
+      // USE_MEMORY_DB rejimida memory DB har restart'da bo'shaydi — admin'lar avtomatik yaratilsin
+      if (process.env.USE_MEMORY_DB === 'true') {
+        try {
+          const User = require('../models/User.model');
+          const seedAdmins = [
+            { name: 'Super Admin', email: 'superadmin@savdo.uz', password: 'Admin@1234', role: 'SUPER_ADMIN' },
+            { name: 'Admin',       email: 'admin@savdo.uz',      password: 'Admin@1234', role: 'ADMIN' },
+          ];
+          for (const a of seedAdmins) {
+            if (!(await User.findOne({ email: a.email }))) {
+              await User.create(a);
+              logger.info(`Seeded ${a.role}: ${a.email} / ${a.password}`);
+            }
+          }
+        } catch (e) {
+          logger.warn(`Admin seed skipped: ${e.message}`);
+        }
+      }
 
       mongoose.connection.on('error', (err) => {
         logger.error(`MongoDB connection error: ${err}`);
