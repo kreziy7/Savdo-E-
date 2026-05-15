@@ -44,6 +44,7 @@ const ru: Translations = {
     sales: "Продажи",
     reports: "Отчёты",
     settings: "Настройки",
+    profile: "Профиль",
   },
   home: {
     todaySales: "Продажи",

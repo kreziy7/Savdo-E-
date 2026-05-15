@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoleStore } from "@/store/roleStore";
 import { useT } from "@/hooks/useT";
-import { dark } from "@/theme/colors";
+import { useTheme } from "@/hooks/useTheme";
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"];
 
@@ -13,7 +13,7 @@ export default function PinScreen() {
   const [shake, setShake] = useState(false);
   const { setRole, verifyPIN } = useRoleStore();
   const t = useT();
-  const c = dark;
+  const { c } = useTheme();
 
   function handleKey(k: string) {
     if (k === "⌫") {

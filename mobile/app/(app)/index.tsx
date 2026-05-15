@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useT } from "@/hooks/useT";
 import { useTodayStats } from "@/hooks/useSales";
+import { useLowStockProducts } from "@/hooks/useProducts";
 import { useTheme } from "@/hooks/useTheme";
 import { SaleCard } from "@/components/SaleCard";
 import { SyncStatus } from "@/components/SyncStatus";
@@ -10,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 export default function HomeScreen() {
   const t = useT();
   const { revenue, profit, count, sales } = useTodayStats();
+  const lowStockProducts = useLowStockProducts();
   const { c } = useTheme();
   const margin = revenue > 0 ? Math.round((profit / revenue) * 100) : 0;
 
@@ -100,6 +102,38 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* LOW STOCK ALERT */}
+      {lowStockProducts.length > 0 && (
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={{ backgroundColor: c.bgCard, borderRadius: 18, overflow: "hidden", borderWidth: 1.5, borderColor: c.warn + "50" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: c.warn + "15", borderBottomWidth: 1, borderBottomColor: c.warn + "30" }}>
+              <Ionicons name="warning" size={18} color={c.warn} />
+              <Text style={{ color: c.warn, fontWeight: "800", fontSize: 14, flex: 1 }}>Kam qolgan tovarlar</Text>
+              <View style={{ backgroundColor: c.warn, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: "#fff", fontSize: 11, fontWeight: "800" }}>{lowStockProducts.length}</Text>
+              </View>
+            </View>
+            {lowStockProducts.slice(0, 5).map((p, idx) => (
+              <TouchableOpacity
+                key={p.id}
+                onPress={() => router.push(`/products/${p.id}`)}
+                style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: idx < Math.min(lowStockProducts.length, 5) - 1 ? 1 : 0, borderBottomColor: c.border }}
+              >
+                <Text style={{ color: c.text, fontWeight: "600", fontSize: 14, flex: 1 }} numberOfLines={1}>{p.name}</Text>
+                <View style={{
+                  borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
+                  backgroundColor: p.stockQty === 0 ? c.danger + "18" : c.warn + "18",
+                }}>
+                  <Text style={{ color: p.stockQty === 0 ? c.danger : c.warn, fontWeight: "800", fontSize: 12 }}>
+                    {p.stockQty === 0 ? "Tugadi" : `${p.stockQty} ${p.unit}`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
 
       {/* RECENT SALES */}
       <View style={{ paddingHorizontal: 20, marginTop: 28, marginBottom: 32 }}>

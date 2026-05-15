@@ -28,7 +28,7 @@ export default function RootLayout() {
     if (token) {
       router.replace("/(app)");
     } else {
-      router.replace("/(auth)/login");
+      router.replace("/(auth)/");
     }
   }, [token, ready]);
 

@@ -4,13 +4,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Savdo color tokens (mobile-matched) ─────────────────────── */
+:root {
+  --c-bg:        #F5F8F3;
+  --c-card:      #FFFFFF;
+  --c-muted:     #EAF3E5;
+  --c-border:    #C6DEC0;
+  --c-text:      #182A1A;
+  --c-sub:       #3C6B42;
+  --c-fade:      #7AAA7C;
+  --c-primary:   #2D8B35;
+  --c-primary-d: #1D5E24;
+  --c-danger:    #D62828;
+  --c-warn:      #D97706;
+}
+
+.dark {
+  --c-bg:        #0C1410;
+  --c-card:      #162018;
+  --c-muted:     #1C2C1E;
+  --c-border:    #243E28;
+  --c-text:      #DBF0DB;
+  --c-sub:       #8BBF8E;
+  --c-fade:      #4B7550;
+  --c-primary:   #54BC5A;
+  --c-primary-d: #3A9040;
+  --c-danger:    #EF6060;
+  --c-warn:      #F5A623;
+}
+
 @layer base {
   * {
-    @apply border-gray-200 dark:border-gray-700;
+    border-color: var(--c-border);
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 font-sans antialiased;
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    @apply font-sans antialiased;
     margin: 0;
   }
 
@@ -25,27 +56,44 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    background-color: var(--c-primary);
+    color: #fff;
+    @apply btn hover:opacity-90 focus:ring-2;
   }
 
   .btn-secondary {
-    @apply btn bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-400 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700;
+    background-color: var(--c-muted);
+    color: var(--c-text);
+    @apply btn hover:opacity-80;
   }
 
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+    background-color: var(--c-danger);
+    color: #fff;
+    @apply btn hover:opacity-90;
   }
 
   .btn-outline {
-    @apply btn border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800;
+    border: 1px solid var(--c-border);
+    color: var(--c-sub);
+    background: transparent;
+    @apply btn hover:opacity-80;
   }
 
   .input {
-    @apply w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm shadow-sm placeholder-gray-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500;
+    width: 100%;
+    border: 1px solid var(--c-border);
+    background-color: var(--c-card);
+    color: var(--c-text);
+    @apply rounded-lg px-3.5 py-2.5 text-sm shadow-sm transition focus:outline-none focus:ring-2;
+    --tw-ring-color: var(--c-primary);
+    --tw-border-opacity: 1;
   }
 
   .card {
-    @apply rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900;
+    background-color: var(--c-card);
+    border: 1px solid var(--c-border);
+    @apply rounded-xl shadow-sm;
   }
 
   .badge {
@@ -53,11 +101,13 @@
   }
 
   .skeleton {
-    @apply animate-pulse rounded-md bg-gray-200 dark:bg-gray-700;
+    background-color: var(--c-muted);
+    @apply animate-pulse rounded-md;
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5;
+    color: var(--c-sub);
+    @apply block text-sm font-medium mb-1.5;
   }
 }
 
@@ -67,16 +117,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--c-muted);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--c-border);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--c-fade);
 }
 
 .no-scrollbar::-webkit-scrollbar {

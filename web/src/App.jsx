@@ -12,10 +12,12 @@ import PosNewSale from './pages/pos/PosNewSale';
 import PosProducts from './pages/pos/PosProducts';
 import PosReports from './pages/pos/PosReports';
 
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+import { VerifyOtpPage } from './pages/auth/VerifyOtpPage';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Sales from './pages/Sales';
@@ -29,6 +31,12 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminProducts from './pages/admin/AdminProducts';
 
 import useAuthStore from './store/authStore';
+
+function SmartRoot() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  if (accessToken) return <Navigate to="/dashboard" replace />;
+  return <Landing />;
+}
 
 function AdminRoute({ children }) {
   const user = useAuthStore((s) => s.user);
@@ -76,6 +84,7 @@ export default function App() {
           <GuestRoute><ForgotPasswordPage /></GuestRoute>
         } />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
 
         {/* Protected user routes */}
         <Route element={

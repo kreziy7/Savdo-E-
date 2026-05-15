@@ -1,222 +1,201 @@
-import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { usePageTitle } from "../../hooks/usePageTitle";
-import { useI18n } from "../../i18n/index.jsx";
-import { resetPassword } from "../../api/auth.api";
-import { Eye, EyeOff, Lock, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
-import toast from "react-hot-toast";
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { KeyRound, ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import axios from 'axios';
 
 export function ResetPasswordPage() {
-  const { t } = useI18n();
-  usePageTitle(t("auth.resetPasswordTitle"));
+  const [params]  = useSearchParams();
+  const token     = params.get('token') || '';
 
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const token = searchParams.get("token");
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm]   = useState('');
+  const [showPwd, setShowPwd]   = useState(false);
+  const [showCfm, setShowCfm]   = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [done, setDone]         = useState(false);
+  const [error, setError]       = useState('');
 
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState("");
+  const checks = [
+    { label: 'Kamida 8 ta belgi', pass: password.length >= 8 },
+    { label: 'Kichik harf (a-z)',  pass: /[a-z]/.test(password) },
+    { label: 'Katta harf (A-Z)',  pass: /[A-Z]/.test(password) },
+    { label: 'Raqam (0-9)',       pass: /[0-9]/.test(password) },
+  ];
+  const allPass  = checks.every((c) => c.pass);
+  const pwdMatch = password === confirm && confirm.length > 0;
+  const canSubmit = allPass && pwdMatch && !loading;
 
-  // Token yo'q bo'lsa — xato ko'rsat
-  if (!token) {
-    return (
-      <section className="auth-shell">
-        <div className="auth-card auth-card-single" style={{ textAlign: "center" }}>
-          <AlertTriangle size={48} color="#f59e0b" style={{ margin: "0 auto 16px" }} />
-          <h1 style={{ marginBottom: 8 }}>{t("auth.invalidResetLink")}</h1>
-          <p className="muted-text" style={{ marginBottom: 24 }}>
-            {t("auth.invalidResetLinkDesc")}
-          </p>
-          <Link className="text-link" to="/forgot-password">
-            {t("auth.requestNewLink")}
-          </Link>
-        </div>
-      </section>
-    );
-  }
-
-  const validate = () => {
-    if (password.length < 8) return t("auth.passwordMin");
-    if (!/[A-Z]/.test(password)) return t("auth.passwordUppercase");
-    if (!/[a-z]/.test(password)) return t("auth.passwordLowercase");
-    if (!/\d/.test(password)) return t("auth.passwordNumber");
-    if (password !== confirm) return t("auth.passwordMismatch");
-    return null;
-  };
-
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    setError("");
+    if (!canSubmit) return;
+    setError('');
     setLoading(true);
     try {
-      await resetPassword({ token, password });
+      await axios.post('/api/auth/reset-password', { token, password });
       setDone(true);
-      toast.success(t("auth.passwordUpdated"));
-      setTimeout(() => navigate("/login"), 2500);
-    } catch (err) {
-      setError(err?.response?.data?.message || t("auth.somethingWentWrong"));
+    } catch {
+      setError("Havola yaroqsiz yoki muddati o'tgan. Qaytadan so'rang.");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  if (done) {
+  if (!token) {
     return (
-      <section className="auth-shell">
-        <div className="auth-card auth-card-single" style={{ textAlign: "center" }}>
-          <CheckCircle size={48} color="#22c55e" style={{ margin: "0 auto 16px" }} />
-          <h1 style={{ marginBottom: 8 }}>{t("auth.passwordUpdated")}</h1>
-          <p className="muted-text">{t("auth.redirectingToLogin")}</p>
+      <div className="min-h-screen bg-[#F5F8F3] flex items-center justify-center px-4">
+        <div className="bg-white rounded-3xl border border-[#C6DEC0] p-10 max-w-sm w-full text-center">
+          <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <KeyRound size={24} className="text-red-500" />
+          </div>
+          <h2 className="text-xl font-extrabold text-[#182A1A] mb-2">Havola yaroqsiz</h2>
+          <p className="text-sm text-[#7AAA7C] mb-6">Parolni tiklash uchun yangi so'rov yuboring.</p>
+          <Link
+            to="/forgot-password"
+            className="flex items-center justify-center h-11 rounded-xl bg-[#2D8B35] text-white text-sm font-bold hover:bg-[#1D5E24] transition-all"
+          >
+            Qayta so'rash
+          </Link>
         </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="auth-shell">
-      <div className="auth-card auth-card-single">
-        <p className="eyebrow">{t("auth.resetPasswordEyebrow")}</p>
-        <h1>{t("auth.resetPasswordTitle")}</h1>
-        <p className="muted-text">{t("auth.resetPasswordDescription")}</p>
+    <div className="min-h-screen bg-[#F5F8F3] flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-[420px]">
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label>
-            {t("auth.newPassword")}
-            <div style={{ position: "relative" }}>
-              <Lock
-                size={16}
-                style={{
-                  position: "absolute",
-                  left: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#9ca3af",
-                  pointerEvents: "none",
-                }}
-              />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder={t("auth.enterNewPassword")}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingLeft: 36, paddingRight: 40 }}
-                autoFocus
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                style={{
-                  position: "absolute",
-                  right: 10,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 0,
-                  color: "#9ca3af",
-                }}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </label>
-
-          <label>
-            {t("auth.confirmPassword")}
-            <div style={{ position: "relative" }}>
-              <Lock
-                size={16}
-                style={{
-                  position: "absolute",
-                  left: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#9ca3af",
-                  pointerEvents: "none",
-                }}
-              />
-              <input
-                type={showConfirm ? "text" : "password"}
-                placeholder={t("auth.repeatPassword")}
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                style={{ paddingLeft: 36, paddingRight: 40 }}
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm((v) => !v)}
-                style={{
-                  position: "absolute",
-                  right: 10,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 0,
-                  color: "#9ca3af",
-                }}
-              >
-                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </label>
-
-          {/* Password strength hints */}
-          {password.length > 0 && (
-            <ul style={{ fontSize: 12, color: "#6b7280", margin: "-4px 0 0", paddingLeft: 16, lineHeight: 1.8 }}>
-              <li style={{ color: password.length >= 8 ? "#22c55e" : "#ef4444" }}>
-                {t("auth.passwordMin")}
-              </li>
-              <li style={{ color: /[A-Z]/.test(password) ? "#22c55e" : "#ef4444" }}>
-                {t("auth.passwordUppercase")}
-              </li>
-              <li style={{ color: /[a-z]/.test(password) ? "#22c55e" : "#ef4444" }}>
-                {t("auth.passwordLowercase")}
-              </li>
-              <li style={{ color: /\d/.test(password) ? "#22c55e" : "#ef4444" }}>
-                {t("auth.passwordNumber")}
-              </li>
-            </ul>
-          )}
-
-          {error && (
-            <p style={{ color: "#ef4444", fontSize: 13, margin: "-4px 0 0" }}>{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-          >
-            {loading ? (
-              <>
-                <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-                {t("auth.saving")}
-              </>
-            ) : (
-              t("auth.saveNewPassword")
-            )}
-          </button>
-        </form>
-
-        <Link className="text-link" to="/login">
-          {t("common.backToLogin")}
+        <Link
+          to="/login"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[#3C6B42] hover:text-[#2D8B35] transition-colors mb-8 group"
+        >
+          <div className="w-8 h-8 rounded-xl bg-white border border-[#C6DEC0] flex items-center justify-center group-hover:border-[#2D8B35] transition-colors">
+            <ArrowLeft size={15} />
+          </div>
+          Kirishga qaytish
         </Link>
+
+        <div className="bg-white rounded-3xl border border-[#C6DEC0] shadow-sm overflow-hidden">
+          {!done ? (
+            <>
+              <div className="px-8 pt-8 pb-6 border-b border-[#C6DEC0]">
+                <div className="w-14 h-14 bg-[#EAF3E5] rounded-2xl flex items-center justify-center mb-5">
+                  <KeyRound size={24} className="text-[#2D8B35]" />
+                </div>
+                <h1 className="text-2xl font-extrabold text-[#182A1A] tracking-tight mb-2">Yangi parol</h1>
+                <p className="text-sm text-[#7AAA7C]">Xavfsiz yangi parol o'rnating.</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="px-8 py-6 flex flex-col gap-4">
+
+                {/* Password input */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[#2D8B35] uppercase tracking-wider">Yangi parol</label>
+                  <div className={`flex items-center h-12 rounded-xl border px-4 gap-3 transition-all ${
+                    'border-[#C6DEC0] focus-within:border-[#2D8B35] focus-within:ring-2 focus-within:ring-[#2D8B35]/10'
+                  }`}>
+                    <KeyRound size={16} className="text-[#7AAA7C]" />
+                    <input
+                      type={showPwd ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="flex-1 bg-transparent text-sm text-[#182A1A] placeholder-[#7AAA7C] outline-none"
+                    />
+                    <button type="button" onClick={() => setShowPwd((p) => !p)} className="text-[#7AAA7C] hover:text-[#3C6B42] transition-colors">
+                      {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Requirements checklist */}
+                {password.length > 0 && (
+                  <div className={`bg-[#F5F8F3] rounded-xl p-4 border transition-all ${allPass ? 'border-[#C6DEC0]' : 'border-[#C6DEC0]'}`}>
+                    <p className="text-[10px] font-bold text-[#7AAA7C] uppercase tracking-wider mb-3">Parol talablari</p>
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-3">
+                      {checks.map((ch) => (
+                        <div key={ch.label} className="flex items-center gap-2">
+                          <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${ch.pass ? 'bg-[#2D8B35]' : 'bg-red-100'}`}>
+                            {ch.pass
+                              ? <CheckCircle size={10} className="text-white" />
+                              : <span className="text-red-500 text-[9px] font-black leading-none">✕</span>
+                            }
+                          </div>
+                          <span className={`text-xs font-medium ${ch.pass ? 'text-[#2D8B35]' : 'text-red-500'}`}>{ch.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Confirm input */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[#2D8B35] uppercase tracking-wider">Parolni tasdiqlang</label>
+                  <div className={`flex items-center h-12 rounded-xl border px-4 gap-3 transition-all ${
+                    confirm.length > 0 && !pwdMatch
+                      ? 'border-red-400 bg-red-50/50'
+                      : pwdMatch
+                      ? 'border-[#2D8B35] bg-[#EAF3E5]/40'
+                      : 'border-[#C6DEC0] focus-within:border-[#2D8B35] focus-within:ring-2 focus-within:ring-[#2D8B35]/10'
+                  }`}>
+                    <KeyRound size={16} className="text-[#7AAA7C]" />
+                    <input
+                      type={showCfm ? 'text' : 'password'}
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                      placeholder="••••••••"
+                      className="flex-1 bg-transparent text-sm text-[#182A1A] placeholder-[#7AAA7C] outline-none"
+                    />
+                    <button type="button" onClick={() => setShowCfm((p) => !p)} className="text-[#7AAA7C] hover:text-[#3C6B42] transition-colors">
+                      {showCfm ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {confirm.length > 0 && !pwdMatch && (
+                    <p className="text-xs text-red-500 font-medium">Parollar mos kelmayapti</p>
+                  )}
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                    <p className="text-xs text-red-600 font-medium">{error}</p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={!canSubmit}
+                  className={`flex items-center justify-center gap-2.5 h-12 rounded-xl font-bold text-sm mt-1 transition-all ${
+                    canSubmit
+                      ? 'bg-[#2D8B35] hover:bg-[#1D5E24] text-white shadow-md shadow-[#2D8B35]/20 hover:-translate-y-0.5 active:translate-y-0'
+                      : 'bg-[#EAF3E5] text-[#7AAA7C] cursor-not-allowed'
+                  }`}
+                >
+                  <KeyRound size={16} />
+                  {loading ? 'Saqlanmoqda...' : 'Parolni saqlash'}
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="px-8 py-10 flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-[#EAF3E5] rounded-3xl flex items-center justify-center mb-6">
+                <CheckCircle size={40} className="text-[#2D8B35]" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-[#182A1A] tracking-tight mb-3">Parol yangilandi!</h2>
+              <p className="text-sm text-[#7AAA7C] mb-8">Yangi parolingiz muvaffaqiyatli o'rnatildi.</p>
+              <Link
+                to="/login"
+                className="flex items-center justify-center gap-2 h-11 w-full rounded-xl bg-[#2D8B35] hover:bg-[#1D5E24] text-white text-sm font-bold transition-all shadow-md"
+              >
+                <ArrowLeft size={14} />
+                Kirishga o'tish
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <p className="text-center text-xs text-[#7AAA7C] mt-6">
+          © 2024 <span className="font-bold text-[#2D8B35]">SAVDO</span> · Barcha huquqlar himoyalangan
+        </p>
       </div>
-    </section>
+    </div>
   );
 }

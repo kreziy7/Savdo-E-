@@ -13,13 +13,13 @@ function NavItem({ item, mobile = false }) {
         end={item.to === '/'}
         className={({ isActive }) =>
           `flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all min-w-[52px] ${
-            isActive ? 'text-green-600' : 'text-slate-400 hover:text-green-600'
+            isActive ? 'text-[#2D8B35]' : 'text-[#7AAA7C] hover:text-[#2D8B35]'
           }`
         }
       >
         {({ isActive }) => (
           <>
-            <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-green-50' : ''}`}>
+            <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-[#EAF3E5]' : ''}`}>
               <Icon size={21} strokeWidth={isActive ? 2.5 : 2} />
             </div>
             <span className="text-[10px] font-semibold leading-tight">{item.label}</span>
@@ -36,8 +36,8 @@ function NavItem({ item, mobile = false }) {
       className={({ isActive }) =>
         `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
           isActive
-            ? 'bg-green-500 text-white shadow-sm'
-            : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+            ? 'bg-[#2D8B35] text-white shadow-sm'
+            : 'text-[#3C6B42] hover:bg-[#EAF3E5] hover:text-[#182A1A]'
         }`
       }
     >
@@ -70,24 +70,24 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
+    <div className="min-h-screen bg-[#F5F8F3] flex">
 
       {/* ── Desktop Sidebar ──────────────────────── */}
-      <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-white border-r border-[#E2E8F0] fixed left-0 top-0 bottom-0 z-30">
+      <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-white border-r border-[#C6DEC0] fixed left-0 top-0 bottom-0 z-30">
         {/* Logo */}
-        <div className="px-5 py-6 border-b border-[#E2E8F0]">
-          <span className="text-2xl font-extrabold text-green-500 tracking-tight">SAVDO</span>
-          <p className="text-[11px] text-slate-400 font-medium mt-0.5">Business Manager</p>
+        <div className="px-5 py-6 border-b border-[#C6DEC0]">
+          <span className="text-2xl font-extrabold text-[#2D8B35] tracking-tight">SAVDO</span>
+          <p className="text-[11px] text-[#7AAA7C] font-medium mt-0.5">Business Manager</p>
         </div>
 
         {/* User info */}
-        <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm flex-shrink-0">
+        <div className="px-4 py-3 border-b border-[#C6DEC0] flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-[#EAF3E5] flex items-center justify-center text-[#2D8B35] font-bold text-sm flex-shrink-0">
             {user?.name?.[0]?.toUpperCase() || 'U'}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-700 truncate">{user?.name}</p>
-            <p className="text-[10px] text-slate-400 truncate">{user?.role}</p>
+            <p className="text-xs font-semibold text-[#182A1A] truncate">{user?.name}</p>
+            <p className="text-[10px] text-[#7AAA7C] truncate">{user?.role}</p>
           </div>
         </div>
 
@@ -101,7 +101,7 @@ export default function AppLayout() {
           {isAdmin && (
             <>
               <div className="mt-4 mb-1 px-3">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Admin</p>
+                <p className="text-[10px] font-semibold text-[#7AAA7C] uppercase tracking-wider">Admin</p>
               </div>
               <NavLink
                 to="/admin"
@@ -121,10 +121,10 @@ export default function AppLayout() {
         </nav>
 
         {/* Logout */}
-        <div className="px-3 py-3 border-t border-[#E2E8F0]">
+        <div className="px-3 py-3 border-t border-[#C6DEC0]">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-[#3C6B42] hover:bg-red-50 hover:text-red-500 transition-all"
           >
             <LogOut size={18} strokeWidth={2} />
             <span>Chiqish</span>
@@ -138,7 +138,7 @@ export default function AppLayout() {
       </main>
 
       {/* ── Mobile Bottom Tab Bar ────────────────── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2E8F0] z-30 flex items-center justify-around px-1 py-1 safe-area-pb">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#C6DEC0] z-30 flex items-center justify-around px-1 py-1 safe-area-pb">
         {navItems.slice(0, 5).map((item) => (
           <NavItem key={item.to} item={item} mobile />
         ))}
@@ -147,7 +147,7 @@ export default function AppLayout() {
             to="/admin"
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all min-w-[52px] ${
-                isActive ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'
+                isActive ? 'text-indigo-600' : 'text-[#7AAA7C] hover:text-indigo-600'
               }`
             }
           >

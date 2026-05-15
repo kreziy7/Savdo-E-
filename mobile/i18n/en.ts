@@ -44,6 +44,7 @@ const en: Translations = {
     sales: "Sales",
     reports: "Reports",
     settings: "Settings",
+    profile: "Profile",
   },
   home: {
     todaySales: "Sales",

@@ -62,6 +62,21 @@ export function useLowStockCount() {
   return count;
 }
 
+/** Kam qolgan tovarlar ro'yxati (≤5) — home dashboard uchun */
+export function useLowStockProducts() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const sub = productsCollection
+      .query(Q.where("archived_at", null), Q.where("stock_qty", Q.lte(5)))
+      .observe()
+      .subscribe(setProducts);
+    return () => sub.unsubscribe();
+  }, []);
+
+  return products;
+}
+
 /** Jami aktiv tovarlar soni (tarif limiti uchun) */
 export function useProductCount() {
   const [count, setCount] = useState(0);

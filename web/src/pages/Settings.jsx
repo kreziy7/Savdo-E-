@@ -44,7 +44,7 @@ export default function Settings() {
   };
 
   const roleMap = {
-    USER: { label: t('role_user'), cls: 'bg-green-100 text-green-700' },
+    USER: { label: t('role_user'), cls: 'bg-[#EAF3E5] text-[#2D8B35]' },
     ADMIN: { label: t('role_admin'), cls: 'bg-blue-100 text-blue-700' },
     SUPER_ADMIN: { label: t('role_super_admin'), cls: 'bg-purple-100 text-purple-700' },
   };
@@ -54,18 +54,18 @@ export default function Settings() {
   const role = roleMap[user?.role] || roleMap.USER;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-[#F5F8F3]">
       {/* Header */}
-      <div className="bg-white border-b border-[#E2E8F0] px-5 py-4 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-[#0F172A]">{t('settings')}</h1>
+      <div className="bg-white border-b border-[#C6DEC0] px-5 py-4 sticky top-0 z-10">
+        <h1 className="text-lg font-bold text-[#182A1A]">{t('settings')}</h1>
       </div>
 
       <div className="px-4 sm:px-6 py-5 max-w-3xl mx-auto flex flex-col gap-4">
 
         {/* ── Profile ───────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#E2E8F0]">
-            <p className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">
+        <div className="bg-white rounded-2xl border border-[#C6DEC0] overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#C6DEC0]">
+            <p className="text-xs font-semibold text-[#7AAA7C] uppercase tracking-wider">
               {t('profile')}
             </p>
           </div>
@@ -78,8 +78,8 @@ export default function Settings() {
             </div>
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="text-base font-bold text-[#0F172A] truncate">{user?.name || '—'}</p>
-              <p className="text-sm text-[#64748B] truncate mt-0.5">{user?.email || '—'}</p>
+              <p className="text-base font-bold text-[#182A1A] truncate">{user?.name || '—'}</p>
+              <p className="text-sm text-[#3C6B42] truncate mt-0.5">{user?.email || '—'}</p>
               {user?.role && (
                 <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-lg text-xs font-bold ${role.cls}`}>
                   {role.label}
@@ -90,9 +90,9 @@ export default function Settings() {
         </div>
 
         {/* ── Language ──────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#E2E8F0]">
-            <p className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">
+        <div className="bg-white rounded-2xl border border-[#C6DEC0] overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#C6DEC0]">
+            <p className="text-xs font-semibold text-[#7AAA7C] uppercase tracking-wider">
               {t('language')}
             </p>
           </div>
@@ -105,24 +105,24 @@ export default function Settings() {
                   onClick={() => i18n.changeLanguage(lang.code)}
                   className={`flex items-center justify-between w-full px-4 py-3.5 rounded-xl border transition-all ${
                     isActive
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-[#E2E8F0] bg-white hover:bg-slate-50'
+                      ? 'border-[#2D8B35] bg-[#EAF3E5]'
+                      : 'border-[#C6DEC0] bg-white hover:bg-[#F5F8F3]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl leading-none">{lang.flag}</span>
                     <div className="text-left">
-                      <p className={`text-sm font-bold leading-tight ${isActive ? 'text-green-700' : 'text-[#0F172A]'}`}>
+                      <p className={`text-sm font-bold leading-tight ${isActive ? 'text-[#2D8B35]' : 'text-[#182A1A]'}`}>
                         {lang.native}
                       </p>
                     </div>
                   </div>
                   {isActive ? (
-                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-[#2D8B35] flex items-center justify-center flex-shrink-0">
                       <Check size={13} className="text-white" strokeWidth={3} />
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full border-2 border-[#E2E8F0] flex-shrink-0" />
+                    <div className="w-6 h-6 rounded-full border-2 border-[#C6DEC0] flex-shrink-0" />
                   )}
                 </button>
               );
@@ -131,20 +131,20 @@ export default function Settings() {
         </div>
 
         {/* ── About ─────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#E2E8F0]">
-            <p className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider">
+        <div className="bg-white rounded-2xl border border-[#C6DEC0] overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#C6DEC0]">
+            <p className="text-xs font-semibold text-[#7AAA7C] uppercase tracking-wider">
               {t('about')}
             </p>
           </div>
-          <div className="divide-y divide-[#E2E8F0]">
+          <div className="divide-y divide-[#C6DEC0]">
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm font-medium text-[#0F172A]">{t('app_name')}</span>
-              <span className="text-sm font-extrabold text-green-600 tracking-tight">SAVDO</span>
+              <span className="text-sm font-medium text-[#182A1A]">{t('app_name')}</span>
+              <span className="text-sm font-extrabold text-[#2D8B35] tracking-tight">SAVDO</span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm font-medium text-[#0F172A]">{t('version')}</span>
-              <span className="text-sm font-medium text-[#64748B]">1.0.0</span>
+              <span className="text-sm font-medium text-[#182A1A]">{t('version')}</span>
+              <span className="text-sm font-medium text-[#3C6B42]">1.0.0</span>
             </div>
           </div>
         </div>

@@ -42,6 +42,7 @@ const uz = {
     sales: "Sotuv",
     reports: "Hisobot",
     settings: "Sozlamalar",
+    profile: "Profil",
   },
   home: {
     todaySales: "Sotuv",
