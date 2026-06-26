@@ -2,19 +2,26 @@ import { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
 import { useLangStore } from "@/store/langStore";
 import { useAuthStore } from "@/store/authStore";
 import { useT } from "@/hooks/useT";
 import { api } from "@/services/api";
 import { useTheme } from "@/hooks/useTheme";
 import { light } from "@/theme/colors";
+import { seedDemoData } from "@/db/demoSeed";
 import { Lang } from "@/i18n";
 
-GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? "",
-  offlineAccess: true,
-});
+let GoogleSignin: any = null;
+let statusCodes: any = null;
+try {
+  const gs = require("@react-native-google-signin/google-signin");
+  GoogleSignin = gs.GoogleSignin;
+  statusCodes = gs.statusCodes;
+  GoogleSignin.configure({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? "",
+    offlineAccess: true,
+  });
+} catch {} // native module not available in Expo Go
 
 const LANGS: { code: Lang; label: string; flag: string }[] = [
   { code: "uz", label: "UZ", flag: "🇺🇿" },
@@ -81,6 +88,10 @@ export default function LoginScreen() {
   const { c } = useTheme();
 
   async function handleGoogleSignIn() {
+    if (!GoogleSignin) {
+      Alert.alert("Xatolik", "Google Sign-In faqat native build'da ishlaydi");
+      return;
+    }
     setLoading(true);
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -93,8 +104,8 @@ export default function LoginScreen() {
       const data = apiRes.data?.data ?? apiRes.data;
       await setToken(data.accessToken, data.refreshToken);
     } catch (e: any) {
-      if (e?.code === statusCodes.SIGN_IN_CANCELLED) return;
-      if (e?.code === statusCodes.IN_PROGRESS) return;
+      if (statusCodes && e?.code === statusCodes.SIGN_IN_CANCELLED) return;
+      if (statusCodes && e?.code === statusCodes.IN_PROGRESS) return;
       const msg = e?.response?.data?.message || "Google bilan kirish xatolik";
       Alert.alert("Xatolik", msg);
     } finally {
@@ -136,6 +147,7 @@ export default function LoginScreen() {
     try {
       if (password === "demo") {
         await setToken("demo-token", "demo-refresh");
+        seedDemoData().catch(() => {});
         return;
       }
       const res = await api.post("/auth/login", { email: email.toLowerCase(), password });
@@ -179,6 +191,7 @@ export default function LoginScreen() {
 
   async function enterDemo() {
     await setToken("demo-token", "demo-refresh");
+    seedDemoData().catch(() => {});
   }
 
   return (

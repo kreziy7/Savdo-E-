@@ -1,7 +1,8 @@
 import { useThemeStore } from "@/store/themeStore";
-import { light, dark } from "@/theme/colors";
+import { dark } from "@/theme/colors";
+import { unix } from "@/theme/unix";
 
 export function useTheme() {
   const isDark = useThemeStore((s) => s.isDark);
-  return { c: isDark ? dark : light, isDark };
+  return { c: isDark ? dark : unix, isDark };
 }

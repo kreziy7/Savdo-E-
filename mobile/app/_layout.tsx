@@ -35,7 +35,7 @@ export default function RootLayout() {
   }, [token, ready]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || token === "demo-token") return;
     runSync();
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active") runSync();

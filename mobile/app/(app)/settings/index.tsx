@@ -18,11 +18,11 @@ const LANGS: { code: Lang; label: string; flag: string }[] = [
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const { c } = useTheme();
   return (
-    <View style={{ paddingHorizontal: 20, marginBottom: 8 }}>
-      <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "700", letterSpacing: 1.5, marginBottom: 8, marginLeft: 4 }}>
+    <View style={{ paddingHorizontal: 16, marginBottom: 6 }}>
+      <Text style={{ color: c.textMuted, fontSize: 10, fontWeight: "700", letterSpacing: 1.2, marginBottom: 6, marginLeft: 4 }}>
         {title.toUpperCase()}
       </Text>
-      <View style={{ backgroundColor: c.bgCard, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: c.border }}>
+      <View style={{ backgroundColor: c.bgCard, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: c.border }}>
         {children}
       </View>
     </View>
@@ -43,14 +43,14 @@ function Row({ iconName, iconBg, label, sub, right, onPress, danger }: {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
-      style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14 }}
+      style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 12 }}
     >
-      <View style={{ width: 38, height: 38, backgroundColor: danger ? "#FEE2E2" : (iconBg || c.bgMuted), borderRadius: 12, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
-        <Ionicons name={iconName} size={20} color={danger ? c.danger : c.textSub} />
+      <View style={{ width: 34, height: 34, backgroundColor: danger ? "#FEE2E2" : (iconBg || c.bgMuted), borderRadius: 10, alignItems: "center", justifyContent: "center", marginRight: 10 }}>
+        <Ionicons name={iconName} size={18} color={danger ? c.danger : c.textSub} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: danger ? c.danger : c.text, fontWeight: "700", fontSize: 14 }}>{label}</Text>
-        {sub && <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 1 }}>{sub}</Text>}
+        <Text style={{ color: danger ? c.danger : c.text, fontWeight: "700", fontSize: 13 }}>{label}</Text>
+        {sub && <Text style={{ color: c.textMuted, fontSize: 11, marginTop: 1 }}>{sub}</Text>}
       </View>
       {right}
     </TouchableOpacity>
@@ -59,7 +59,7 @@ function Row({ iconName, iconBg, label, sub, right, onPress, danger }: {
 
 function Divider() {
   const { c } = useTheme();
-  return <View style={{ height: 1, backgroundColor: c.border, marginLeft: 66 }} />;
+  return <View style={{ height: 1, backgroundColor: c.border, marginLeft: 58 }} />;
 }
 
 export default function ProfileScreen() {
@@ -81,44 +81,21 @@ export default function ProfileScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: c.bg }} showsVerticalScrollIndicator={false}>
 
       {/* Profile Header */}
-      <View style={{ backgroundColor: c.bg, paddingHorizontal: 20, paddingTop: 56, paddingBottom: 24 }}>
-        <Text style={{ color: c.text, fontSize: 28, fontWeight: "800", marginBottom: 20 }}>{t.nav.profile}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: c.bgCard, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: c.border }}>
-          <View style={{ width: 64, height: 64, backgroundColor: c.primary + "20", borderRadius: 32, alignItems: "center", justifyContent: "center" }}>
-            <Ionicons name="person" size={30} color={c.primary} />
+      <View style={{ backgroundColor: c.bg, paddingHorizontal: 16, paddingTop: 48, paddingBottom: 16 }}>
+        <Text style={{ color: c.text, fontSize: 22, fontWeight: "800", marginBottom: 14 }}>{t.nav.profile}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: c.bgCard, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: c.border }}>
+          <View style={{ width: 52, height: 52, backgroundColor: c.primary + "20", borderRadius: 26, alignItems: "center", justifyContent: "center" }}>
+            <Ionicons name="person" size={24} color={c.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: c.text, fontWeight: "800", fontSize: 17 }}>Savdogar</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
-              <View style={{ backgroundColor: c.primary + "18", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 }}>
-                <Text style={{ color: c.primary, fontSize: 11, fontWeight: "800" }}>
-                  {isAdmin() ? "ADMIN" : "FREE"}
-                </Text>
-              </View>
-              <Text style={{ color: c.textMuted, fontSize: 12 }}>v1.0.0</Text>
-            </View>
+            <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>Savdogar</Text>
+            <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 2 }}>v1.0.0</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={c.border} />
+          <Ionicons name="chevron-forward" size={16} color={c.border} />
         </View>
       </View>
 
-      {/* Appearance */}
-      <Section title={t.settings.appearance}>
-        <Row
-          iconName={isDark ? "moon" : "sunny"}
-          iconBg={isDark ? "#1E293B" : "#FEF9C3"}
-          label={isDark ? t.settings.dark : t.settings.light}
-          sub={t.settings.themeToggle}
-          right={
-            <Switch
-              value={isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: c.border, true: c.primary }}
-              thumbColor="#fff"
-            />
-          }
-        />
-      </Section>
+
 
       {/* Language */}
       <Section title={t.settings.language}>
@@ -173,6 +150,25 @@ export default function ProfileScreen() {
           sub={t.employees.add}
           right={<Ionicons name="chevron-forward" size={18} color={c.textMuted} />}
           onPress={() => router.push("/settings/employees")}
+        />
+      </Section>
+
+      {/* Appearance */}
+      <Section title={t.settings.appearance}>
+        <Row
+          iconName={isDark ? "moon" : "sunny"}
+          iconBg="#FEF3C7"
+          label={t.settings.theme}
+          sub={isDark ? t.settings.dark : t.settings.light}
+          right={
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: c.border, true: c.primary + "60" }}
+              thumbColor={isDark ? c.primary : "#fff"}
+              style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+            />
+          }
         />
       </Section>
 

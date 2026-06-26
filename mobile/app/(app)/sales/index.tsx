@@ -144,7 +144,7 @@ export default function SalesScreen() {
         )}
       />
 
-      <DraggableFAB color={c.primary} onPress={() => router.push("/sales/add")} />
+      <DraggableFAB color={c.primary} onPress={() => router.push("/sales/add")} bottomOffset={160} />
     </View>
   );
 }

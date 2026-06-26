@@ -10,11 +10,12 @@ const DRAG_THRESHOLD = 6;
 interface Props {
   onPress: () => void;
   color: string;
+  bottomOffset?: number;
 }
 
-export function DraggableFAB({ onPress, color }: Props) {
-  const pan = useRef(new Animated.ValueXY({ x: W - SIZE - MARGIN, y: H - SIZE - 100 })).current;
-  const lastPos = useRef({ x: W - SIZE - MARGIN, y: H - SIZE - 100 });
+export function DraggableFAB({ onPress, color, bottomOffset = 100 }: Props) {
+  const pan = useRef(new Animated.ValueXY({ x: W - SIZE - MARGIN, y: H - SIZE - bottomOffset })).current;
+  const lastPos = useRef({ x: W - SIZE - MARGIN, y: H - SIZE - bottomOffset });
   const hasDragged = useRef(false);
   const onPressRef = useRef(onPress);
   onPressRef.current = onPress;

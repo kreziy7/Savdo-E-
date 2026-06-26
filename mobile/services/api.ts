@@ -21,6 +21,9 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
     if (error.response?.status === 401 && !original._retry) {
+      const token = useAuthStore.getState().token;
+      if (token === "demo-token") return Promise.reject(error);
+
       original._retry = true;
       try {
         const refreshToken = useAuthStore.getState().refreshToken;

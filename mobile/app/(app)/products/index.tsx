@@ -164,7 +164,7 @@ export default function ProductsScreen() {
         }}
       />
 
-      <DraggableFAB color={c.primary} onPress={() => router.push("/products/add")} />
+      <DraggableFAB color={c.primary} onPress={() => router.push("/products/add")} bottomOffset={160} />
 
       {/* Options bottom sheet */}
       <Modal

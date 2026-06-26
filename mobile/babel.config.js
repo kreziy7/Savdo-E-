@@ -8,6 +8,12 @@ module.exports = function (api) {
       ["@babel/plugin-proposal-decorators", { legacy: true }],
       ["@babel/plugin-transform-flow-strip-types", { allowDeclareFields: true }],
       "react-native-worklets/plugin",
+      ["module-resolver", {
+        root: ["."],
+        alias: {
+          "@": ".",
+        },
+      }],
     ],
   };
 };
